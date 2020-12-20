@@ -12,6 +12,7 @@ html {
 
 :root {
   font-size: $font-size-base * 1.5;
+  text-rendering: geometricPrecision;
 }
 
 body {

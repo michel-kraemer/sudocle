@@ -14,8 +14,8 @@ if (typeof window !== "undefined") {
   PIXI = require("pixi.js")
 }
 
-const regions = data.regions.map(region => {
-  let polys = region.map(cell => {
+function unionCells(cells) {
+  let polys = cells.map(cell => {
     let y = cell[0]
     let x = cell[1]
     return [[
@@ -30,13 +30,183 @@ const regions = data.regions.map(region => {
     for (let p of u) {
       let f = p[0]
       let l = p[p.length - 1]
-      if (f[0] !== l[0] && f[1] !== l[1]) {
-        p.push(f)
+      if (f[0] === l[0] && f[1] === l[1]) {
+        p.splice(p.length - 1, 1)
       }
     }
   }
   return unions
+}
+
+const regions = data.regions.map(region => {
+  return unionCells(region)
 })
+
+const cages = data.cages.map(cage => {
+  let unions = unionCells(cage.cells, 2)
+
+  // find top-left cell
+  let topleft = cage.cells[0]
+  for (let cell of cage.cells) {
+    if (cell[0] < topleft[0]) {
+      topleft = cell
+    } else if (cell[0] === topleft[0] && cell[1] < topleft[1]) {
+      topleft = cell
+    }
+  }
+
+  return {
+    outlines: unions,
+    value: cage.value,
+    topleft
+  }
+})
+
+// shrink polygon inwards by distance `d`
+function shrinkPolygon(points, d) {
+  let result = []
+
+  for (let i = 0; i < points.length; i += 2) {
+    let p1x = points[(i - 2 + points.length) % points.length]
+    let p1y = points[(i - 1 + points.length) % points.length]
+    let p2x = points[(i + 0) % points.length]
+    let p2y = points[(i + 1) % points.length]
+    let p3x = points[(i + 2) % points.length]
+    let p3y = points[(i + 3) % points.length]
+
+    let ax = p2x - p1x
+    let ay = p2y - p1y
+    let anx = -ay
+    let any = ax
+    let al = Math.sqrt(anx * anx + any * any)
+    anx /= al
+    any /= al
+
+    let bx = p3x - p2x
+    let by = p3y - p2y
+    let bnx = -by
+    let bny = bx
+    let bl = Math.sqrt(bnx * bnx + bny * bny)
+    bnx /= bl
+    bny /= bl
+
+    let nx = anx + bnx
+    let ny = any + bny
+
+    result.push(p2x + nx * d)
+    result.push(p2y + ny * d)
+  }
+
+  return result
+}
+
+// dispose edges of given polygon by distance `d` whenever they lie on an
+// edge of one of the other given polygons
+function disposePolygon(points, otherPolygons, d) {
+  let result = [...points]
+  for (let i = 0; i < points.length; i += 2) {
+    let p1x = points[i]
+    let p1y = points[i + 1]
+    let p2x = points[(i + 2) % points.length]
+    let p2y = points[(i + 3) % points.length]
+
+    let sx = p1y < p2y ? -1 : 1
+    let sy = p1x > p2x ? -1 : 1
+
+    for (let otherPoints of otherPolygons) {
+      let disposed = false
+      for (let j = 0; j < otherPoints.length; j += 2) {
+        let o1x = otherPoints[j]
+        let o1y = otherPoints[j + 1]
+        let o2x = otherPoints[(j + 2) % otherPoints.length]
+        let o2y = otherPoints[(j + 3) % otherPoints.length]
+
+        if (o1x > o2x) {
+          let x = o2x
+          o2x = o1x
+          o1x = x
+        }
+        if (o1y > o2y) {
+          let y = o2y
+          o2y = o1y
+          o1y = y
+        }
+
+        // simplified because we know edges are always vertical or horizontal
+        if (o1x === o2x && p1x === o1x && p2x === o2x &&
+            ((o1y <= p1y && o2y >= p1y) || (o1y <= p2y && o2y >= p2y))) {
+          result[i] = p1x + d * sx
+          result[(i + 2) % points.length] = p2x + d * sx
+          disposed = true
+          break
+        }
+        if (o1y === o2y && p1y === o1y && p2y === o2y &&
+            ((o1x <= p1x && o2x >= p1x) || (o1x <= p2x && o2x >= p2x))) {
+          result[i + 1] = p1y + d * sy
+          result[(i + 3) % points.length] = p2y + d * sy
+          disposed = true
+          break
+        }
+      }
+      if (disposed) {
+        break
+      }
+    }
+  }
+  return result
+}
+
+// based on https://codepen.io/unrealnl/pen/aYaxBW by Erik
+// published under the MIT license
+function drawDashedPolygon(points, dash, gap, graphics) {
+  let dashLeft = 0
+  let gapLeft = 0
+
+  for (let i = 0; i < points.length; i += 2) {
+    let p1x = points[i]
+    let p1y = points[i + 1]
+    let p2x = points[(i + 2) % points.length]
+    let p2y = points[(i + 3) % points.length]
+
+    let dx = p2x - p1x
+    let dy = p2y - p1y
+
+    let len = Math.sqrt(dx * dx + dy * dy)
+    let normalx = dx / len
+    let normaly = dy / len
+    let progressOnLine = 0
+
+    graphics.moveTo(p1x + gapLeft * normalx, p1y + gapLeft * normaly)
+
+    while (progressOnLine <= len) {
+      progressOnLine += gapLeft
+
+      if (dashLeft > 0) {
+        progressOnLine += dashLeft
+      } else {
+        progressOnLine += dash
+      }
+
+      if (progressOnLine > len) {
+        dashLeft = progressOnLine - len
+        progressOnLine = len
+      } else {
+        dashLeft = 0
+      }
+
+      graphics.lineTo(p1x + progressOnLine * normalx, p1y + progressOnLine * normaly)
+
+      progressOnLine += gap
+
+      if (progressOnLine > len && dashLeft === 0) {
+        gapLeft = progressOnLine - len
+      } else {
+        gapLeft = 0
+        graphics.moveTo(p1x + progressOnLine * normalx, p1y + progressOnLine * normaly)
+      }
+    }
+  }
+}
 
 const Grid = ({ game, updateGame }) => {
   const ref = useRef()
@@ -143,6 +313,7 @@ const Grid = ({ game, updateGame }) => {
         selection.drawRect(0.5, 0.5, CELL_SIZE - 1, CELL_SIZE - 1)
         selection.endFill()
         selection.alpha = 0
+        selection.zIndex = 5
         cell.addChild(selection)
 
         cell.on("pointerdown", function (e) {
@@ -163,16 +334,51 @@ const Grid = ({ game, updateGame }) => {
     })
 
     // render regions
-    for (let region of regions) {
-      for (let outlines of region) {
+    let flattedRegionOutlines = flatten(flatten(regions)).map(o => flatten(o))
+    for (let outline of flattedRegionOutlines) {
+      let poly = new PIXI.Graphics()
+      poly.lineStyle({ width: 3, color: 0 })
+      poly.drawPolygon(outline)
+      poly.zIndex = 10
+      grid.addChild(poly)
+    }
+
+    // render cages
+    for (let cage of cages) {
+      for (let outlines of cage.outlines) {
         for (let outline of outlines) {
           let poly = new PIXI.Graphics()
-          poly.lineStyle({ width: 3, color: 0 })
-          poly.drawPolygon(flatten(outline))
+          let flattenedOutline = flatten(outline)
+          let disposedOutline = disposePolygon(flattenedOutline, flattedRegionOutlines, 1)
+          let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
+          poly.lineStyle({ width: 1, color: 0 })
+          drawDashedPolygon(shrunkenOutline, 3, 2, poly)
           poly.zIndex = 1
           grid.addChild(poly)
         }
       }
+
+      // create cage label
+      // use larger font and scale down afterwards to improve text rendering
+      let topleftText = new PIXI.Text(cage.value, {
+        fontFamily: "Tahoma, Verdana, sans-serif",
+        fontSize: 26
+      })
+      topleftText.zIndex = 3
+      topleftText.x = cage.topleft[1] * CELL_SIZE + CELL_SIZE / 20
+      topleftText.y = cage.topleft[0] * CELL_SIZE + CELL_SIZE / 60
+      topleftText.scale.x = 0.5
+      topleftText.scale.y = 0.5
+      grid.addChild(topleftText)
+
+      let topleftBg = new PIXI.Graphics()
+      topleftBg.beginFill(0xffffff)
+      topleftBg.drawRect(0, 0, topleftText.width + CELL_SIZE / 10 - 1, topleftText.height + CELL_SIZE / 60)
+      topleftBg.endFill()
+      topleftBg.zIndex = 2
+      topleftBg.x = cage.topleft[1] * CELL_SIZE + 0.5
+      topleftBg.y = cage.topleft[0] * CELL_SIZE + 0.5
+      grid.addChild(topleftBg)
     }
 
     // create empty text elements for all digits
@@ -182,7 +388,7 @@ const Grid = ({ game, updateGame }) => {
           fontFamily: "Tahoma, Verdana, sans-serif",
           fontSize: 40
         })
-        text.zIndex = 1
+        text.zIndex = 10
         text.x = x * CELL_SIZE + CELL_SIZE / 2
         text.y = y * CELL_SIZE + CELL_SIZE / 2 - 0.5
         text.anchor.set(0.5)
