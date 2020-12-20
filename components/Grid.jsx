@@ -1,17 +1,11 @@
 // import data from "../Qh7QjthLmb.json"
 import data from "../jGjPpHfLtM.json"
+import { eqCell } from "./lib/utils"
+import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
-import { useCallback, useEffect, useRef, useReducer } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { flatten } from "lodash"
-
-const TYPE_DIGITS = "digits"
-const TYPE_SELECTION = "selection"
-
-const ACTION_SET = "set"
-const ACTION_PUSH = "push"
-const ACTION_CLEAR = "clear"
-const ACTION_REMOVE = "remove"
 
 const CELL_SIZE = data.cellSize * 1.1
 
@@ -44,66 +38,7 @@ const regions = data.regions.map(region => {
   return unions
 })
 
-function eqCell(a, b) {
-  return a.row === b.row && a.col === b.col
-}
-
-function digitsReducer(state, action, selection) {
-  switch (action.action) {
-    case ACTION_SET: {
-      let newState = state
-      for (let sc of selection) {
-        newState = [...newState.filter(c => !eqCell(sc, c.data)), {
-          data: sc,
-          digit: action.digit
-        }]
-      }
-      return newState
-    }
-
-    case ACTION_REMOVE: {
-      let newState = state
-      for (let sc of selection) {
-        newState = [...newState.filter(c => !eqCell(sc, c.data))]
-      }
-      return newState
-    }
-  }
-  return state
-}
-
-function selectionReducer(state, action) {
-  switch (action.action) {
-    case ACTION_CLEAR:
-      return []
-    case ACTION_SET:
-      return [action.data]
-    case ACTION_PUSH:
-      return [...state, action.data]
-    case ACTION_REMOVE:
-      return [...state.filter(c => !eqCell(c, action.data))]
-  }
-  return state
-}
-
-function gameReducer(state, action) {
-  switch (action.type) {
-    case TYPE_DIGITS:
-      return {
-        ...state,
-        digits: digitsReducer(state.digits, action, state.selection)
-      }
-
-    case TYPE_SELECTION:
-      return {
-        ...state,
-        selection: selectionReducer(state.selection, action)
-      }
-  }
-  return state
-}
-
-const Grid = () => {
+const Grid = ({ game, updateGame }) => {
   const ref = useRef()
   const app = useRef()
   const cellElements = useRef([])
@@ -111,12 +46,7 @@ const Grid = () => {
   const keyMetaPressed = useRef(false)
   const keyShiftPressed = useRef(false)
 
-  const [game, updateGame] = useReducer(gameReducer, {
-    digits: [],
-    selection: []
-  })
-
-  function selectCell(cell, append = false) {
+  const selectCell = useCallback((cell, append = false) => {
     let action = append ? ACTION_PUSH : ACTION_SET
     if (keyMetaPressed.current) {
       if (keyShiftPressed.current) {
@@ -130,7 +60,7 @@ const Grid = () => {
       action,
       data: cell.data
     })
-  }
+  }, [updateGame])
 
   const onKey = useCallback(e => {
     keyShiftPressed.current = e.shiftKey
@@ -154,11 +84,15 @@ const Grid = () => {
         action: ACTION_REMOVE
       })
     }
-  }, [onKey])
+  }, [onKey, updateGame])
 
   const onKeyUp = useCallback(e => {
     onKey(e)
   }, [onKey])
+
+  function onBackgroundClick(e) {
+    e.stopPropagation()
+  }
 
   useEffect(() => {
     // create PixiJS app
@@ -178,6 +112,7 @@ const Grid = () => {
     let grid = new PIXI.Container()
     let cells = new PIXI.Container()
 
+    newApp.stage.sortableChildren = true
     grid.sortableChildren = true
 
     // render cells
@@ -210,14 +145,16 @@ const Grid = () => {
         selection.alpha = 0
         cell.addChild(selection)
 
-        cell.on("pointerdown", function () {
+        cell.on("pointerdown", function (e) {
           selectCell(this)
+          e.stopPropagation()
         })
 
         cell.on("pointerover", function (e) {
           if (e.data.buttons === 1) {
             selectCell(this, true)
           }
+          e.stopPropagation()
         })
 
         cells.addChild(cell)
@@ -263,6 +200,20 @@ const Grid = () => {
 
     grid.addChild(cells)
     newApp.stage.addChild(grid)
+
+    let background = new PIXI.Graphics()
+    background.hitArea = new PIXI.Rectangle(0, 0, newApp.screen.width, newApp.screen.height)
+    background.drawRect(0, 0, newApp.screen.width, newApp.screen.height)
+    background.interactive = true
+    background.zIndex = -1000
+    background.on("pointerdown", () => {
+      updateGame({
+        type: TYPE_SELECTION,
+        action: ACTION_CLEAR
+      })
+    })
+    newApp.stage.addChild(background)
+
     newApp.render()
 
     return () => {
@@ -271,7 +222,7 @@ const Grid = () => {
       })
       app.current = undefined
     }
-  }, [])
+  }, [selectCell, updateGame])
 
   // register keyboard handlers
   useEffect(() => {
@@ -306,7 +257,7 @@ const Grid = () => {
   }, [game.digits])
 
   return (
-    <div ref={ref} className="grid">
+    <div ref={ref} className="grid" onClick={onBackgroundClick}>
       <style jsx>{styles}</style>
     </div>
   )
