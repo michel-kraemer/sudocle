@@ -7,7 +7,7 @@ import styles from "./Grid.scss"
 import { useCallback, useEffect, useRef } from "react"
 import { flatten } from "lodash"
 
-const CELL_SIZE = data.cellSize * 1.1
+const CELL_SIZE = data.cellSize * 1.2
 
 let PIXI
 if (typeof window !== "undefined") {

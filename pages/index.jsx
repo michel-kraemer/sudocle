@@ -1,4 +1,5 @@
 import Grid from "../components/Grid"
+import Pad from "../components/Pad"
 import StatusBar from "../components/StatusBar"
 import { eqCell } from "../components/lib/utils"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE } from "../components/lib/Actions"
@@ -88,6 +89,7 @@ const Index = () => {
       <div className="grid-container">
         <Grid game={game} updateGame={updateGame} />
       </div>
+      <Pad updateGame={updateGame} />
       <style jsx>{styles}</style>
     </div>
   </>)

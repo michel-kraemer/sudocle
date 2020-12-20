@@ -11,6 +11,7 @@
   "author": "Michel Kraemer",
   "license": "MIT",
   "dependencies": {
+    "classnames": "^2.2.6",
     "eslint-loader": "^4.0.2",
     "lodash": "^4.17.20",
     "next": "^10.0.3",

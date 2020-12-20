@@ -1,0 +1,33 @@
+.pad {
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: grid;
+  grid-gap: 0.4rem;
+  grid-template-columns: 1fr 1.5fr;
+  margin-right: 100px;
+}
+
+.left {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 0.2rem;
+}
+
+.right {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 0.2rem;
+}
+
+.delete {
+  grid-column-start: 1;
+  grid-column-end: 4;
+}
+
+.bottom {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 0.2rem;
+}
