@@ -1,0 +1,32 @@
+{
+  "name": "sudoku",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "dev": "next",
+    "build": "npm run lint && rm -rf .next out && next build && next export",
+    "lint": "eslint --ext js,jsx components pages && stylelint \"**/*.scss\""
+  },
+  "author": "Michel Kraemer",
+  "license": "MIT",
+  "dependencies": {
+    "eslint-loader": "^4.0.2",
+    "lodash": "^4.17.20",
+    "next": "^10.0.3",
+    "normalize.css": "^8.0.1",
+    "pixi.js": "^5.3.5",
+    "polygon-clipping": "^0.15.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "styled-jsx-plugin-sass": "^1.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.16.0",
+    "eslint-plugin-react": "^7.21.5",
+    "eslint-plugin-react-hooks": "^4.2.0",
+    "stylelint": "^13.8.0",
+    "stylelint-config-standard": "^20.0.0",
+    "stylelint-scss": "^3.18.0"
+  }
+}

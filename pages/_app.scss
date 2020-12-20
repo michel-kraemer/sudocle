@@ -1,0 +1,15 @@
+@import "normalize.css/normalize";
+
+$font-size-base: 20px;
+
+html {
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+:root {
+  font-size: $font-size-base * 1.5;
+}
