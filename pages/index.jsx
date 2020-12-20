@@ -1,7 +1,9 @@
 import Grid from "../components/Grid"
+import StatusBar from "../components/StatusBar"
 import { eqCell } from "../components/lib/utils"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE } from "../components/lib/Actions"
 import { useReducer } from "react"
+import Head from "next/head"
 import styles from "./index.scss"
 
 function digitsReducer(state, action, selection) {
@@ -72,12 +74,23 @@ const Index = () => {
     })
   }
 
-  return <div className="game-container" onClick={clearSelection}>
-    <div className="grid-container">
-      <Grid game={game} updateGame={updateGame} />
+  return (<>
+    <Head>
+      <meta httpEquiv="X-UA-Compatible" content="IE=edge"/>
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+      <meta name="description" content="Sudoku"/>
+      <meta name="robots" content="index,follow"/>
+      <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"/>
+      <title>Sudoku</title>
+    </Head>
+    <StatusBar />
+    <div className="game-container" onClick={clearSelection}>
+      <div className="grid-container">
+        <Grid game={game} updateGame={updateGame} />
+      </div>
+      <style jsx>{styles}</style>
     </div>
-    <style jsx>{styles}</style>
-  </div>
+  </>)
 }
 
 export default Index
