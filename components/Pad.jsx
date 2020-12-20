@@ -1,8 +1,9 @@
 import Button from "./Button"
 import { TYPE_DIGITS, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
+import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
 import styles from "./Pad.scss"
 
-const Pad = ({ updateGame }) => {
+const Pad = ({ updateGame, mode, setMode }) => {
   function onDigit(digit) {
     updateGame({
       type: TYPE_DIGITS,
@@ -20,10 +21,10 @@ const Pad = ({ updateGame }) => {
 
   return <div className="pad">
     <div className="left">
-      <Button active>Normal</Button>
-      <Button>Corner</Button>
-      <Button>Centre</Button>
-      <Button>Colour</Button>
+      <Button active={mode === MODE_NORMAL} onClick={() => setMode(MODE_NORMAL)}>Normal</Button>
+      <Button active={mode === MODE_CORNER} onClick={() => setMode(MODE_CORNER)}>Corner</Button>
+      <Button active={mode === MODE_CENTRE} onClick={() => setMode(MODE_CENTRE)}>Centre</Button>
+      <Button active={mode === MODE_COLOUR} onClick={() => setMode(MODE_COLOUR)}>Colour</Button>
     </div>
     <div className="right">
       <Button active onClick={() => onDigit(1)}>1</Button>

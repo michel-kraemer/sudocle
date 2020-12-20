@@ -1,5 +1,5 @@
-// import data from "../Qh7QjthLmb.json"
-import data from "../jGjPpHfLtM.json"
+import data from "../Qh7QjthLmb.json"
+// import data from "../jGjPpHfLtM.json"
 import { eqCell } from "./lib/utils"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
 import polygonClipping from "polygon-clipping"
@@ -246,6 +246,7 @@ const Grid = ({ game, updateGame }) => {
         action: ACTION_SET,
         digit: +e.key
       })
+      e.preventDefault()
     }
 
     if (e.key === "Backspace" || e.key === "Delete") {
