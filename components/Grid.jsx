@@ -258,8 +258,8 @@ const Grid = () => {
       })
     })
 
-    grid.x = 100
-    grid.y = 100
+    grid.x = (newApp.screen.width - grid.width) / 2
+    grid.y = (newApp.screen.height - grid.height) / 2
 
     grid.addChild(cells)
     newApp.stage.addChild(grid)
