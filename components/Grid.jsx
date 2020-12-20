@@ -2,8 +2,16 @@
 import data from "../jGjPpHfLtM.json"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
-import { useEffect, useRef, useReducer } from "react"
+import { useCallback, useEffect, useRef, useReducer } from "react"
 import { flatten } from "lodash"
+
+const TYPE_DIGITS = "digits"
+const TYPE_SELECTION = "selection"
+
+const ACTION_SET = "set"
+const ACTION_PUSH = "push"
+const ACTION_CLEAR = "clear"
+const ACTION_REMOVE = "remove"
 
 const CELL_SIZE = data.cellSize * 1.1
 
@@ -36,14 +44,61 @@ const regions = data.regions.map(region => {
   return unions
 })
 
-function selectedCellsReducer(state, action) {
-  switch (action.type) {
-    case "clear":
+function eqCell(a, b) {
+  return a.row === b.row && a.col === b.col
+}
+
+function digitsReducer(state, action, selection) {
+  switch (action.action) {
+    case ACTION_SET: {
+      let newState = state
+      for (let sc of selection) {
+        newState = [...newState.filter(c => !eqCell(sc, c.data)), {
+          data: sc,
+          digit: action.digit
+        }]
+      }
+      return newState
+    }
+
+    case ACTION_REMOVE: {
+      let newState = state
+      for (let sc of selection) {
+        newState = [...newState.filter(c => !eqCell(sc, c.data))]
+      }
+      return newState
+    }
+  }
+  return state
+}
+
+function selectionReducer(state, action) {
+  switch (action.action) {
+    case ACTION_CLEAR:
       return []
-    case "set":
+    case ACTION_SET:
       return [action.data]
-    case "push":
+    case ACTION_PUSH:
       return [...state, action.data]
+    case ACTION_REMOVE:
+      return [...state.filter(c => !eqCell(c, action.data))]
+  }
+  return state
+}
+
+function gameReducer(state, action) {
+  switch (action.type) {
+    case TYPE_DIGITS:
+      return {
+        ...state,
+        digits: digitsReducer(state.digits, action, state.selection)
+      }
+
+    case TYPE_SELECTION:
+      return {
+        ...state,
+        selection: selectionReducer(state.selection, action)
+      }
   }
   return state
 }
@@ -51,16 +106,59 @@ function selectedCellsReducer(state, action) {
 const Grid = () => {
   const ref = useRef()
   const app = useRef()
-  const cells = useRef()
+  const cellElements = useRef([])
+  const digitElements = useRef([])
+  const keyMetaPressed = useRef(false)
+  const keyShiftPressed = useRef(false)
 
-  const [selectedCells, updateSelectedCells] = useReducer(selectedCellsReducer, [])
+  const [game, updateGame] = useReducer(gameReducer, {
+    digits: [],
+    selection: []
+  })
 
   function selectCell(cell, append = false) {
-    updateSelectedCells({
-      type: append ? "push" : "set",
+    let action = append ? ACTION_PUSH : ACTION_SET
+    if (keyMetaPressed.current) {
+      if (keyShiftPressed.current) {
+        action = ACTION_REMOVE
+      } else {
+        action = ACTION_PUSH
+      }
+    }
+    updateGame({
+      type: TYPE_SELECTION,
+      action,
       data: cell.data
     })
   }
+
+  const onKey = useCallback(e => {
+    keyShiftPressed.current = e.shiftKey
+    keyMetaPressed.current = e.metaKey
+  }, [])
+
+  const onKeyDown = useCallback(e => {
+    onKey(e)
+
+    if (e.key >= "1" && e.key <= "9") {
+      updateGame({
+        type: TYPE_DIGITS,
+        action: ACTION_SET,
+        digit: +e.key
+      })
+    }
+
+    if (e.key === "Backspace" || e.key === "Delete") {
+      updateGame({
+        type: TYPE_DIGITS,
+        action: ACTION_REMOVE
+      })
+    }
+  }, [onKey])
+
+  const onKeyUp = useCallback(e => {
+    onKey(e)
+  }, [onKey])
 
   useEffect(() => {
     // create PixiJS app
@@ -78,7 +176,7 @@ const Grid = () => {
 
     // create grid
     let grid = new PIXI.Container()
-    cells.current = new PIXI.Container()
+    let cells = new PIXI.Container()
 
     grid.sortableChildren = true
 
@@ -90,8 +188,8 @@ const Grid = () => {
         cell.buttonMode = true
 
         cell.data = {
-          row: x,
-          col: y
+          row: y,
+          col: x
         }
 
         cell.lineStyle({ width: 1, color: 0 })
@@ -122,7 +220,8 @@ const Grid = () => {
           }
         })
 
-        cells.current.addChild(cell)
+        cells.addChild(cell)
+        cellElements.current.push(cell)
       })
     })
 
@@ -139,20 +238,30 @@ const Grid = () => {
       }
     }
 
-    let text = new PIXI.Text(8, {
-      fontFamily: "Tahoma, Verdana, sans-serif",
-      fontSize: 40
+    // create empty text elements for all digits
+    data.cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let text = new PIXI.Text("", {
+          fontFamily: "Tahoma, Verdana, sans-serif",
+          fontSize: 40
+        })
+        text.zIndex = 1
+        text.x = x * CELL_SIZE + CELL_SIZE / 2
+        text.y = y * CELL_SIZE + CELL_SIZE / 2 - 0.5
+        text.anchor.set(0.5)
+        text.data = {
+          row: y,
+          col: x
+        }
+        grid.addChild(text)
+        digitElements.current.push(text)
+      })
     })
-    text.zIndex = 1
-    text.x = CELL_SIZE / 2
-    text.y = CELL_SIZE / 2 - 0.5
-    text.anchor.set(0.5)
-    grid.addChild(text)
 
     grid.x = 100
     grid.y = 100
 
-    grid.addChild(cells.current)
+    grid.addChild(cells)
     newApp.stage.addChild(grid)
     newApp.render()
 
@@ -164,14 +273,37 @@ const Grid = () => {
     }
   }, [])
 
+  // register keyboard handlers
   useEffect(() => {
-    cells.current.children.forEach(cell => {
-      let data = selectedCells.find(sc =>
-        sc.row === cell.data.row && sc.col === cell.data.col)
+    window.addEventListener("keydown", onKeyDown)
+    window.addEventListener("keyup", onKeyUp)
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown)
+      window.removeEventListener("keyup", onKeyUp)
+    }
+  }, [onKeyDown, onKeyUp])
+
+  useEffect(() => {
+    cellElements.current.forEach(cell => {
+      let data = game.selection.find(sc => eqCell(sc, cell.data))
       cell.children[0].alpha = data === undefined ? 0 : 1
     })
     app.current.render()
-  }, [selectedCells])
+  }, [game.selection])
+
+  useEffect(() => {
+    for (let e of digitElements.current) {
+      let digit = game.digits.find(d => eqCell(d.data, e.data))
+      if (digit !== undefined) {
+        e.text = digit.digit
+        e.style.fill = digit.given ? 0 : 0x316bdd
+      } else {
+        e.text = ""
+      }
+    }
+    app.current.render()
+  }, [game.digits])
 
   return (
     <div ref={ref} className="grid">
