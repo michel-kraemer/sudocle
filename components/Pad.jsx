@@ -1,10 +1,16 @@
 import Button from "./Button"
+import ColourPaletteContext from "./contexts/ColourPaletteContext"
 import { TYPE_MODE, TYPE_DIGITS, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
-import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
+import COLOUR_PALETTES from "./lib/ColourPalettes"
+import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "./lib/Modes"
+import { useContext } from "react"
 import classNames from "classnames"
 import styles from "./Pad.scss"
 
 const Pad = ({ updateGame, mode }) => {
+  const colourPalette = useContext(ColourPaletteContext.State)
+  const colours = COLOUR_PALETTES[colourPalette.palette].colours
+
   function onDigit(digit) {
     updateGame({
       type: TYPE_DIGITS,
@@ -31,38 +37,38 @@ const Pad = ({ updateGame, mode }) => {
   const digits = [{
     digit: 1,
     corner: "top-left",
-    colour: "#000"
+    colour: 0
   }, {
     digit: 2,
     corner: "top",
-    colour: "#cfcfcf"
+    colour: 1
   }, {
     digit: 3,
     corner: "top-right",
-    colour: "#fff"
+    colour: 2
   }, {
     digit: 4,
     corner: "left",
-    colour: "#a3e048"
+    colour: 3
   }, {
     digit: 5,
-    colour: "#d23be7"
+    colour: 4
   }, {
     digit: 6,
     corner: "right",
-    colour: "#eb7532"
+    colour: 5
   }, {
     digit: 7,
     corner: "bottom-left",
-    colour: "#e6261f"
+    colour: 6
   }, {
     digit: 8,
     corner: "bottom",
-    colour: "#f7d038"
+    colour: 7
   }, {
     digit: 9,
     corner: "bottom-right",
-    colour: "#34bbe6"
+    colour: 8
   }]
 
   return <div className="pad">
@@ -80,7 +86,8 @@ const Pad = ({ updateGame, mode }) => {
                 corner: mode === MODE_CORNER, [d.corner]: mode === MODE_CORNER,
                 colour: mode === MODE_COLOUR })}>
               {mode === MODE_COLOUR || d.digit}
-              {mode === MODE_COLOUR && <div className="colour" style={{ backgroundColor: d.colour }}></div>}
+              {mode === MODE_COLOUR && <div className="colour"
+                style={{ backgroundColor: colours[d.colour] }}></div>}
             </div>
           </div>
         </Button>
