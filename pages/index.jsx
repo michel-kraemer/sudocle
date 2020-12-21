@@ -96,14 +96,14 @@ function marksReducer(state, action, selection) {
   return state
 }
 
-function digitsReducer(state, action, selection) {
+function digitsReducer(state, action, selection, attrName = "digit") {
   switch (action.action) {
     case ACTION_SET: {
       let newState = state
       for (let sc of selection) {
         newState = [...newState.filter(c => !eqCell(sc, c.data)), {
           data: sc,
-          digit: action.digit
+          [attrName]: action.digit
         }]
       }
       return newState
@@ -153,6 +153,11 @@ function gameReducer(state, action) {
           return {
             ...state,
             centreMarks: marksReducer(state.centreMarks, action, state.selection)
+          }
+        case MODE_COLOUR:
+          return {
+            ...state,
+            colours: digitsReducer(state.colours, action, state.selection, "colour")
           }
       }
       return {

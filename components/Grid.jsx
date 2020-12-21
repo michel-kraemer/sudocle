@@ -1,10 +1,13 @@
 import data from "../Qh7QjthLmb.json"
 // import data from "../jGjPpHfLtM.json"
-import { eqCell } from "./lib/utils"
+import ColourPaletteContext from "./contexts/ColourPaletteContext"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
+import COLOUR_PALETTES from "./lib/ColourPalettes"
+import { eqCell } from "./lib/utils"
+import colorString from "color-string"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useContext, useEffect, useRef } from "react"
 import { flatten } from "lodash"
 
 const BLUE_DIGIT = 0x316bdd
@@ -225,8 +228,11 @@ const Grid = ({ game, updateGame }) => {
   const digitElements = useRef([])
   const centreMarkElements = useRef([])
   const cornerMarkElements = useRef([])
+  const colourElements = useRef([])
   const keyMetaPressed = useRef(false)
   const keyShiftPressed = useRef(false)
+
+  const colourPalette = useContext(ColourPaletteContext.State)
 
   const selectCell = useCallback((cell, append = false) => {
     let action = append ? ACTION_PUSH : ACTION_SET
@@ -530,6 +536,22 @@ const Grid = ({ game, updateGame }) => {
       })
     })
 
+    // create invisible rectangles for colours
+    data.cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let rect = new PIXI.Graphics()
+        rect.x = x * CELL_SIZE
+        rect.y = y * CELL_SIZE
+        rect.alpha = 0
+        rect.data = {
+          row: y,
+          col: x
+        }
+        grid.addChild(rect)
+        colourElements.current.push(rect)
+      })
+    })
+
     grid.x = (newApp.screen.width - grid.width) / 2
     grid.y = (newApp.screen.height - grid.height) / 2
 
@@ -633,8 +655,25 @@ const Grid = ({ game, updateGame }) => {
         e.text = ""
       }
     }
+
+    let colours = COLOUR_PALETTES[colourPalette.palette].colours
+    for (let e of colourElements.current) {
+      let colour = game.colours.find(c => eqCell(c.data, e.data))
+      if (colour !== undefined) {
+        let colourValues = colorString.get.rgb(colours[colour.colour - 1])
+        let colourNumber = colourValues[0] << 16 | colourValues[1] << 8 | colourValues[2]
+        e.clear()
+        e.beginFill(colourNumber)
+        e.drawRect(0.5, 0.5, CELL_SIZE - 1, CELL_SIZE - 1)
+        e.endFill()
+        e.alpha = 0.5
+      } else {
+        e.alpha = 0
+      }
+    }
+
     app.current.render()
-  }, [game.digits, game.cornerMarks, game.centreMarks])
+  }, [game.digits, game.cornerMarks, game.centreMarks, game.colours, colourPalette.palette])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick}>
