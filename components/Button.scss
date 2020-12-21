@@ -28,4 +28,9 @@
   &.noPadding {
     padding: 0;
   }
+
+  &.alert {
+    background-color: #c00;
+    color: #fff;
+  }
 }

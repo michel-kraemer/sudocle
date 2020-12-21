@@ -2,13 +2,27 @@ import Grid from "../components/Grid"
 import Pad from "../components/Pad"
 import StatusBar from "../components/StatusBar"
 import { eqCell } from "../components/lib/utils"
-import { TYPE_MODE, TYPE_DIGITS, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO,
+import { TYPE_MODE, TYPE_DIGITS, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
   ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE } from "../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
 import { useEffect, useReducer } from "react"
 import Head from "next/head"
 import { isEqual } from "lodash"
 import styles from "./index.scss"
+
+function makeEmptyState() {
+  return {
+    mode: MODE_NORMAL,
+    previousModes: [],
+    digits: [],
+    cornerMarks: [],
+    centreMarks: [],
+    colours: [],
+    selection: [],
+    undoStates: [],
+    nextUndoState: 0
+  }
+}
 
 function modeReducer(mode, previousModes, action) {
   switch (action.action) {
@@ -185,6 +199,10 @@ function makeUndoState(state) {
 }
 
 function gameReducer(state, action) {
+  if (action.type === TYPE_RESTART) {
+    return makeEmptyState()
+  }
+
   if (action.type === TYPE_UNDO) {
     if (state.nextUndoState === 0) {
       return state
@@ -200,7 +218,9 @@ function gameReducer(state, action) {
       undoStates: newUndoStates,
       nextUndoState: state.nextUndoState - 1
     }
-  } else if (action.type === TYPE_REDO) {
+  }
+
+  if (action.type === TYPE_REDO) {
     if (state.nextUndoState >= state.undoStates.length - 1) {
       return state
     }
@@ -268,17 +288,7 @@ function gameReducer(state, action) {
 }
 
 const Index = () => {
-  const [game, updateGame] = useReducer(gameReducer, {
-    mode: MODE_NORMAL,
-    previousModes: [],
-    digits: [],
-    cornerMarks: [],
-    centreMarks: [],
-    colours: [],
-    selection: [],
-    undoStates: [],
-    nextUndoState: 0
-  })
+  const [game, updateGame] = useReducer(gameReducer, makeEmptyState())
 
   function clearSelection() {
     updateGame({

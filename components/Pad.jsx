@@ -1,15 +1,18 @@
 import Button from "./Button"
 import ColourPaletteContext from "./contexts/ColourPaletteContext"
-import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
+import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
+  ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
 import COLOUR_PALETTES from "./lib/ColourPalettes"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "./lib/Modes"
-import { useContext } from "react"
+import { useContext, useState } from "react"
 import classNames from "classnames"
 import styles from "./Pad.scss"
 
 const Pad = ({ updateGame, mode }) => {
   const colourPalette = useContext(ColourPaletteContext.State)
   const colours = COLOUR_PALETTES[colourPalette.palette].colours
+
+  const [confirmRestart, setConfirmRestart] = useState(false)
 
   function onDigit(digit) {
     updateGame({
@@ -44,6 +47,17 @@ const Pad = ({ updateGame, mode }) => {
     updateGame({
       type: TYPE_REDO
     })
+  }
+
+  function onRestart() {
+    if (!confirmRestart) {
+      setConfirmRestart(true)
+    } else {
+      updateGame({
+        type: TYPE_RESTART
+      })
+      setConfirmRestart(false)
+    }
   }
 
   const digits = [{
@@ -111,7 +125,9 @@ const Pad = ({ updateGame, mode }) => {
     <div className="pad-bottom">
       <Button onClick={onUndo}>Undo</Button>
       <Button onClick={onRedo}>Redo</Button>
-      <Button>Restart</Button>
+      <Button onClick={onRestart} alert={confirmRestart}>
+        {confirmRestart ? "Confirm?" : "Restart"}
+      </Button>
       <Button>Check</Button>
     </div>
     <style jsx>{styles}</style>
