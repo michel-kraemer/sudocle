@@ -1,15 +1,23 @@
 import Button from "./Button"
-import { TYPE_DIGITS, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
+import { TYPE_MODE, TYPE_DIGITS, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
 import classNames from "classnames"
 import styles from "./Pad.scss"
 
-const Pad = ({ updateGame, mode, setMode }) => {
+const Pad = ({ updateGame, mode }) => {
   function onDigit(digit) {
     updateGame({
       type: TYPE_DIGITS,
       action: ACTION_SET,
       digit
+    })
+  }
+
+  function onMode(mode) {
+    updateGame({
+      type: TYPE_MODE,
+      action: ACTION_SET,
+      mode
     })
   }
 
@@ -59,10 +67,10 @@ const Pad = ({ updateGame, mode, setMode }) => {
 
   return <div className="pad">
     <div className="pad-left">
-      <Button active={mode === MODE_NORMAL} onClick={() => setMode(MODE_NORMAL)}>Normal</Button>
-      <Button active={mode === MODE_CORNER} onClick={() => setMode(MODE_CORNER)}>Corner</Button>
-      <Button active={mode === MODE_CENTRE} onClick={() => setMode(MODE_CENTRE)}>Centre</Button>
-      <Button active={mode === MODE_COLOUR} onClick={() => setMode(MODE_COLOUR)}>Colour</Button>
+      <Button active={mode === MODE_NORMAL} onClick={() => onMode(MODE_NORMAL)}>Normal</Button>
+      <Button active={mode === MODE_CORNER} onClick={() => onMode(MODE_CORNER)}>Corner</Button>
+      <Button active={mode === MODE_CENTRE} onClick={() => onMode(MODE_CENTRE)}>Centre</Button>
+      <Button active={mode === MODE_COLOUR} onClick={() => onMode(MODE_COLOUR)}>Colour</Button>
     </div>
     <div className="pad-right">
       {digits.map(d => (

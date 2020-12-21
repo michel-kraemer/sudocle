@@ -2,11 +2,57 @@ import Grid from "../components/Grid"
 import Pad from "../components/Pad"
 import StatusBar from "../components/StatusBar"
 import { eqCell } from "../components/lib/utils"
-import { TYPE_DIGITS, TYPE_SELECTION, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE } from "../components/lib/Actions"
+import { TYPE_MODE, TYPE_DIGITS, TYPE_SELECTION, ACTION_SET, ACTION_PUSH,
+  ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE } from "../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
 import { useEffect, useReducer } from "react"
 import Head from "next/head"
 import styles from "./index.scss"
+
+function modeReducer(mode, previousModes, action) {
+  switch (action.action) {
+    case ACTION_SET:
+      return {
+        mode: action.mode,
+        previousModes: []
+      }
+
+    case ACTION_PUSH:
+      return {
+        mode: action.mode,
+        previousModes: [...previousModes, mode]
+      }
+
+    case ACTION_REMOVE:
+      return {
+        mode: previousModes[previousModes.length - 1],
+        previousModes: previousModes.slice(0, previousModes.length - 1)
+      }
+
+    case ACTION_ROTATE: {
+      let newMode = MODE_NORMAL
+      switch (mode) {
+        case MODE_NORMAL:
+          newMode = MODE_CORNER
+          break
+        case MODE_CORNER:
+          newMode = MODE_CENTRE
+          break
+        case MODE_CENTRE:
+          newMode = MODE_COLOUR
+          break
+      }
+      return {
+        mode: newMode,
+        previousModes
+      }
+    }
+  }
+  return {
+    mode,
+    previousModes
+  }
+}
 
 function digitsReducer(state, action, selection) {
   switch (action.action) {
@@ -48,6 +94,12 @@ function selectionReducer(state, action) {
 
 function gameReducer(state, action) {
   switch (action.type) {
+    case TYPE_MODE:
+      return {
+        ...state,
+        ...modeReducer(state.mode, state.previousModes, action)
+      }
+
     case TYPE_DIGITS:
       return {
         ...state,
@@ -63,55 +115,10 @@ function gameReducer(state, action) {
   return state
 }
 
-function modeReducer(state, action) {
-  switch (action.type) {
-    case "set":
-      return {
-        currentMode: action.mode,
-        allModes: []
-      }
-
-    case "push":
-      return {
-        currentMode: action.mode,
-        allModes: [...state.allModes, state.currentMode]
-      }
-
-    case "pop":
-      return {
-        currentMode: state.allModes[state.allModes.length - 1],
-        allModes: state.allModes.slice(0, state.allModes.length - 1)
-      }
-
-    case "rotate": {
-      let newMode = MODE_NORMAL
-      switch (state.currentMode) {
-        case MODE_NORMAL:
-          newMode = MODE_CORNER
-          break
-        case MODE_CORNER:
-          newMode = MODE_CENTRE
-          break
-        case MODE_CENTRE:
-          newMode = MODE_COLOUR
-          break
-      }
-      return {
-        currentMode: newMode,
-        allModes: state.allModes
-      }
-    }
-  }
-  return state
-}
-
 const Index = () => {
-  const [mode, updateMode] = useReducer(modeReducer, {
-    currentMode: MODE_NORMAL,
-    allModes: []
-  })
-
   const [game, updateGame] = useReducer(gameReducer, {
+    mode: MODE_NORMAL,
+    previousModes: [],
     digits: [],
     selection: []
   })
@@ -123,31 +130,45 @@ const Index = () => {
     })
   }
 
-  function setMode(newMode) {
-    updateMode({ type: "set", mode: newMode })
-  }
-
   // register keyboard handlers
   useEffect(() => {
     function onKeyDown(e) {
       if (e.key === " ") {
-        updateMode({ type: "rotate" })
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_ROTATE
+        })
         e.preventDefault()
       } else if (e.key === "Meta" || e.key === "Control") {
-        updateMode({ type: "push", mode: MODE_CENTRE })
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_PUSH,
+          mode: MODE_CENTRE
+        })
         e.preventDefault()
       } else if (e.key === "Shift") {
-        updateMode({ type: "push", mode: MODE_CORNER })
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_PUSH,
+          mode: MODE_CORNER
+        })
         e.preventDefault()
       } else if (e.key === "Alt") {
-        updateMode({ type: "push", mode: MODE_COLOUR })
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_PUSH,
+          mode: MODE_COLOUR
+        })
         e.preventDefault()
       }
     }
 
     function onKeyUp(e) {
       if (e.key === "Meta" || e.key === "Control" || e.key === "Shift" || e.key === "Alt") {
-        updateMode({ type: "pop" })
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_REMOVE
+        })
       }
     }
 
@@ -172,9 +193,9 @@ const Index = () => {
     <StatusBar />
     <div className="game-container" onClick={clearSelection}>
       <div className="grid-container">
-        <Grid game={game} updateGame={updateGame} mode={mode.currentMode} />
+        <Grid game={game} updateGame={updateGame} />
       </div>
-      <Pad updateGame={updateGame} mode={mode.currentMode} setMode={setMode} />
+      <Pad updateGame={updateGame} mode={game.mode} />
       <style jsx>{styles}</style>
     </div>
   </>)
