@@ -8,6 +8,8 @@
   align-items: center;
   cursor: pointer;
   user-select: none;
+  min-height: 2em;
+  line-height: 1em;
 
   &:hover {
     background-color: #f3e5f5;
@@ -21,5 +23,9 @@
     &:hover {
       background-color: #7b1fa2;
     }
+  }
+
+  &.noPadding {
+    padding: 0;
   }
 }

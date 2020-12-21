@@ -1,5 +1,6 @@
 .pad {
   font-size: 0.75rem;
+  line-height: 0.8rem;
   font-weight: 500;
   display: grid;
   grid-gap: 0.4rem;
@@ -7,13 +8,13 @@
   margin-right: 3rem;
 }
 
-.left {
+.pad-left {
   display: grid;
   grid-template-columns: 1fr;
   grid-gap: 0.2rem;
 }
 
-.right {
+.pad-right {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   grid-gap: 0.2rem;
@@ -24,10 +25,70 @@
   grid-column-end: 4;
 }
 
-.bottom {
+.pad-bottom {
   grid-column-start: 1;
   grid-column-end: 3;
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-gap: 0.2rem;
+}
+
+.digit-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  margin: 0.2rem;
+}
+
+.centre, .corner {
+  font-size: 0.5rem;
+}
+
+.corner {
+  position: absolute;
+}
+
+.colour {
+  display: flex;
+  width: 0.6rem;
+  height: 0.6rem;
+}
+
+.top-left {
+  top: 0;
+  left: 0;
+}
+
+.top {
+  top: 0;
+}
+
+.top-right {
+  top: 0;
+  right: 0;
+}
+
+.left {
+  left: 0;
+}
+
+.right {
+  right: 0;
+}
+
+.bottom-left {
+  bottom: 0;
+  left: 0;
+}
+
+.bottom {
+  bottom: 0;
+}
+
+.bottom-right {
+  bottom: 0;
+  right: 0;
 }
