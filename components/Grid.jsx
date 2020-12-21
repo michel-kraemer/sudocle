@@ -222,6 +222,13 @@ function drawDashedPolygon(points, dash, gap, graphics) {
   }
 }
 
+function isGrey(nColour) {
+  let r = (nColour >> 16) & 0xff
+  let g = (nColour >> 8) & 0xff
+  let b = nColour & 0xff
+  return r === g && r === b
+}
+
 function drawOverlay(overlay, mx, my) {
   let r = new PIXI.Graphics()
 
@@ -243,11 +250,21 @@ function drawOverlay(overlay, mx, my) {
   r.y = center[1]
 
   if (overlay.backgroundColor !== undefined || overlay.borderColor !== undefined) {
+    let nBackgroundColour
     if (overlay.backgroundColor !== undefined) {
-      r.beginFill(colourStringToNumber(overlay.backgroundColor))
+      nBackgroundColour = colourStringToNumber(overlay.backgroundColor)
+      r.beginFill(nBackgroundColour, isGrey(nBackgroundColour) ? 1 : 0.5)
     }
     if (overlay.borderColor !== undefined) {
-      r.lineStyle({ width: 2, color: colourStringToNumber(overlay.borderColor), alignment: 0 })
+      let nBorderColour = colourStringToNumber(overlay.borderColor)
+      if (nBorderColour !== nBackgroundColour) {
+        r.lineStyle({
+          width: 2,
+          color: nBorderColour,
+          alpha: isGrey(nBorderColour) ? 1 : 0.5,
+          alignment: 0
+        })
+      }
     }
     let w = overlay.width * CELL_SIZE
     let h = overlay.height * CELL_SIZE
@@ -260,6 +277,8 @@ function drawOverlay(overlay, mx, my) {
       r.endFill()
     }
   }
+
+  r.zIndex = -1
 
   return r
 }
@@ -629,14 +648,10 @@ const Grid = ({ game, updateGame }) => {
 
     // add underlays and overlays
     data.underlays.forEach(underlay => {
-      let o = drawOverlay(underlay, grid.x, grid.y)
-      o.zIndex = -1
-      newApp.stage.addChild(o)
+      newApp.stage.addChild(drawOverlay(underlay, grid.x, grid.y))
     })
     data.overlays.forEach(overlay => {
-      let o = drawOverlay(overlay, grid.x, grid.y)
-      o.zIndex = 1
-      newApp.stage.addChild(o)
+      newApp.stage.addChild(drawOverlay(overlay, grid.x, grid.y))
     })
 
     let background = new PIXI.Graphics()
