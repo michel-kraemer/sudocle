@@ -240,11 +240,12 @@ const Grid = ({ game, updateGame }) => {
   const onKeyDown = useCallback(e => {
     onKey(e)
 
-    if (e.key >= "1" && e.key <= "9") {
+    let digit = e.code.match("Digit([1-9])")
+    if (digit) {
       updateGame({
         type: TYPE_DIGITS,
         action: ACTION_SET,
-        digit: +e.key
+        digit: +digit[1]
       })
       e.preventDefault()
     }
