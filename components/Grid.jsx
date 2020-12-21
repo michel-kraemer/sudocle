@@ -636,7 +636,8 @@ const Grid = ({ game, updateGame }) => {
       poly.lineStyle({
         width: line.thickness * SCALE_FACTOR,
         color: colourStringToNumber(line.color),
-        cap: PIXI.LINE_CAP.ROUND
+        cap: PIXI.LINE_CAP.ROUND,
+        join: PIXI.LINE_JOIN.ROUND
       })
       poly.moveTo(points[0], points[1])
       for (let i = 2; i < points.length; i += 2) {
