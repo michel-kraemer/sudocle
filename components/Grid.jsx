@@ -222,6 +222,48 @@ function drawDashedPolygon(points, dash, gap, graphics) {
   }
 }
 
+function drawOverlay(overlay, mx, my) {
+  let r = new PIXI.Graphics()
+
+  if (overlay.text !== undefined) {
+    let fontSize = overlay.fontSize || 20
+    fontSize *= SCALE_FACTOR * (1 / 0.75)
+    let text = new PIXI.Text(overlay.text, {
+      fontFamily: "Tahoma, Verdana, sans-serif",
+      fontSize
+    })
+    text.anchor.set(0.5)
+    text.scale.x = 0.75
+    text.scale.y = 0.75
+    r.addChild(text)
+  }
+
+  let center = cellToScreenCoords(overlay.center, mx, my)
+  r.x = center[0]
+  r.y = center[1]
+
+  if (overlay.backgroundColor !== undefined || overlay.borderColor !== undefined) {
+    if (overlay.backgroundColor !== undefined) {
+      r.beginFill(colourStringToNumber(overlay.backgroundColor))
+    }
+    if (overlay.borderColor !== undefined) {
+      r.lineStyle({ width: 2, color: colourStringToNumber(overlay.borderColor), alignment: 0 })
+    }
+    let w = overlay.width * CELL_SIZE
+    let h = overlay.height * CELL_SIZE
+    if (overlay.rounded) {
+      r.drawEllipse(0, 0, w / 2, h / 2)
+    } else {
+      r.drawRect(-w / 2, -h / 2, w, h)
+    }
+    if (overlay.backgroundColor !== undefined) {
+      r.endFill()
+    }
+  }
+
+  return r
+}
+
 function colourStringToNumber(str) {
   let v = colorString.get.rgb(str)
   return v[0] << 16 | v[1] << 8 | v[2]
@@ -583,6 +625,18 @@ const Grid = ({ game, updateGame }) => {
       }
       poly.zIndex = -1
       newApp.stage.addChild(poly)
+    })
+
+    // add underlays and overlays
+    data.underlays.forEach(underlay => {
+      let o = drawOverlay(underlay, grid.x, grid.y)
+      o.zIndex = -1
+      newApp.stage.addChild(o)
+    })
+    data.overlays.forEach(overlay => {
+      let o = drawOverlay(overlay, grid.x, grid.y)
+      o.zIndex = 1
+      newApp.stage.addChild(o)
     })
 
     let background = new PIXI.Graphics()
