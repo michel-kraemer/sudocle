@@ -7,6 +7,7 @@ import styles from "./Grid.scss"
 import { useCallback, useEffect, useRef } from "react"
 import { flatten } from "lodash"
 
+const BLUE_DIGIT = 0x316bdd
 const CELL_SIZE = data.cellSize * 1.2
 
 let PIXI
@@ -213,6 +214,7 @@ const Grid = ({ game, updateGame }) => {
   const app = useRef()
   const cellElements = useRef([])
   const digitElements = useRef([])
+  const centreMarkElements = useRef([])
   const keyMetaPressed = useRef(false)
   const keyShiftPressed = useRef(false)
 
@@ -403,6 +405,29 @@ const Grid = ({ game, updateGame }) => {
       })
     })
 
+    // create empty text elements for centre marks
+    data.cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let text = new PIXI.Text("", {
+          fontFamily: "Tahoma, Verdana, sans-serif",
+          fontSize: 28
+        })
+        text.zIndex = 10
+        text.x = x * CELL_SIZE + CELL_SIZE / 2
+        text.y = y * CELL_SIZE + CELL_SIZE / 2 - 0.5
+        text.anchor.set(0.5)
+        text.style.fill = BLUE_DIGIT
+        text.scale.x = 0.5
+        text.scale.y = 0.5
+        text.data = {
+          row: y,
+          col: x
+        }
+        grid.addChild(text)
+        centreMarkElements.current.push(text)
+      })
+    })
+
     grid.x = (newApp.screen.width - grid.width) / 2
     grid.y = (newApp.screen.height - grid.height) / 2
 
@@ -452,17 +477,35 @@ const Grid = ({ game, updateGame }) => {
   }, [game.selection])
 
   useEffect(() => {
+    let centreMarks = []
+
+    for (let e of centreMarkElements.current) {
+      let mark = game.centreMarks.find(m => eqCell(m.data, e.data))
+      if (mark !== undefined) {
+        e.text = mark.digits.join("")
+        centreMarks[mark.data.row] = centreMarks[mark.data.row] || []
+        centreMarks[mark.data.row][mark.data.col] = e
+      } else {
+        e.text = ""
+      }
+    }
+
     for (let e of digitElements.current) {
       let digit = game.digits.find(d => eqCell(d.data, e.data))
       if (digit !== undefined) {
         e.text = digit.digit
-        e.style.fill = digit.given ? 0 : 0x316bdd
+        e.style.fill = digit.given ? 0 : BLUE_DIGIT
+
+        if (centreMarks[digit.data.row] !== undefined &&
+            centreMarks[digit.data.row][digit.data.col] !== undefined) {
+          centreMarks[digit.data.row][digit.data.col].text = ""
+        }
       } else {
         e.text = ""
       }
     }
     app.current.render()
-  }, [game.digits])
+  }, [game.digits, game.centreMarks])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick}>

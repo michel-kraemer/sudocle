@@ -1,6 +1,9 @@
 module.exports = {
   TYPE_MODE: "mode",
   TYPE_DIGITS: "digits",
+  TYPE_CORNER_MARKS: "cornerMarks",
+  TYPE_CENTRE_MARKS: "centreMarks",
+  TYPE_COLOURS: "colours",
   TYPE_SELECTION: "selection",
 
   ACTION_SET: "set",

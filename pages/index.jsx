@@ -54,6 +54,48 @@ function modeReducer(mode, previousModes, action) {
   }
 }
 
+function centreMarksReducer(state, action, selection) {
+  switch (action.action) {
+    case ACTION_SET: {
+      let newState = [...state]
+      for (let sc of selection) {
+        let existingCell = newState.findIndex(c => eqCell(sc, c.data))
+        let newDigits
+        if (existingCell === -1) {
+          newDigits = []
+        } else {
+          newDigits = [...newState[existingCell].digits]
+          newState.splice(existingCell, 1)
+        }
+        if (newDigits[action.digit] !== undefined) {
+          delete newDigits[action.digit]
+        } else {
+          newDigits[action.digit] = action.digit
+        }
+        while (newDigits.length > 0 && newDigits[newDigits.length - 1] === undefined) {
+          newDigits.pop()
+        }
+        if (newDigits.length > 0) {
+          newState.push({
+            data: sc,
+            digits: newDigits
+          })
+        }
+      }
+      return newState
+    }
+
+    case ACTION_REMOVE: {
+      let newState = state
+      for (let sc of selection) {
+        newState = [...newState.filter(c => !eqCell(sc, c.data))]
+      }
+      return newState
+    }
+  }
+  return state
+}
+
 function digitsReducer(state, action, selection) {
   switch (action.action) {
     case ACTION_SET: {
@@ -101,6 +143,13 @@ function gameReducer(state, action) {
       }
 
     case TYPE_DIGITS:
+      switch (state.mode) {
+        case MODE_CENTRE:
+          return {
+            ...state,
+            centreMarks: centreMarksReducer(state.centreMarks, action, state.selection)
+          }
+      }
       return {
         ...state,
         digits: digitsReducer(state.digits, action, state.selection)
@@ -120,6 +169,9 @@ const Index = () => {
     mode: MODE_NORMAL,
     previousModes: [],
     digits: [],
+    cornerMarks: [],
+    centreMarks: [],
+    colours: [],
     selection: []
   })
 
