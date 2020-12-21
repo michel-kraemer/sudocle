@@ -2,7 +2,8 @@ import Grid from "../components/Grid"
 import Pad from "../components/Pad"
 import StatusBar from "../components/StatusBar"
 import { eqCell } from "../components/lib/utils"
-import { TYPE_MODE, TYPE_DIGITS, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
+import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLOURS,
+  TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
   ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE } from "../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
 import { useEffect, useReducer } from "react"
@@ -233,7 +234,9 @@ function gameReducer(state, action) {
   }
 
   let newState = state
-  if (action.action === ACTION_REMOVE) {
+  if ((action.type === TYPE_DIGITS || action.type === TYPE_CORNER_MARKS ||
+      action.type === TYPE_CENTRE_MARKS || action.type === TYPE_COLOURS) &&
+      action.action === ACTION_REMOVE) {
     let deleteColour = false
     if (newState.mode === MODE_COLOUR) {
       for (let sc of state.selection) {
