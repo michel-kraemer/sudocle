@@ -135,16 +135,16 @@ function selectionReducer(state, action) {
   return state
 }
 
-function gameReducerNoUndo(state, action) {
+function gameReducerNoUndo(state, mode, action) {
   switch (action.type) {
     case TYPE_MODE:
       return {
         ...state,
-        ...modeReducer(state.mode, state.previousModes, action)
+        ...modeReducer(mode, state.previousModes, action)
       }
 
     case TYPE_DIGITS:
-      switch (state.mode) {
+      switch (mode) {
         case MODE_CORNER:
           return {
             ...state,
@@ -212,7 +212,42 @@ function gameReducer(state, action) {
     }
   }
 
-  let newState = gameReducerNoUndo(state, action)
+  let newState = state
+  if (action.action === ACTION_REMOVE) {
+    let deleteColour = false
+    if (newState.mode === MODE_COLOUR) {
+      for (let sc of state.selection) {
+        deleteColour = newState.colours.some(c => eqCell(sc, c.data))
+        if (deleteColour) {
+          break
+        }
+      }
+    }
+    let highest = MODE_COLOUR
+    if (!deleteColour) {
+      for (let sc of state.selection) {
+        let hasDigit = newState.digits.some(c => eqCell(sc, c.data))
+        if (hasDigit) {
+          highest = MODE_NORMAL
+          break
+        }
+        let hasCentreMarks = newState.centreMarks.some(c => eqCell(sc, c.data))
+        if (hasCentreMarks && highest === MODE_COLOUR) {
+          highest = MODE_CENTRE
+        }
+        let hasCornerMarks = newState.cornerMarks.some(c => eqCell(sc, c.data))
+        if (hasCornerMarks && highest === MODE_COLOUR) {
+          highest = MODE_CENTRE
+        }
+      }
+      if (highest === MODE_CENTRE) {
+        newState = gameReducerNoUndo(newState, MODE_CORNER, action)
+      }
+    }
+    newState = gameReducerNoUndo(newState, highest, action)
+  } else {
+    newState = gameReducerNoUndo(newState, newState.mode, action)
+  }
 
   if (newState !== state) {
     let us = makeUndoState(state)
