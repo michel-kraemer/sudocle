@@ -11,7 +11,8 @@ import { useCallback, useContext, useEffect, useRef } from "react"
 import { flatten } from "lodash"
 
 const BLUE_DIGIT = 0x316bdd
-const CELL_SIZE = data.cellSize * 1.2
+const SCALE_FACTOR = 1.2
+const CELL_SIZE = data.cellSize * SCALE_FACTOR
 
 let PIXI
 if (typeof window !== "undefined") {
@@ -219,6 +220,15 @@ function drawDashedPolygon(points, dash, gap, graphics) {
       }
     }
   }
+}
+
+function colourStringToNumber(str) {
+  let v = colorString.get.rgb(str)
+  return v[0] << 16 | v[1] << 8 | v[2]
+}
+
+function cellToScreenCoords(cell, mx, my) {
+  return [cell[1] * CELL_SIZE + mx, cell[0] * CELL_SIZE + my]
 }
 
 const Grid = ({ game, updateGame }) => {
@@ -558,6 +568,23 @@ const Grid = ({ game, updateGame }) => {
     grid.addChild(cells)
     newApp.stage.addChild(grid)
 
+    // add lines
+    data.lines.forEach(line => {
+      let poly = new PIXI.Graphics()
+      let points = flatten(line.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y)))
+      poly.lineStyle({
+        width: line.thickness * SCALE_FACTOR,
+        color: colourStringToNumber(line.color),
+        cap: PIXI.LINE_CAP.ROUND
+      })
+      poly.moveTo(points[0], points[1])
+      for (let i = 2; i < points.length; i += 2) {
+        poly.lineTo(points[i], points[i + 1])
+      }
+      poly.zIndex = -1
+      newApp.stage.addChild(poly)
+    })
+
     let background = new PIXI.Graphics()
     background.hitArea = new PIXI.Rectangle(0, 0, newApp.screen.width, newApp.screen.height)
     background.drawRect(0, 0, newApp.screen.width, newApp.screen.height)
@@ -660,8 +687,7 @@ const Grid = ({ game, updateGame }) => {
     for (let e of colourElements.current) {
       let colour = game.colours.find(c => eqCell(c.data, e.data))
       if (colour !== undefined) {
-        let colourValues = colorString.get.rgb(colours[colour.colour - 1])
-        let colourNumber = colourValues[0] << 16 | colourValues[1] << 8 | colourValues[2]
+        let colourNumber = colourStringToNumber(colours[colour.colour - 1])
         e.clear()
         e.beginFill(colourNumber)
         e.drawRect(0.5, 0.5, CELL_SIZE - 1, CELL_SIZE - 1)
