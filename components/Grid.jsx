@@ -63,6 +63,15 @@ const cages = data.cages.map(cage => {
   }
 })
 
+function hasCageValue(x, y) {
+  for (let cage of cages) {
+    if (cage.topleft[0] === y && cage.topleft[1] === x) {
+      return true
+    }
+  }
+  return false
+}
+
 // shrink polygon inwards by distance `d`
 function shrinkPolygon(points, d) {
   let result = []
@@ -215,6 +224,7 @@ const Grid = ({ game, updateGame }) => {
   const cellElements = useRef([])
   const digitElements = useRef([])
   const centreMarkElements = useRef([])
+  const cornerMarkElements = useRef([])
   const keyMetaPressed = useRef(false)
   const keyShiftPressed = useRef(false)
 
@@ -405,6 +415,98 @@ const Grid = ({ game, updateGame }) => {
       })
     })
 
+    // create empty text elements for corner marks
+    data.cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let cell = {
+          data: {
+            row: y,
+            col: x
+          },
+          elements: []
+        }
+
+        let hcv = hasCageValue(x, y)
+
+        for (let i = 0; i < 10; ++i) {
+          let text = new PIXI.Text("", {
+            fontFamily: "Tahoma, Verdana, sans-serif",
+            fontSize: 26
+          })
+
+          text.zIndex = 10
+
+          let cx = x * CELL_SIZE + CELL_SIZE / 2
+          let cy = y * CELL_SIZE + CELL_SIZE / 2 - 0.5
+          let mx = CELL_SIZE / 3.2
+          let my = CELL_SIZE / 3.4
+
+          switch (i) {
+            case 0:
+              if (hcv) {
+                text.x = cx - mx / 3
+                text.y = cy - my
+              } else {
+                text.x = cx - mx
+                text.y = cy - my
+              }
+              break
+            case 4:
+              if (hcv) {
+                text.x = cx + mx / 3
+                text.y = cy - my
+              } else {
+                text.x = cx
+                text.y = cy - my
+              }
+              break
+            case 1:
+              text.x = cx + mx
+              text.y = cy - my
+              break
+            case 6:
+              text.x = cx - mx
+              text.y = cy
+              break
+            case 7:
+              text.x = cx + mx
+              text.y = cy
+              break
+            case 2:
+              text.x = cx - mx
+              text.y = cy + my
+              break
+            case 5:
+              text.x = cx
+              text.y = cy + my
+              break
+            case 3:
+              text.x = cx + mx
+              text.y = cy + my
+              break
+            case 8:
+              text.x = cx - mx / 3
+              text.y = cy + my
+              break
+            case 9:
+              text.x = cx + mx / 3
+              text.y = cy + my
+              break
+          }
+
+          text.anchor.set(0.5)
+          text.style.fill = BLUE_DIGIT
+          text.scale.x = 0.5
+          text.scale.y = 0.5
+
+          grid.addChild(text)
+          cell.elements.push(text)
+        }
+
+        cornerMarkElements.current.push(cell)
+      })
+    })
+
     // create empty text elements for centre marks
     data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
@@ -477,7 +579,27 @@ const Grid = ({ game, updateGame }) => {
   }, [game.selection])
 
   useEffect(() => {
+    let cornerMarks = []
     let centreMarks = []
+
+    for (let e of cornerMarkElements.current) {
+      let mark = game.cornerMarks.find(m => eqCell(m.data, e.data))
+      for (let ce of e.elements) {
+        ce.text = ""
+      }
+      if (mark !== undefined) {
+        let compactedDigits = mark.digits.filter(Number.isInteger)
+        for (let i = 0; i < compactedDigits.length; ++i) {
+          let n = i
+          if (compactedDigits.length > 8 && n > 4) {
+            n++
+          }
+          e.elements[n].text = compactedDigits[i]
+        }
+        cornerMarks[mark.data.row] = cornerMarks[mark.data.row] || []
+        cornerMarks[mark.data.row][mark.data.col] = e
+      }
+    }
 
     for (let e of centreMarkElements.current) {
       let mark = game.centreMarks.find(m => eqCell(m.data, e.data))
@@ -496,6 +618,13 @@ const Grid = ({ game, updateGame }) => {
         e.text = digit.digit
         e.style.fill = digit.given ? 0 : BLUE_DIGIT
 
+        if (cornerMarks[digit.data.row] !== undefined &&
+            cornerMarks[digit.data.row][digit.data.col] !== undefined) {
+          let cm = cornerMarks[digit.data.row][digit.data.col]
+          for (let ce of cm.elements) {
+            ce.text = ""
+          }
+        }
         if (centreMarks[digit.data.row] !== undefined &&
             centreMarks[digit.data.row][digit.data.col] !== undefined) {
           centreMarks[digit.data.row][digit.data.col].text = ""
@@ -505,7 +634,7 @@ const Grid = ({ game, updateGame }) => {
       }
     }
     app.current.render()
-  }, [game.digits, game.centreMarks])
+  }, [game.digits, game.cornerMarks, game.centreMarks])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick}>

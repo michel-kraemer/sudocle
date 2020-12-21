@@ -54,7 +54,7 @@ function modeReducer(mode, previousModes, action) {
   }
 }
 
-function centreMarksReducer(state, action, selection) {
+function marksReducer(state, action, selection) {
   switch (action.action) {
     case ACTION_SET: {
       let newState = [...state]
@@ -144,10 +144,15 @@ function gameReducer(state, action) {
 
     case TYPE_DIGITS:
       switch (state.mode) {
+        case MODE_CORNER:
+          return {
+            ...state,
+            cornerMarks: marksReducer(state.cornerMarks, action, state.selection)
+          }
         case MODE_CENTRE:
           return {
             ...state,
-            centreMarks: centreMarksReducer(state.centreMarks, action, state.selection)
+            centreMarks: marksReducer(state.centreMarks, action, state.selection)
           }
       }
       return {
