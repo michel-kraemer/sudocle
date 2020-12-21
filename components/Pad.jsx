@@ -1,6 +1,6 @@
 import Button from "./Button"
 import ColourPaletteContext from "./contexts/ColourPaletteContext"
-import { TYPE_MODE, TYPE_DIGITS, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
+import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
 import COLOUR_PALETTES from "./lib/ColourPalettes"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "./lib/Modes"
 import { useContext } from "react"
@@ -31,6 +31,18 @@ const Pad = ({ updateGame, mode }) => {
     updateGame({
       type: TYPE_DIGITS,
       action: ACTION_REMOVE
+    })
+  }
+
+  function onUndo() {
+    updateGame({
+      type: TYPE_UNDO
+    })
+  }
+
+  function onRedo() {
+    updateGame({
+      type: TYPE_REDO
     })
   }
 
@@ -97,8 +109,8 @@ const Pad = ({ updateGame, mode }) => {
       </div>
     </div>
     <div className="pad-bottom">
-      <Button>Undo</Button>
-      <Button>Redo</Button>
+      <Button onClick={onUndo}>Undo</Button>
+      <Button onClick={onRedo}>Redo</Button>
       <Button>Restart</Button>
       <Button>Check</Button>
     </div>

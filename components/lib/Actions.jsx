@@ -5,6 +5,8 @@ module.exports = {
   TYPE_CENTRE_MARKS: "centreMarks",
   TYPE_COLOURS: "colours",
   TYPE_SELECTION: "selection",
+  TYPE_UNDO: "undo",
+  TYPE_REDO: "redo",
 
   ACTION_SET: "set",
   ACTION_PUSH: "push",

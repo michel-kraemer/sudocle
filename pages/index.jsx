@@ -2,11 +2,12 @@ import Grid from "../components/Grid"
 import Pad from "../components/Pad"
 import StatusBar from "../components/StatusBar"
 import { eqCell } from "../components/lib/utils"
-import { TYPE_MODE, TYPE_DIGITS, TYPE_SELECTION, ACTION_SET, ACTION_PUSH,
-  ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE } from "../components/lib/Actions"
+import { TYPE_MODE, TYPE_DIGITS, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO,
+  ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE } from "../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
 import { useEffect, useReducer } from "react"
 import Head from "next/head"
+import { isEqual } from "lodash"
 import styles from "./index.scss"
 
 function modeReducer(mode, previousModes, action) {
@@ -134,7 +135,7 @@ function selectionReducer(state, action) {
   return state
 }
 
-function gameReducer(state, action) {
+function gameReducerNoUndo(state, action) {
   switch (action.type) {
     case TYPE_MODE:
       return {
@@ -174,6 +175,63 @@ function gameReducer(state, action) {
   return state
 }
 
+function makeUndoState(state) {
+  return {
+    digits: state.digits,
+    cornerMarks: state.cornerMarks,
+    centreMarks: state.centreMarks,
+    colours: state.colours
+  }
+}
+
+function gameReducer(state, action) {
+  if (action.type === TYPE_UNDO) {
+    if (state.nextUndoState === 0) {
+      return state
+    }
+    let oldState = state.undoStates[state.nextUndoState - 1]
+    let newUndoStates = state.undoStates
+    if (state.nextUndoState === newUndoStates.length) {
+      newUndoStates = [...newUndoStates, makeUndoState(state)]
+    }
+    return {
+      ...state,
+      ...makeUndoState(oldState),
+      undoStates: newUndoStates,
+      nextUndoState: state.nextUndoState - 1
+    }
+  } else if (action.type === TYPE_REDO) {
+    if (state.nextUndoState >= state.undoStates.length - 1) {
+      return state
+    }
+    let oldState = state.undoStates[state.nextUndoState + 1]
+    return {
+      ...state,
+      ...makeUndoState(oldState),
+      nextUndoState: state.nextUndoState + 1
+    }
+  }
+
+  let newState = gameReducerNoUndo(state, action)
+
+  if (newState !== state) {
+    let us = makeUndoState(state)
+    let nus = makeUndoState(newState)
+    if (!isEqual(us, nus) && (state.nextUndoState === 0 ||
+        !isEqual(state.undoStates[state.nextUndoState - 1], us))) {
+      let newUndoStates = state.undoStates.slice(0, state.nextUndoState)
+      newUndoStates[state.nextUndoState] = us
+      newState = {
+        ...newState,
+        undoStates: newUndoStates,
+        nextUndoState: state.nextUndoState + 1
+      }
+    }
+  }
+
+  return newState
+}
+
 const Index = () => {
   const [game, updateGame] = useReducer(gameReducer, {
     mode: MODE_NORMAL,
@@ -182,7 +240,9 @@ const Index = () => {
     cornerMarks: [],
     centreMarks: [],
     colours: [],
-    selection: []
+    selection: [],
+    undoStates: [],
+    nextUndoState: 0
   })
 
   function clearSelection() {
@@ -220,6 +280,16 @@ const Index = () => {
           type: TYPE_MODE,
           action: ACTION_PUSH,
           mode: MODE_COLOUR
+        })
+        e.preventDefault()
+      } else if (e.key === "z" && (e.metaKey || e.ctrlKey)) {
+        updateGame({
+          type: e.shiftKey ? TYPE_REDO : TYPE_UNDO
+        })
+        e.preventDefault()
+      } else if (e.key === "y" && (e.metaKey || e.ctrlKey)) {
+        updateGame({
+          type: TYPE_REDO
         })
         e.preventDefault()
       }
