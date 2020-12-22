@@ -472,6 +472,34 @@ const Index = () => {
           type: TYPE_REDO
         })
         e.preventDefault()
+      } else if (e.code === "KeyZ") {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_SET,
+          mode: MODE_NORMAL
+        })
+        e.preventDefault()
+      } else if (e.code === "KeyX") {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_SET,
+          mode: MODE_CORNER
+        })
+        e.preventDefault()
+      } else if (e.code === "KeyC") {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_SET,
+          mode: MODE_CENTRE
+        })
+        e.preventDefault()
+      } else if (e.code === "KeyV") {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_SET,
+          mode: MODE_COLOUR
+        })
+        e.preventDefault()
       }
     }
 
