@@ -241,7 +241,7 @@ function makeUndoState(state) {
 
 function gameReducer(state, action) {
   if (action.type === TYPE_RESTART) {
-    return makeEmptyState(action.data)
+    return makeEmptyState(action.data || state.data)
   }
 
   if (action.type === TYPE_UNDO) {
