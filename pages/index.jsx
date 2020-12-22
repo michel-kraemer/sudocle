@@ -317,10 +317,13 @@ const Index = () => {
     async function load() {
       let response = await fetch(url)
       let json = await response.json()
-      updateGame({
-        type: TYPE_RESTART,
-        data: json
-      })
+      // TODO better error handling
+      if (json.error === undefined) {
+        updateGame({
+          type: TYPE_RESTART,
+          data: json
+        })
+      }
     }
 
     // TODO better error handling
