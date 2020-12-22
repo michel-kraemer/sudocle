@@ -4,7 +4,8 @@ import StatusBar from "../components/StatusBar"
 import { eqCell } from "../components/lib/utils"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLOURS,
   TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
-  ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE } from "../components/lib/Actions"
+  ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
+  ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
 import { useEffect, useReducer } from "react"
 import Head from "next/head"
@@ -175,7 +176,7 @@ function digitsReducer(state, action, selection, attrName = "digit") {
   return state
 }
 
-function selectionReducer(state, action) {
+function selectionReducer(state, action, cells = []) {
   switch (action.action) {
     case ACTION_CLEAR:
       return []
@@ -186,6 +187,50 @@ function selectionReducer(state, action) {
     case ACTION_REMOVE:
       return [...state.filter(c => !eqCell(c, action.data))]
   }
+
+  if (state.length > 0 && (action.action === ACTION_RIGHT ||
+      action.action === ACTION_LEFT || action.action === ACTION_UP ||
+      action.action === ACTION_DOWN)) {
+    if (!action.append && state.length > 1) {
+      return [state[state.length - 1]]
+    }
+
+    let newState
+    if (action.append) {
+      newState = [...state]
+    } else {
+      newState = []
+    }
+
+    let oldCell = state[state.length - 1]
+    let rowLength = cells[oldCell.row]?.length || 1
+    let colLength = cells.length
+    switch (action.action) {
+      case ACTION_RIGHT: {
+        let newCol = (oldCell.col + 1) % rowLength
+        newState = [...newState, { ...oldCell, col: newCol }]
+        break
+      }
+      case ACTION_LEFT: {
+        let newCol = (oldCell.col - 1 + rowLength) % rowLength
+        newState = [...newState, { ...oldCell, col: newCol }]
+        break
+      }
+      case ACTION_UP: {
+        let newRow = (oldCell.row - 1 + colLength) % colLength
+        newState = [...newState, { ...oldCell, row: newRow }]
+        break
+      }
+      case ACTION_DOWN: {
+        let newRow = (oldCell.row + 1) % colLength
+        newState = [...newState, { ...oldCell, row: newRow }]
+        break
+      }
+    }
+
+    return newState
+  }
+
   return state
 }
 
@@ -207,8 +252,7 @@ function checkDuplicates(grid) {
   return r
 }
 
-function checkReducer(digits, data = {}) {
-  let cells = data.cells || []
+function checkReducer(digits, cells = []) {
   let errors = []
   let gridByRow = []
   let gridByCol = []
@@ -280,7 +324,7 @@ function gameReducerNoUndo(state, mode, action) {
     case TYPE_SELECTION:
       return {
         ...state,
-        selection: selectionReducer(state.selection, action)
+        selection: selectionReducer(state.selection, action, state.data?.cells)
       }
   }
   return state
@@ -330,7 +374,7 @@ function gameReducer(state, action) {
   }
 
   if (action.type === TYPE_CHECK) {
-    let errors = checkReducer(state.digits, state.data)
+    let errors = checkReducer(state.digits, state.data?.cells)
     return {
       ...state,
       errors,
@@ -498,6 +542,34 @@ const Index = () => {
           type: TYPE_MODE,
           action: ACTION_SET,
           mode: MODE_COLOUR
+        })
+        e.preventDefault()
+      } else if (e.code === "ArrowRight" || e.code === "KeyD") {
+        updateGame({
+          type: TYPE_SELECTION,
+          action: ACTION_RIGHT,
+          append: (e.metaKey || e.ctrlKey)
+        })
+        e.preventDefault()
+      } else if (e.code === "ArrowLeft" || e.code === "KeyA") {
+        updateGame({
+          type: TYPE_SELECTION,
+          action: ACTION_LEFT,
+          append: (e.metaKey || e.ctrlKey)
+        })
+        e.preventDefault()
+      } else if (e.code === "ArrowUp" || e.code === "KeyW") {
+        updateGame({
+          type: TYPE_SELECTION,
+          action: ACTION_UP,
+          append: (e.metaKey || e.ctrlKey)
+        })
+        e.preventDefault()
+      } else if (e.code === "ArrowDown" || e.code === "KeyS") {
+        updateGame({
+          type: TYPE_SELECTION,
+          action: ACTION_DOWN,
+          append: (e.metaKey || e.ctrlKey)
         })
         e.preventDefault()
       }

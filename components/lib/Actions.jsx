@@ -14,5 +14,9 @@ module.exports = {
   ACTION_PUSH: "push",
   ACTION_CLEAR: "clear",
   ACTION_REMOVE: "remove",
-  ACTION_ROTATE: "rotate"
+  ACTION_ROTATE: "rotate",
+  ACTION_RIGHT: "right",
+  ACTION_LEFT: "left",
+  ACTION_UP: "up",
+  ACTION_DOWN: "down"
 }
