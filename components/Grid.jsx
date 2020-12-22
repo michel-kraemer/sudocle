@@ -278,7 +278,8 @@ const Grid = ({ game, updateGame }) => {
       }
       if (overlay.borderColor !== undefined) {
         let nBorderColour = colourStringToNumber(overlay.borderColor)
-        if (nBorderColour !== nBackgroundColour) {
+        if (nBorderColour !== nBackgroundColour &&
+            !(overlay.width === 1 && overlay.height === 1 && isGrey(nBorderColour))) {
           r.lineStyle({
             width: 2,
             color: nBorderColour,
