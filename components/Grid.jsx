@@ -425,8 +425,8 @@ const Grid = ({ game, updateGame }) => {
     })
 
     // render regions
-    let flattedRegionOutlines = flatten(flatten(regions)).map(o => flatten(o))
-    for (let outline of flattedRegionOutlines) {
+    let flattenedRegionOutlines = flatten(flatten(regions)).map(o => flatten(o))
+    for (let outline of flattenedRegionOutlines) {
       let poly = new PIXI.Graphics()
       poly.lineStyle({ width: 3, color: 0 })
       poly.drawPolygon(outline)
@@ -440,7 +440,7 @@ const Grid = ({ game, updateGame }) => {
         for (let outline of outlines) {
           let poly = new PIXI.Graphics()
           let flattenedOutline = flatten(outline)
-          let disposedOutline = disposePolygon(flattenedOutline, flattedRegionOutlines, 1)
+          let disposedOutline = disposePolygon(flattenedOutline, flattenedRegionOutlines, 1)
           let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
           poly.lineStyle({ width: 1, color: 0 })
           drawDashedPolygon(shrunkenOutline, 3, 2, poly)
