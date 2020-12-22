@@ -13,12 +13,35 @@ import styles from "./index.scss"
 
 const DATABASE_URL = "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
 
+function makeGivenDigits(data) {
+  if (data === undefined || data.cells === undefined) {
+    return []
+  }
+
+  let r = []
+  data.cells.forEach((row, y) => {
+    row.forEach((col, x) => {
+      if (col.value !== undefined) {
+        r.push({
+          data: {
+            row: y,
+            col: x
+          },
+          digit: col.value,
+          given: true
+        })
+      }
+    })
+  })
+  return r
+}
+
 function makeEmptyState(data) {
   return {
     data,
     mode: MODE_NORMAL,
     previousModes: [],
-    digits: [],
+    digits: makeGivenDigits(data),
     cornerMarks: [],
     centreMarks: [],
     colours: [],
@@ -26,6 +49,17 @@ function makeEmptyState(data) {
     undoStates: [],
     nextUndoState: 0
   }
+}
+
+function filterGivens(digits, selection) {
+  let r = []
+  for (let sc of selection) {
+    let cell = digits.find(d => eqCell(sc, d.data))
+    if (cell === undefined || !cell.given) {
+      r.push(sc)
+    }
+  }
+  return r
 }
 
 function modeReducer(mode, previousModes, action) {
@@ -166,12 +200,14 @@ function gameReducerNoUndo(state, mode, action) {
         case MODE_CORNER:
           return {
             ...state,
-            cornerMarks: marksReducer(state.cornerMarks, action, state.selection)
+            cornerMarks: marksReducer(state.cornerMarks, action,
+              filterGivens(state.digits, state.selection))
           }
         case MODE_CENTRE:
           return {
             ...state,
-            centreMarks: marksReducer(state.centreMarks, action, state.selection)
+            centreMarks: marksReducer(state.centreMarks, action,
+              filterGivens(state.digits, state.selection))
           }
         case MODE_COLOUR:
           return {
@@ -181,7 +217,8 @@ function gameReducerNoUndo(state, mode, action) {
       }
       return {
         ...state,
-        digits: digitsReducer(state.digits, action, state.selection)
+        digits: digitsReducer(state.digits, action,
+          filterGivens(state.digits, state.selection))
       }
 
     case TYPE_SELECTION:
