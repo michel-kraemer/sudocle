@@ -1,3 +1,4 @@
+import data from "../public/Qh7QjthLmb.json"
 import Grid from "../components/Grid"
 import Pad from "../components/Pad"
 import StatusBar from "../components/StatusBar"
@@ -373,7 +374,7 @@ const Index = () => {
     <StatusBar />
     <div className="game-container" onClick={clearSelection}>
       <div className="grid-container">
-        <Grid game={game} updateGame={updateGame} />
+        <Grid game={game} updateGame={updateGame} data={data} />
       </div>
       <Pad updateGame={updateGame} mode={game.mode} />
       <style jsx>{styles}</style>

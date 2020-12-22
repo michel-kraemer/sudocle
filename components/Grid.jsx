@@ -1,5 +1,3 @@
-import data from "../Qh7QjthLmb.json"
-// import data from "../jGjPpHfLtM.json"
 import ColourPaletteContext from "./contexts/ColourPaletteContext"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
 import COLOUR_PALETTES from "./lib/ColourPalettes"
@@ -7,12 +5,11 @@ import { eqCell } from "./lib/utils"
 import colorString from "color-string"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
-import { useCallback, useContext, useEffect, useRef } from "react"
+import { useCallback, useContext, useEffect, useMemo, useRef } from "react"
 import { flatten } from "lodash"
 
 const BLUE_DIGIT = 0x316bdd
 const SCALE_FACTOR = 1.2
-const CELL_SIZE = data.cellSize * SCALE_FACTOR
 
 let PIXI
 if (typeof window !== "undefined") {
@@ -24,10 +21,10 @@ function unionCells(cells) {
     let y = cell[0]
     let x = cell[1]
     return [[
-      [(x + 0) * CELL_SIZE, (y + 0) * CELL_SIZE],
-      [(x + 1) * CELL_SIZE, (y + 0) * CELL_SIZE],
-      [(x + 1) * CELL_SIZE, (y + 1) * CELL_SIZE],
-      [(x + 0) * CELL_SIZE, (y + 1) * CELL_SIZE]
+      [x + 0, y + 0],
+      [x + 1, y + 0],
+      [x + 1, y + 1],
+      [x + 0, y + 1]
     ]]
   })
   let unions = polygonClipping.union(polys)
@@ -40,34 +37,10 @@ function unionCells(cells) {
       }
     }
   }
-  return unions
+  return flatten(flatten(flatten(unions)))
 }
 
-const regions = data.regions.map(region => {
-  return unionCells(region)
-})
-
-const cages = data.cages.map(cage => {
-  let unions = unionCells(cage.cells, 2)
-
-  // find top-left cell
-  let topleft = cage.cells[0]
-  for (let cell of cage.cells) {
-    if (cell[0] < topleft[0]) {
-      topleft = cell
-    } else if (cell[0] === topleft[0] && cell[1] < topleft[1]) {
-      topleft = cell
-    }
-  }
-
-  return {
-    outlines: unions,
-    value: cage.value,
-    topleft
-  }
-})
-
-function hasCageValue(x, y) {
+function hasCageValue(x, y, cages) {
   for (let cage of cages) {
     if (cage.topleft[0] === y && cage.topleft[1] === x) {
       return true
@@ -229,70 +202,12 @@ function isGrey(nColour) {
   return r === g && r === b
 }
 
-function drawOverlay(overlay, mx, my) {
-  let r = new PIXI.Graphics()
-
-  if (overlay.text !== undefined) {
-    let fontSize = overlay.fontSize || 20
-    fontSize *= SCALE_FACTOR * (1 / 0.75)
-    let text = new PIXI.Text(overlay.text, {
-      fontFamily: "Tahoma, Verdana, sans-serif",
-      fontSize
-    })
-    text.anchor.set(0.5)
-    text.scale.x = 0.75
-    text.scale.y = 0.75
-    r.addChild(text)
-  }
-
-  let center = cellToScreenCoords(overlay.center, mx, my)
-  r.x = center[0]
-  r.y = center[1]
-
-  if (overlay.backgroundColor !== undefined || overlay.borderColor !== undefined) {
-    let nBackgroundColour
-    if (overlay.backgroundColor !== undefined) {
-      nBackgroundColour = colourStringToNumber(overlay.backgroundColor)
-      r.beginFill(nBackgroundColour, isGrey(nBackgroundColour) ? 1 : 0.5)
-    }
-    if (overlay.borderColor !== undefined) {
-      let nBorderColour = colourStringToNumber(overlay.borderColor)
-      if (nBorderColour !== nBackgroundColour) {
-        r.lineStyle({
-          width: 2,
-          color: nBorderColour,
-          alpha: isGrey(nBorderColour) ? 1 : 0.5,
-          alignment: 0
-        })
-      }
-    }
-    let w = overlay.width * CELL_SIZE
-    let h = overlay.height * CELL_SIZE
-    if (overlay.rounded) {
-      r.drawEllipse(0, 0, w / 2, h / 2)
-    } else {
-      r.drawRect(-w / 2, -h / 2, w, h)
-    }
-    if (overlay.backgroundColor !== undefined) {
-      r.endFill()
-    }
-  }
-
-  r.zIndex = -1
-
-  return r
-}
-
 function colourStringToNumber(str) {
   let v = colorString.get.rgb(str)
   return v[0] << 16 | v[1] << 8 | v[2]
 }
 
-function cellToScreenCoords(cell, mx, my) {
-  return [cell[1] * CELL_SIZE + mx, cell[0] * CELL_SIZE + my]
-}
-
-const Grid = ({ game, updateGame }) => {
+const Grid = ({ game, updateGame, data }) => {
   const ref = useRef()
   const app = useRef()
   const cellElements = useRef([])
@@ -304,6 +219,90 @@ const Grid = ({ game, updateGame }) => {
   const keyShiftPressed = useRef(false)
 
   const colourPalette = useContext(ColourPaletteContext.State)
+
+  const cellSize = data.cellSize * SCALE_FACTOR
+
+  const regions = useMemo(() => data.regions.map(region => {
+    return unionCells(region).map(v => v * cellSize)
+  }), [data, cellSize])
+
+  const cages = useMemo(() => data.cages.map(cage => {
+    let union = unionCells(cage.cells).map(v => v * cellSize)
+
+    // find top-left cell
+    let topleft = cage.cells[0]
+    for (let cell of cage.cells) {
+      if (cell[0] < topleft[0]) {
+        topleft = cell
+      } else if (cell[0] === topleft[0] && cell[1] < topleft[1]) {
+        topleft = cell
+      }
+    }
+
+    return {
+      outline: union,
+      value: cage.value,
+      topleft
+    }
+  }), [data, cellSize])
+
+  const cellToScreenCoords = useCallback((cell, mx, my) => {
+    return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
+  }, [cellSize])
+
+  const drawOverlay = useCallback((overlay, mx, my) => {
+    let r = new PIXI.Graphics()
+
+    if (overlay.text !== undefined) {
+      let fontSize = overlay.fontSize || 20
+      fontSize *= SCALE_FACTOR * (1 / 0.75)
+      let text = new PIXI.Text(overlay.text, {
+        fontFamily: "Tahoma, Verdana, sans-serif",
+        fontSize
+      })
+      text.anchor.set(0.5)
+      text.scale.x = 0.75
+      text.scale.y = 0.75
+      r.addChild(text)
+    }
+
+    let center = cellToScreenCoords(overlay.center, mx, my)
+    r.x = center[0]
+    r.y = center[1]
+
+    if (overlay.backgroundColor !== undefined || overlay.borderColor !== undefined) {
+      let nBackgroundColour
+      if (overlay.backgroundColor !== undefined) {
+        nBackgroundColour = colourStringToNumber(overlay.backgroundColor)
+        r.beginFill(nBackgroundColour, isGrey(nBackgroundColour) ? 1 : 0.5)
+      }
+      if (overlay.borderColor !== undefined) {
+        let nBorderColour = colourStringToNumber(overlay.borderColor)
+        if (nBorderColour !== nBackgroundColour) {
+          r.lineStyle({
+            width: 2,
+            color: nBorderColour,
+            alpha: isGrey(nBorderColour) ? 1 : 0.5,
+            alignment: 0
+          })
+        }
+      }
+      let w = overlay.width * cellSize
+      let h = overlay.height * cellSize
+      if (overlay.rounded) {
+        r.drawEllipse(0, 0, w / 2, h / 2)
+      } else {
+        r.drawRect(-w / 2, -h / 2, w, h)
+      }
+      if (overlay.backgroundColor !== undefined) {
+        r.endFill()
+      }
+    }
+
+    r.zIndex = -1
+
+    return r
+  }, [cellSize, cellToScreenCoords])
 
   const selectCell = useCallback((cell, append = false) => {
     let action = append ? ACTION_PUSH : ACTION_SET
@@ -389,19 +388,19 @@ const Grid = ({ game, updateGame }) => {
         }
 
         cell.lineStyle({ width: 1, color: 0 })
-        cell.drawRect(0, 0, CELL_SIZE, CELL_SIZE)
+        cell.drawRect(0, 0, cellSize, cellSize)
 
-        cell.x = x * CELL_SIZE
-        cell.y = y * CELL_SIZE
+        cell.x = x * cellSize
+        cell.y = y * cellSize
 
         // since our cells have a transparent background, we need to
         // define a hit area
-        cell.hitArea = new PIXI.Rectangle(0, 0, CELL_SIZE, CELL_SIZE)
+        cell.hitArea = new PIXI.Rectangle(0, 0, cellSize, cellSize)
 
         // add an invisible rectangle for selection
         let selection = new PIXI.Graphics()
         selection.beginFill(0xffd700, 0.5)
-        selection.drawRect(0.5, 0.5, CELL_SIZE - 1, CELL_SIZE - 1)
+        selection.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
         selection.endFill()
         selection.alpha = 0
         selection.zIndex = 5
@@ -425,29 +424,24 @@ const Grid = ({ game, updateGame }) => {
     })
 
     // render regions
-    let flattenedRegionOutlines = flatten(flatten(regions)).map(o => flatten(o))
-    for (let outline of flattenedRegionOutlines) {
+    for (let r of regions) {
       let poly = new PIXI.Graphics()
       poly.lineStyle({ width: 3, color: 0 })
-      poly.drawPolygon(outline)
+      poly.drawPolygon(r)
       poly.zIndex = 10
       grid.addChild(poly)
     }
 
     // render cages
     for (let cage of cages) {
-      for (let outlines of cage.outlines) {
-        for (let outline of outlines) {
-          let poly = new PIXI.Graphics()
-          let flattenedOutline = flatten(outline)
-          let disposedOutline = disposePolygon(flattenedOutline, flattenedRegionOutlines, 1)
-          let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
-          poly.lineStyle({ width: 1, color: 0 })
-          drawDashedPolygon(shrunkenOutline, 3, 2, poly)
-          poly.zIndex = 1
-          grid.addChild(poly)
-        }
-      }
+      // draw outline
+      let poly = new PIXI.Graphics()
+      let disposedOutline = disposePolygon(cage.outline, regions, 1)
+      let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
+      poly.lineStyle({ width: 1, color: 0 })
+      drawDashedPolygon(shrunkenOutline, 3, 2, poly)
+      poly.zIndex = 1
+      grid.addChild(poly)
 
       // create cage label
       // use larger font and scale down afterwards to improve text rendering
@@ -456,19 +450,19 @@ const Grid = ({ game, updateGame }) => {
         fontSize: 26
       })
       topleftText.zIndex = 3
-      topleftText.x = cage.topleft[1] * CELL_SIZE + CELL_SIZE / 20
-      topleftText.y = cage.topleft[0] * CELL_SIZE + CELL_SIZE / 60
+      topleftText.x = cage.topleft[1] * cellSize + cellSize / 20
+      topleftText.y = cage.topleft[0] * cellSize + cellSize / 60
       topleftText.scale.x = 0.5
       topleftText.scale.y = 0.5
       grid.addChild(topleftText)
 
       let topleftBg = new PIXI.Graphics()
       topleftBg.beginFill(0xffffff)
-      topleftBg.drawRect(0, 0, topleftText.width + CELL_SIZE / 10 - 1, topleftText.height + CELL_SIZE / 60)
+      topleftBg.drawRect(0, 0, topleftText.width + cellSize / 10 - 1, topleftText.height + cellSize / 60)
       topleftBg.endFill()
       topleftBg.zIndex = 2
-      topleftBg.x = cage.topleft[1] * CELL_SIZE + 0.5
-      topleftBg.y = cage.topleft[0] * CELL_SIZE + 0.5
+      topleftBg.x = cage.topleft[1] * cellSize + 0.5
+      topleftBg.y = cage.topleft[0] * cellSize + 0.5
       grid.addChild(topleftBg)
     }
 
@@ -480,8 +474,8 @@ const Grid = ({ game, updateGame }) => {
           fontSize: 40
         })
         text.zIndex = 10
-        text.x = x * CELL_SIZE + CELL_SIZE / 2
-        text.y = y * CELL_SIZE + CELL_SIZE / 2 - 0.5
+        text.x = x * cellSize + cellSize / 2
+        text.y = y * cellSize + cellSize / 2 - 0.5
         text.anchor.set(0.5)
         text.data = {
           row: y,
@@ -503,7 +497,7 @@ const Grid = ({ game, updateGame }) => {
           elements: []
         }
 
-        let hcv = hasCageValue(x, y)
+        let hcv = hasCageValue(x, y, cages)
 
         for (let i = 0; i < 10; ++i) {
           let text = new PIXI.Text("", {
@@ -513,10 +507,10 @@ const Grid = ({ game, updateGame }) => {
 
           text.zIndex = 10
 
-          let cx = x * CELL_SIZE + CELL_SIZE / 2
-          let cy = y * CELL_SIZE + CELL_SIZE / 2 - 0.5
-          let mx = CELL_SIZE / 3.2
-          let my = CELL_SIZE / 3.4
+          let cx = x * cellSize + cellSize / 2
+          let cy = y * cellSize + cellSize / 2 - 0.5
+          let mx = cellSize / 3.2
+          let my = cellSize / 3.4
 
           switch (i) {
             case 0:
@@ -592,8 +586,8 @@ const Grid = ({ game, updateGame }) => {
           fontSize: 28
         })
         text.zIndex = 10
-        text.x = x * CELL_SIZE + CELL_SIZE / 2
-        text.y = y * CELL_SIZE + CELL_SIZE / 2 - 0.5
+        text.x = x * cellSize + cellSize / 2
+        text.y = y * cellSize + cellSize / 2 - 0.5
         text.anchor.set(0.5)
         text.style.fill = BLUE_DIGIT
         text.scale.x = 0.5
@@ -611,8 +605,8 @@ const Grid = ({ game, updateGame }) => {
     data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let rect = new PIXI.Graphics()
-        rect.x = x * CELL_SIZE
-        rect.y = y * CELL_SIZE
+        rect.x = x * cellSize
+        rect.y = y * cellSize
         rect.alpha = 0
         rect.data = {
           row: y,
@@ -676,7 +670,8 @@ const Grid = ({ game, updateGame }) => {
       })
       app.current = undefined
     }
-  }, [selectCell, updateGame])
+  }, [data, cellSize, regions, cages, cellToScreenCoords, drawOverlay,
+      selectCell, updateGame])
 
   // register keyboard handlers
   useEffect(() => {
@@ -760,7 +755,7 @@ const Grid = ({ game, updateGame }) => {
         let colourNumber = colourStringToNumber(colours[colour.colour - 1])
         e.clear()
         e.beginFill(colourNumber)
-        e.drawRect(0.5, 0.5, CELL_SIZE - 1, CELL_SIZE - 1)
+        e.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
         e.endFill()
         e.alpha = 0.5
       } else {
@@ -769,7 +764,8 @@ const Grid = ({ game, updateGame }) => {
     }
 
     app.current.render()
-  }, [game.digits, game.cornerMarks, game.centreMarks, game.colours, colourPalette.palette])
+  }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
+      colourPalette.palette])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick}>
