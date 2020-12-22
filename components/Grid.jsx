@@ -215,6 +215,7 @@ const Grid = ({ game, updateGame }) => {
   const centreMarkElements = useRef([])
   const cornerMarkElements = useRef([])
   const colourElements = useRef([])
+  const errorElements = useRef([])
   const keyMetaPressed = useRef(false)
   const keyShiftPressed = useRef(false)
 
@@ -618,6 +619,25 @@ const Grid = ({ game, updateGame }) => {
       })
     })
 
+    // create invisible rectangles for errors
+    game.data.cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let rect = new PIXI.Graphics()
+        rect.beginFill(0xb33a3a, 0.5)
+        rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
+        rect.endFill()
+        rect.x = x * cellSize
+        rect.y = y * cellSize
+        rect.alpha = 0
+        rect.data = {
+          row: y,
+          col: x
+        }
+        grid.addChild(rect)
+        errorElements.current.push(rect)
+      })
+    })
+
     grid.x = (newApp.screen.width - grid.width) / 2
     grid.y = (newApp.screen.height - grid.height) / 2
 
@@ -764,9 +784,14 @@ const Grid = ({ game, updateGame }) => {
       }
     }
 
+    for (let e of errorElements.current) {
+      let error = game.errors.find(c => eqCell(c, e.data))
+      e.alpha = error !== undefined ? 1 : 0
+    }
+
     app.current.render()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
-      colourPalette.palette])
+      game.errors, colourPalette.palette])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick}>

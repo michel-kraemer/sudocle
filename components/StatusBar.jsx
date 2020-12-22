@@ -1,9 +1,9 @@
 import Timer from "./Timer"
 import styles from "./StatusBar.scss"
 
-const StatusBar = () => {
+const StatusBar = ({ solved }) => {
   return <div className="status-bar">
-    <Timer />
+    <Timer solved={solved} />
     <style jsx>{styles}</style>
   </div>
 }

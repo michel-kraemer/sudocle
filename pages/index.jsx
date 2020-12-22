@@ -3,7 +3,7 @@ import Pad from "../components/Pad"
 import StatusBar from "../components/StatusBar"
 import { eqCell } from "../components/lib/utils"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLOURS,
-  TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
+  TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
   ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE } from "../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
 import { useEffect, useReducer } from "react"
@@ -46,8 +46,10 @@ function makeEmptyState(data) {
     centreMarks: [],
     colours: [],
     selection: [],
+    errors: [],
     undoStates: [],
-    nextUndoState: 0
+    nextUndoState: 0,
+    solved: (data || {}).solved || false
   }
 }
 
@@ -187,6 +189,60 @@ function selectionReducer(state, action) {
   return state
 }
 
+function checkDuplicates(grid) {
+  let r = []
+  for (let y = 0; y < grid.length; ++y) {
+    let cells = grid[y]
+    if (cells !== undefined) {
+      for (let x = 0; x < cells.length; ++x) {
+        for (let x2 = x + 1; x2 < cells.length; ++x2) {
+          if (cells[x] === cells[x2]) {
+            r.push([y, x])
+            r.push([y, x2])
+          }
+        }
+      }
+    }
+  }
+  return r
+}
+
+function checkReducer(digits, data = {}) {
+  let cells = data.cells || []
+  let errors = []
+  let gridByRow = []
+  let gridByCol = []
+
+  // check for empty cells
+  cells.forEach((row, y) => {
+    row.forEach((col, x) => {
+      let d = digits.find(c => c.data.row === y && c.data.col === x)
+      if (d === undefined) {
+        errors.push({ row: y, col: x })
+      } else {
+        gridByRow[y] = gridByRow[y] || []
+        gridByRow[y][x] = d.digit
+        gridByCol[x] = gridByCol[x] || []
+        gridByCol[x][y] = d.digit
+      }
+    })
+  })
+
+  // check for duplicate digits in rows
+  checkDuplicates(gridByRow).forEach(e => errors.push({ row: e[0], col: e[1] }))
+
+  // check for duplicate digits in cols
+  checkDuplicates(gridByCol).forEach(e => errors.push({ row: e[1], col: e[0] }))
+
+  if (errors.length > 0) {
+    alert("That doesn't look right!")
+  } else {
+    alert("Looks good to me!")
+  }
+
+  return errors
+}
+
 function gameReducerNoUndo(state, mode, action) {
   switch (action.type) {
     case TYPE_MODE:
@@ -270,6 +326,15 @@ function gameReducer(state, action) {
       ...state,
       ...makeUndoState(oldState),
       nextUndoState: state.nextUndoState + 1
+    }
+  }
+
+  if (action.type === TYPE_CHECK) {
+    let errors = checkReducer(state.digits, state.data)
+    return {
+      ...state,
+      errors,
+      solved: state.solved || errors.length === 0
     }
   }
 
@@ -437,7 +502,7 @@ const Index = () => {
       <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"/>
       <title>Sudoku</title>
     </Head>
-    <StatusBar />
+    <StatusBar solved={game.solved} />
     <div className="game-container" onClick={clearSelection}>
       <div className="grid-container">
         {game.data && <Grid game={game} updateGame={updateGame} />}

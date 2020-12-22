@@ -1,6 +1,6 @@
 import Button from "./Button"
 import ColourPaletteContext from "./contexts/ColourPaletteContext"
-import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
+import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
   ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
 import COLOUR_PALETTES from "./lib/ColourPalettes"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "./lib/Modes"
@@ -58,6 +58,12 @@ const Pad = ({ updateGame, mode }) => {
       })
       setConfirmRestart(false)
     }
+  }
+
+  function onCheck() {
+    updateGame({
+      type: TYPE_CHECK
+    })
   }
 
   const digits = [{
@@ -128,7 +134,7 @@ const Pad = ({ updateGame, mode }) => {
       <Button onClick={onRestart} alert={confirmRestart}>
         {confirmRestart ? "Confirm?" : "Restart"}
       </Button>
-      <Button>Check</Button>
+      <Button onClick={onCheck}>Check</Button>
     </div>
     <style jsx>{styles}</style>
   </div>

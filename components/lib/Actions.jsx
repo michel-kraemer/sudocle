@@ -8,6 +8,7 @@ module.exports = {
   TYPE_UNDO: "undo",
   TYPE_REDO: "redo",
   TYPE_RESTART: "restart",
+  TYPE_CHECK: "check",
 
   ACTION_SET: "set",
   ACTION_PUSH: "push",
