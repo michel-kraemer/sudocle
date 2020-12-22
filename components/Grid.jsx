@@ -207,7 +207,7 @@ function colourStringToNumber(str) {
   return v[0] << 16 | v[1] << 8 | v[2]
 }
 
-const Grid = ({ game, updateGame, data }) => {
+const Grid = ({ game, updateGame }) => {
   const ref = useRef()
   const app = useRef()
   const cellElements = useRef([])
@@ -220,13 +220,13 @@ const Grid = ({ game, updateGame, data }) => {
 
   const colourPalette = useContext(ColourPaletteContext.State)
 
-  const cellSize = data.cellSize * SCALE_FACTOR
+  const cellSize = game.data.cellSize * SCALE_FACTOR
 
-  const regions = useMemo(() => data.regions.map(region => {
+  const regions = useMemo(() => game.data.regions.map(region => {
     return unionCells(region).map(v => v * cellSize)
-  }), [data, cellSize])
+  }), [game.data, cellSize])
 
-  const cages = useMemo(() => data.cages.map(cage => {
+  const cages = useMemo(() => game.data.cages.map(cage => {
     let union = unionCells(cage.cells).map(v => v * cellSize)
 
     // find top-left cell
@@ -244,7 +244,7 @@ const Grid = ({ game, updateGame, data }) => {
       value: cage.value,
       topleft
     }
-  }), [data, cellSize])
+  }), [game.data, cellSize])
 
   const cellToScreenCoords = useCallback((cell, mx, my) => {
     return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
@@ -376,7 +376,7 @@ const Grid = ({ game, updateGame, data }) => {
     grid.sortableChildren = true
 
     // render cells
-    data.cells.forEach((row, y) => {
+    game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let cell = new PIXI.Graphics()
         cell.interactive = true
@@ -467,7 +467,7 @@ const Grid = ({ game, updateGame, data }) => {
     }
 
     // create empty text elements for all digits
-    data.cells.forEach((row, y) => {
+    game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
           fontFamily: "Tahoma, Verdana, sans-serif",
@@ -487,7 +487,7 @@ const Grid = ({ game, updateGame, data }) => {
     })
 
     // create empty text elements for corner marks
-    data.cells.forEach((row, y) => {
+    game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let cell = {
           data: {
@@ -579,7 +579,7 @@ const Grid = ({ game, updateGame, data }) => {
     })
 
     // create empty text elements for centre marks
-    data.cells.forEach((row, y) => {
+    game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
           fontFamily: "Tahoma, Verdana, sans-serif",
@@ -602,7 +602,7 @@ const Grid = ({ game, updateGame, data }) => {
     })
 
     // create invisible rectangles for colours
-    data.cells.forEach((row, y) => {
+    game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let rect = new PIXI.Graphics()
         rect.x = x * cellSize
@@ -624,7 +624,7 @@ const Grid = ({ game, updateGame, data }) => {
     newApp.stage.addChild(grid)
 
     // add lines
-    data.lines.forEach(line => {
+    game.data.lines.forEach(line => {
       let poly = new PIXI.Graphics()
       let points = flatten(line.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y)))
       poly.lineStyle({
@@ -642,10 +642,10 @@ const Grid = ({ game, updateGame, data }) => {
     })
 
     // add underlays and overlays
-    data.underlays.forEach(underlay => {
+    game.data.underlays.forEach(underlay => {
       newApp.stage.addChild(drawOverlay(underlay, grid.x, grid.y))
     })
-    data.overlays.forEach(overlay => {
+    game.data.overlays.forEach(overlay => {
       newApp.stage.addChild(drawOverlay(overlay, grid.x, grid.y))
     })
 
@@ -670,7 +670,7 @@ const Grid = ({ game, updateGame, data }) => {
       })
       app.current = undefined
     }
-  }, [data, cellSize, regions, cages, cellToScreenCoords, drawOverlay,
+  }, [game.data, cellSize, regions, cages, cellToScreenCoords, drawOverlay,
       selectCell, updateGame])
 
   // register keyboard handlers

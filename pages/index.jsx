@@ -1,4 +1,3 @@
-import data from "../public/Qh7QjthLmb.json"
 import Grid from "../components/Grid"
 import Pad from "../components/Pad"
 import StatusBar from "../components/StatusBar"
@@ -12,8 +11,11 @@ import Head from "next/head"
 import { isEqual } from "lodash"
 import styles from "./index.scss"
 
-function makeEmptyState() {
+const DATABASE_URL = "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
+
+function makeEmptyState(data) {
   return {
+    data,
     mode: MODE_NORMAL,
     previousModes: [],
     digits: [],
@@ -202,7 +204,7 @@ function makeUndoState(state) {
 
 function gameReducer(state, action) {
   if (action.type === TYPE_RESTART) {
-    return makeEmptyState()
+    return makeEmptyState(action.data)
   }
 
   if (action.type === TYPE_UNDO) {
@@ -301,6 +303,30 @@ const Index = () => {
     })
   }
 
+  // load game data
+  useEffect(() => {
+    let params = new URLSearchParams(window.location.search)
+    let id = params.get("id")
+    let url
+    if (id === null || id === "") {
+      url = "/empty-grid.json"
+    } else {
+      url = DATABASE_URL.replace("{}", id)
+    }
+
+    async function load() {
+      let response = await fetch(url)
+      let json = await response.json()
+      updateGame({
+        type: TYPE_RESTART,
+        data: json
+      })
+    }
+
+    // TODO better error handling
+    load().catch(e => console.error(e))
+  }, [])
+
   // register keyboard handlers
   useEffect(() => {
     function onKeyDown(e) {
@@ -374,7 +400,7 @@ const Index = () => {
     <StatusBar />
     <div className="game-container" onClick={clearSelection}>
       <div className="grid-container">
-        <Grid game={game} updateGame={updateGame} data={data} />
+        {game.data && <Grid game={game} updateGame={updateGame} />}
       </div>
       <Pad updateGame={updateGame} mode={game.mode} />
       <style jsx>{styles}</style>
