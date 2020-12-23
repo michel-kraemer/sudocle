@@ -227,25 +227,28 @@ const Grid = ({ game, updateGame }) => {
     return unionCells(region).map(v => v * cellSize)
   }), [game.data, cellSize])
 
-  const cages = useMemo(() => game.data.cages.map(cage => {
-    let union = unionCells(cage.cells).map(v => v * cellSize)
+  const cages = useMemo(() => game.data.cages
+    .filter(cage => cage.cells?.length)
+    .map(cage => {
+      let union = unionCells(cage.cells).map(v => v * cellSize)
+      console.log(union)
 
-    // find top-left cell
-    let topleft = cage.cells[0]
-    for (let cell of cage.cells) {
-      if (cell[0] < topleft[0]) {
-        topleft = cell
-      } else if (cell[0] === topleft[0] && cell[1] < topleft[1]) {
-        topleft = cell
+      // find top-left cell
+      let topleft = cage.cells[0]
+      for (let cell of cage.cells) {
+        if (cell[0] < topleft[0]) {
+          topleft = cell
+        } else if (cell[0] === topleft[0] && cell[1] < topleft[1]) {
+          topleft = cell
+        }
       }
-    }
 
-    return {
-      outline: union,
-      value: cage.value,
-      topleft
-    }
-  }), [game.data, cellSize])
+      return {
+        outline: union,
+        value: cage.value,
+        topleft
+      }
+    }), [game.data, cellSize])
 
   const cellToScreenCoords = useCallback((cell, mx, my) => {
     return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
