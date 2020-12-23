@@ -1,8 +1,8 @@
 .button {
   display: flex;
-  color: #6a1b9a;
-  border: 2px solid #ccc;
-  border-radius: 7px;
+  color: var(--primary);
+  border: 2px solid var(--grey-600);
+  border-radius: var(--border-radius);
   padding: 0.32rem 0.4rem 0.28rem 0.4rem;
   justify-content: center;
   align-items: center;
@@ -12,16 +12,17 @@
   line-height: 1em;
 
   &:hover {
-    background-color: #f3e5f5;
+    background-color: var(--grey-700);
   }
 
   &.active {
-    background-color: #602694;
-    color: #fff;
-    border-color: #6a1b9a;
+    background-color: var(--primary);
+    color: var(--bg);
+    border-color: var(--primary);
 
     &:hover {
-      background-color: #7b1fa2;
+      background-color: var(--primary-highlight);
+      border-color: var(--primary-highlight);
     }
   }
 
@@ -30,7 +31,8 @@
   }
 
   &.alert {
-    background-color: #c00;
-    color: #fff;
+    background-color: var(--alert);
+    border-color: var(--alert);
+    color: var(--bg);
   }
 }

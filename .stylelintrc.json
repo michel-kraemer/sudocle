@@ -7,6 +7,9 @@
     "at-rule-no-unknown": null,
     "scss/at-rule-no-unknown": true,
     "selector-list-comma-newline-after": "always-multi-line",
-    "no-descending-specificity": null
+    "no-descending-specificity": null,
+    "selector-pseudo-class-no-unknown": [true, {
+      "ignorePseudoClasses": ["global"]
+    }]
   }
 }
