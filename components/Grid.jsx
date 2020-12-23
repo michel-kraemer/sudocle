@@ -414,6 +414,7 @@ const Grid = ({ game, updateGame }) => {
         cell.on("pointerdown", function (e) {
           selectCell(this)
           e.stopPropagation()
+          e.data.originalEvent.preventDefault()
         })
 
         cell.on("pointerover", function (e) {
