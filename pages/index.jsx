@@ -1,7 +1,7 @@
 import Grid from "../components/Grid"
 import Pad from "../components/Pad"
 import StatusBar from "../components/StatusBar"
-import { eqCell } from "../components/lib/utils"
+import { xytok, ktoxy } from "../components/lib/utils"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLOURS,
   TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
   ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
@@ -10,25 +10,22 @@ import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../component
 import { useEffect, useReducer } from "react"
 import Head from "next/head"
 import { isEqual } from "lodash"
+import produce from "immer"
 import styles from "./index.scss"
 
 const DATABASE_URL = "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
 
 function makeGivenDigits(data) {
   if (data === undefined || data.cells === undefined) {
-    return []
+    return new Map()
   }
 
-  let r = []
+  let r = new Map()
   data.cells.forEach((row, y) => {
     row.forEach((col, x) => {
       if (col.value !== undefined) {
-        r.push({
-          data: {
-            row: y,
-            col: x
-          },
-          digit: col.value,
+        r.set(xytok(x, y), {
+          digit: +col.value,
           given: true
         })
       }
@@ -43,11 +40,11 @@ function makeEmptyState(data) {
     mode: MODE_NORMAL,
     previousModes: [],
     digits: makeGivenDigits(data),
-    cornerMarks: [],
-    centreMarks: [],
-    colours: [],
-    selection: [],
-    errors: [],
+    cornerMarks: new Map(),
+    centreMarks: new Map(),
+    colours: new Map(),
+    selection: new Set(),
+    errors: new Set(),
     undoStates: [],
     nextUndoState: 0,
     solved: (data || {}).solved || false
@@ -57,7 +54,7 @@ function makeEmptyState(data) {
 function filterGivens(digits, selection) {
   let r = []
   for (let sc of selection) {
-    let cell = digits.find(d => eqCell(sc, d.data))
+    let cell = digits.get(sc)
     if (cell === undefined || !cell.given) {
       r.push(sc)
     }
@@ -110,159 +107,149 @@ function modeReducer(mode, previousModes, action) {
   }
 }
 
-function marksReducer(state, action, selection) {
-  switch (action.action) {
-    case ACTION_SET: {
-      let newState = [...state]
-      for (let sc of selection) {
-        let existingCell = newState.findIndex(c => eqCell(sc, c.data))
-        let newDigits
-        if (existingCell === -1) {
-          newDigits = []
-        } else {
-          newDigits = [...newState[existingCell].digits]
-          newState.splice(existingCell, 1)
+function marksReducer(marks, action, selection) {
+  return produce(marks, draft => {
+    switch (action.action) {
+      case ACTION_SET: {
+        for (let sc of selection) {
+          let digits = draft.get(sc)
+          if (digits === undefined) {
+            digits = new Set()
+            draft.set(sc, digits)
+          }
+          if (digits.has(action.digit)) {
+            digits.delete(action.digit)
+          } else {
+            digits.add(action.digit)
+          }
+          if (digits.size === 0) {
+            draft.delete(sc)
+          }
         }
-        if (newDigits[action.digit] !== undefined) {
-          delete newDigits[action.digit]
-        } else {
-          newDigits[action.digit] = action.digit
+        break
+      }
+
+      case ACTION_REMOVE: {
+        for (let sc of selection) {
+          draft.delete(sc)
         }
-        while (newDigits.length > 0 && newDigits[newDigits.length - 1] === undefined) {
-          newDigits.pop()
-        }
-        if (newDigits.length > 0) {
-          newState.push({
-            data: sc,
-            digits: newDigits
+        break
+      }
+    }
+  })
+}
+
+function digitsReducer(digits, action, selection, attrName = "digit") {
+  return produce(digits, draft => {
+    switch (action.action) {
+      case ACTION_SET: {
+        for (let sc of selection) {
+          draft.set(sc, {
+            [attrName]: action.digit
           })
         }
+        break
       }
-      return newState
-    }
 
-    case ACTION_REMOVE: {
-      let newState = state
-      for (let sc of selection) {
-        newState = [...newState.filter(c => !eqCell(sc, c.data))]
+      case ACTION_REMOVE: {
+        for (let sc of selection) {
+          draft.delete(sc)
+        }
+        break
       }
-      return newState
     }
-  }
-  return state
+  })
 }
 
-function digitsReducer(state, action, selection, attrName = "digit") {
-  switch (action.action) {
-    case ACTION_SET: {
-      let newState = state
-      for (let sc of selection) {
-        newState = [...newState.filter(c => !eqCell(sc, c.data)), {
-          data: sc,
-          [attrName]: action.digit
-        }]
-      }
-      return newState
-    }
-
-    case ACTION_REMOVE: {
-      let newState = state
-      for (let sc of selection) {
-        newState = [...newState.filter(c => !eqCell(sc, c.data))]
-      }
-      return newState
-    }
-  }
-  return state
-}
-
-function selectionReducer(state, action, cells = []) {
-  switch (action.action) {
-    case ACTION_CLEAR:
-      return []
-    case ACTION_SET:
-      return [action.data]
-    case ACTION_PUSH:
-      return [...state, action.data]
-    case ACTION_REMOVE:
-      return [...state.filter(c => !eqCell(c, action.data))]
-  }
-
-  if (state.length > 0 && (action.action === ACTION_RIGHT ||
-      action.action === ACTION_LEFT || action.action === ACTION_UP ||
-      action.action === ACTION_DOWN)) {
-    if (!action.append && state.length > 1) {
-      return [state[state.length - 1]]
-    }
-
-    let newState
-    if (action.append) {
-      newState = [...state]
-    } else {
-      newState = []
-    }
-
-    let oldCell = state[state.length - 1]
-    let rowLength = cells[oldCell.row]?.length || 1
-    let colLength = cells.length
+function selectionReducer(selection, action, cells = []) {
+  return produce(selection, draft => {
     switch (action.action) {
-      case ACTION_RIGHT: {
-        let newCol = (oldCell.col + 1) % rowLength
-        newState = [...newState, { ...oldCell, col: newCol }]
-        break
-      }
-      case ACTION_LEFT: {
-        let newCol = (oldCell.col - 1 + rowLength) % rowLength
-        newState = [...newState, { ...oldCell, col: newCol }]
-        break
-      }
-      case ACTION_UP: {
-        let newRow = (oldCell.row - 1 + colLength) % colLength
-        newState = [...newState, { ...oldCell, row: newRow }]
-        break
-      }
-      case ACTION_DOWN: {
-        let newRow = (oldCell.row + 1) % colLength
-        newState = [...newState, { ...oldCell, row: newRow }]
-        break
-      }
+      case ACTION_CLEAR:
+        draft.clear()
+        return
+      case ACTION_SET:
+        draft.clear()
+        draft.add(action.k)
+        return
+      case ACTION_PUSH:
+        draft.add(action.k)
+        return
+      case ACTION_REMOVE:
+        draft.delete(action.k)
+        return
     }
 
-    return newState
-  }
+    if (draft.size > 0 && (action.action === ACTION_RIGHT ||
+        action.action === ACTION_LEFT || action.action === ACTION_UP ||
+        action.action === ACTION_DOWN)) {
+      let last = [...draft].pop()
+      if (!action.append) {
+        draft.clear()
+      }
 
-  return state
+      let [lastX, lastY] = ktoxy(last)
+      let rowLength = cells[lastY]?.length || 1
+      let colLength = cells.length
+
+      let newK
+      switch (action.action) {
+        case ACTION_RIGHT:
+          newK = xytok((lastX + 1) % rowLength, lastY)
+          break
+        case ACTION_LEFT:
+          newK = xytok((lastX - 1 + rowLength) % rowLength, lastY)
+          break
+        case ACTION_UP:
+          newK = xytok(lastX, (lastY - 1 + colLength) % colLength)
+          break
+        case ACTION_DOWN:
+          newK = xytok(lastX, (lastY + 1) % colLength)
+          break
+      }
+
+      if (newK !== undefined) {
+        // re-add key so element becomes last in set
+        draft.delete(newK)
+        draft.add(newK)
+      }
+    }
+  })
 }
 
-function checkDuplicates(grid) {
-  let r = []
+function checkDuplicates(grid, errors, flip = false) {
   for (let y = 0; y < grid.length; ++y) {
     let cells = grid[y]
     if (cells !== undefined) {
       for (let x = 0; x < cells.length; ++x) {
         for (let x2 = x + 1; x2 < cells.length; ++x2) {
-          if (cells[x] === cells[x2]) {
-            r.push([y, x])
-            r.push([y, x2])
+          if (cells[x] !== undefined && cells[x2] !== undefined &&
+              cells[x] === cells[x2]) {
+            if (flip) {
+              errors.add(xytok(y, x))
+              errors.add(xytok(y, x2))
+            } else {
+              errors.add(xytok(x, y))
+              errors.add(xytok(x2, y))
+            }
           }
         }
       }
     }
   }
-  return r
 }
 
 function checkReducer(digits, cells = []) {
-  let errors = []
+  let errors = new Set()
   let gridByRow = []
   let gridByCol = []
 
   // check for empty cells
   cells.forEach((row, y) => {
     row.forEach((col, x) => {
-      let d = digits.find(c => c.data.row === y && c.data.col === x)
+      let k = xytok(x, y)
+      let d = digits.get(k)
       if (d === undefined) {
-        errors.push({ row: y, col: x })
+        errors.add(k)
       } else {
         gridByRow[y] = gridByRow[y] || []
         gridByRow[y][x] = d.digit
@@ -273,12 +260,12 @@ function checkReducer(digits, cells = []) {
   })
 
   // check for duplicate digits in rows
-  checkDuplicates(gridByRow).forEach(e => errors.push({ row: e[0], col: e[1] }))
+  checkDuplicates(gridByRow, errors)
 
   // check for duplicate digits in cols
-  checkDuplicates(gridByCol).forEach(e => errors.push({ row: e[1], col: e[0] }))
+  checkDuplicates(gridByCol, errors, true)
 
-  if (errors.length > 0) {
+  if (errors.size > 0) {
     alert("That doesn't look right!")
   } else {
     alert("Looks good to me!")
@@ -389,7 +376,7 @@ function gameReducer(state, action) {
     let deleteColour = false
     if (newState.mode === MODE_COLOUR) {
       for (let sc of state.selection) {
-        deleteColour = newState.colours.some(c => eqCell(sc, c.data))
+        deleteColour = newState.colours.has(sc)
         if (deleteColour) {
           break
         }
@@ -398,17 +385,14 @@ function gameReducer(state, action) {
     let highest = MODE_COLOUR
     if (!deleteColour) {
       for (let sc of state.selection) {
-        let hasDigit = newState.digits.some(c => eqCell(sc, c.data))
+        let hasDigit = newState.digits.has(sc)
         if (hasDigit) {
           highest = MODE_NORMAL
           break
         }
-        let hasCentreMarks = newState.centreMarks.some(c => eqCell(sc, c.data))
-        if (hasCentreMarks && highest === MODE_COLOUR) {
+        if (highest === MODE_COLOUR && newState.centreMarks.has(sc)) {
           highest = MODE_CENTRE
-        }
-        let hasCornerMarks = newState.cornerMarks.some(c => eqCell(sc, c.data))
-        if (hasCornerMarks && highest === MODE_COLOUR) {
+        } else if (highest === MODE_COLOUR && newState.cornerMarks.has(sc)) {
           highest = MODE_CENTRE
         }
       }

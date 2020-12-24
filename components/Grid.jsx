@@ -1,7 +1,7 @@
 import ColourPaletteContext from "./contexts/ColourPaletteContext"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
 import COLOUR_PALETTES from "./lib/ColourPalettes"
-import { eqCell } from "./lib/utils"
+import { xytok } from "./lib/utils"
 import Color from "color"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
@@ -316,7 +316,7 @@ const Grid = ({ game, updateGame }) => {
     updateGame({
       type: TYPE_SELECTION,
       action,
-      data: cell.data
+      k: cell.data.k
     })
   }, [updateGame])
 
@@ -389,8 +389,7 @@ const Grid = ({ game, updateGame }) => {
         cell.buttonMode = true
 
         cell.data = {
-          row: y,
-          col: x
+          k: xytok(x, y)
         }
 
         cell.lineStyle({ width: 1, color: foregroundColor })
@@ -485,8 +484,7 @@ const Grid = ({ game, updateGame }) => {
         text.y = y * cellSize + cellSize / 2 - 0.5
         text.anchor.set(0.5)
         text.data = {
-          row: y,
-          col: x
+          k: xytok(x, y)
         }
         grid.addChild(text)
         digitElements.current.push(text)
@@ -498,8 +496,7 @@ const Grid = ({ game, updateGame }) => {
       row.forEach((col, x) => {
         let cell = {
           data: {
-            row: y,
-            col: x
+            k: xytok(x, y)
           },
           elements: []
         }
@@ -600,8 +597,7 @@ const Grid = ({ game, updateGame }) => {
         text.scale.x = 0.5
         text.scale.y = 0.5
         text.data = {
-          row: y,
-          col: x
+          k: xytok(x, y)
         }
         grid.addChild(text)
         centreMarkElements.current.push(text)
@@ -616,8 +612,7 @@ const Grid = ({ game, updateGame }) => {
         rect.y = y * cellSize
         rect.alpha = 0
         rect.data = {
-          row: y,
-          col: x
+          k: xytok(x, y)
         }
         grid.addChild(rect)
         colourElements.current.push(rect)
@@ -635,8 +630,7 @@ const Grid = ({ game, updateGame }) => {
         rect.y = y * cellSize
         rect.alpha = 0
         rect.data = {
-          row: y,
-          col: x
+          k: xytok(x, y)
         }
         grid.addChild(rect)
         errorElements.current.push(rect)
@@ -712,62 +706,59 @@ const Grid = ({ game, updateGame }) => {
 
   useEffect(() => {
     cellElements.current.forEach(cell => {
-      let data = game.selection.find(sc => eqCell(sc, cell.data))
-      cell.children[0].alpha = data === undefined ? 0 : 1
+      cell.children[0].alpha = !game.selection.has(cell.data.k) ? 0 : 1
     })
     app.current.render()
   }, [game.selection])
 
   useEffect(() => {
-    let cornerMarks = []
-    let centreMarks = []
+    let cornerMarks = new Map()
+    let centreMarks = new Map()
 
     for (let e of cornerMarkElements.current) {
-      let mark = game.cornerMarks.find(m => eqCell(m.data, e.data))
+      let digits = game.cornerMarks.get(e.data.k)
+      // TODO improve performance a lot by NOT resetting ALL text elements!
       for (let ce of e.elements) {
         ce.text = ""
       }
-      if (mark !== undefined) {
-        let compactedDigits = mark.digits.filter(Number.isInteger)
-        for (let i = 0; i < compactedDigits.length; ++i) {
+      if (digits !== undefined) {
+        [...digits].sort().forEach((d, i) => {
           let n = i
-          if (compactedDigits.length > 8 && n > 4) {
+          if (digits.size > 8 && n > 4) {
             n++
           }
-          e.elements[n].text = compactedDigits[i]
-        }
-        cornerMarks[mark.data.row] = cornerMarks[mark.data.row] || []
-        cornerMarks[mark.data.row][mark.data.col] = e
+          e.elements[n].text = d
+        })
+        cornerMarks.set(e.data.k, e)
       }
     }
 
     for (let e of centreMarkElements.current) {
-      let mark = game.centreMarks.find(m => eqCell(m.data, e.data))
-      if (mark !== undefined) {
-        e.text = mark.digits.join("")
-        centreMarks[mark.data.row] = centreMarks[mark.data.row] || []
-        centreMarks[mark.data.row][mark.data.col] = e
+      let digits = game.centreMarks.get(e.data.k)
+      if (digits !== undefined) {
+        e.text = [...digits].sort().join("")
+        centreMarks.set(e.data.k, e)
       } else {
         e.text = ""
       }
     }
 
     for (let e of digitElements.current) {
-      let digit = game.digits.find(d => eqCell(d.data, e.data))
+      let digit = game.digits.get(e.data.k)
       if (digit !== undefined) {
         e.text = digit.digit
         e.style.fill = digit.given ? foregroundColor : digitColor
 
-        if (cornerMarks[digit.data.row] !== undefined &&
-            cornerMarks[digit.data.row][digit.data.col] !== undefined) {
-          let cm = cornerMarks[digit.data.row][digit.data.col]
-          for (let ce of cm.elements) {
+        let com = cornerMarks.get(e.data.k)
+        if (com !== undefined) {
+          for (let ce of com.elements) {
             ce.text = ""
           }
         }
-        if (centreMarks[digit.data.row] !== undefined &&
-            centreMarks[digit.data.row][digit.data.col] !== undefined) {
-          centreMarks[digit.data.row][digit.data.col].text = ""
+
+        let cem = centreMarks.get(e.data.k)
+        if (cem !== undefined) {
+          cem.text = ""
         }
       } else {
         e.text = ""
@@ -776,7 +767,7 @@ const Grid = ({ game, updateGame }) => {
 
     let colours = COLOUR_PALETTES[colourPalette.palette].colours
     for (let e of colourElements.current) {
-      let colour = game.colours.find(c => eqCell(c.data, e.data))
+      let colour = game.colours.get(e.data.k)
       if (colour !== undefined) {
         let colourNumber = Color(colours[colour.colour - 1]).rgbNumber()
         e.clear()
@@ -790,8 +781,7 @@ const Grid = ({ game, updateGame }) => {
     }
 
     for (let e of errorElements.current) {
-      let error = game.errors.find(c => eqCell(c, e.data))
-      e.alpha = error !== undefined ? 1 : 0
+      e.alpha = game.errors.has(e.data.k) ? 1 : 0
     }
 
     app.current.render()
