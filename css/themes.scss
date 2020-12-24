@@ -7,6 +7,7 @@
   --primary-highlight: #{lighten(#2b3f77, 10%)};
   --alert: #b81e1e;
   --border-radius: 10px;
+  --digit: #{lighten(#2b3f77, 20%)};
 }
 
 [data-theme="ctc"] {
@@ -18,6 +19,7 @@
   --primary-highlight: #7b1fa2;
   --alert: #c00;
   --border-radius: 7px;
+  --digit: #316bdd;
 
   :global(.status-bar) {
     background-color: #90a4ae;
@@ -42,4 +44,5 @@
   --primary: #81a1c1;
   --primary-highlight: #{lighten(#81a1c1, 10%)};
   --alert: #bf616a;
+  --digit: var(--primary);
 }

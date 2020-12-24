@@ -2,13 +2,12 @@ import ColourPaletteContext from "./contexts/ColourPaletteContext"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
 import COLOUR_PALETTES from "./lib/ColourPalettes"
 import { eqCell } from "./lib/utils"
-import colorString from "color-string"
+import Color from "color"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
-import { useCallback, useContext, useEffect, useMemo, useRef } from "react"
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { flatten } from "lodash"
 
-const BLUE_DIGIT = 0x316bdd
 const SCALE_FACTOR = 1.2
 
 let PIXI
@@ -202,11 +201,6 @@ function isGrey(nColour) {
   return r === g && r === b
 }
 
-function colourStringToNumber(str) {
-  let v = colorString.get.rgb(str)
-  return v[0] << 16 | v[1] << 8 | v[2]
-}
-
 const Grid = ({ game, updateGame }) => {
   const ref = useRef()
   const app = useRef()
@@ -218,6 +212,8 @@ const Grid = ({ game, updateGame }) => {
   const errorElements = useRef([])
   const keyMetaPressed = useRef(false)
   const keyShiftPressed = useRef(false)
+  const [foregroundColor, setForegroundColor] = useState()
+  const [digitColor, setDigitColor] = useState()
 
   const colourPalette = useContext(ColourPaletteContext.State)
 
@@ -231,7 +227,6 @@ const Grid = ({ game, updateGame }) => {
     .filter(cage => cage.cells?.length)
     .map(cage => {
       let union = unionCells(cage.cells).map(v => v * cellSize)
-      console.log(union)
 
       // find top-left cell
       let topleft = cage.cells[0]
@@ -277,11 +272,11 @@ const Grid = ({ game, updateGame }) => {
     if (overlay.backgroundColor !== undefined || overlay.borderColor !== undefined) {
       let nBackgroundColour
       if (overlay.backgroundColor !== undefined) {
-        nBackgroundColour = colourStringToNumber(overlay.backgroundColor)
+        nBackgroundColour = Color(overlay.backgroundColor).rgbNumber()
         r.beginFill(nBackgroundColour, isGrey(nBackgroundColour) ? 1 : 0.5)
       }
       if (overlay.borderColor !== undefined) {
-        let nBorderColour = colourStringToNumber(overlay.borderColor)
+        let nBorderColour = Color(overlay.borderColor).rgbNumber()
         if (nBorderColour !== nBackgroundColour &&
             !(overlay.width === 1 && overlay.height === 1 && isGrey(nBorderColour))) {
           r.lineStyle({
@@ -360,6 +355,12 @@ const Grid = ({ game, updateGame }) => {
   }
 
   useEffect(() => {
+    let rootStyle = getComputedStyle(document.body)
+    let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
+    let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
+    setForegroundColor(foregroundColor)
+    setDigitColor(digitColor)
+
     // create PixiJS app
     let newApp = new PIXI.Application({
       resolution: window.devicePixelRatio,
@@ -392,7 +393,7 @@ const Grid = ({ game, updateGame }) => {
           col: x
         }
 
-        cell.lineStyle({ width: 1, color: 0 })
+        cell.lineStyle({ width: 1, color: foregroundColor })
         cell.drawRect(0, 0, cellSize, cellSize)
 
         cell.x = x * cellSize
@@ -432,7 +433,7 @@ const Grid = ({ game, updateGame }) => {
     // render regions
     for (let r of regions) {
       let poly = new PIXI.Graphics()
-      poly.lineStyle({ width: 3, color: 0 })
+      poly.lineStyle({ width: 3, color: foregroundColor })
       poly.drawPolygon(r)
       poly.zIndex = 10
       grid.addChild(poly)
@@ -444,7 +445,7 @@ const Grid = ({ game, updateGame }) => {
       let poly = new PIXI.Graphics()
       let disposedOutline = disposePolygon(cage.outline, regions, 1)
       let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
-      poly.lineStyle({ width: 1, color: 0 })
+      poly.lineStyle({ width: 1, color: foregroundColor })
       drawDashedPolygon(shrunkenOutline, 3, 2, poly)
       poly.zIndex = 1
       grid.addChild(poly)
@@ -572,7 +573,7 @@ const Grid = ({ game, updateGame }) => {
           }
 
           text.anchor.set(0.5)
-          text.style.fill = BLUE_DIGIT
+          text.style.fill = digitColor
           text.scale.x = 0.5
           text.scale.y = 0.5
 
@@ -595,7 +596,7 @@ const Grid = ({ game, updateGame }) => {
         text.x = x * cellSize + cellSize / 2
         text.y = y * cellSize + cellSize / 2 - 0.5
         text.anchor.set(0.5)
-        text.style.fill = BLUE_DIGIT
+        text.style.fill = digitColor
         text.scale.x = 0.5
         text.scale.y = 0.5
         text.data = {
@@ -654,7 +655,7 @@ const Grid = ({ game, updateGame }) => {
       let points = flatten(line.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y)))
       poly.lineStyle({
         width: line.thickness * SCALE_FACTOR,
-        color: colourStringToNumber(line.color),
+        color: Color(line.color).rgbNumber(),
         cap: PIXI.LINE_CAP.ROUND,
         join: PIXI.LINE_JOIN.ROUND
       })
@@ -755,7 +756,7 @@ const Grid = ({ game, updateGame }) => {
       let digit = game.digits.find(d => eqCell(d.data, e.data))
       if (digit !== undefined) {
         e.text = digit.digit
-        e.style.fill = digit.given ? 0 : BLUE_DIGIT
+        e.style.fill = digit.given ? foregroundColor : digitColor
 
         if (cornerMarks[digit.data.row] !== undefined &&
             cornerMarks[digit.data.row][digit.data.col] !== undefined) {
@@ -777,7 +778,7 @@ const Grid = ({ game, updateGame }) => {
     for (let e of colourElements.current) {
       let colour = game.colours.find(c => eqCell(c.data, e.data))
       if (colour !== undefined) {
-        let colourNumber = colourStringToNumber(colours[colour.colour - 1])
+        let colourNumber = Color(colours[colour.colour - 1]).rgbNumber()
         e.clear()
         e.beginFill(colourNumber)
         e.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
@@ -795,7 +796,7 @@ const Grid = ({ game, updateGame }) => {
 
     app.current.render()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
-      game.errors, colourPalette.palette])
+      game.errors, colourPalette.palette, foregroundColor, digitColor])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick}>
