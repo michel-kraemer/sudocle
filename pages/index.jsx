@@ -385,8 +385,8 @@ function gameReducer(state, action) {
     let highest = MODE_COLOUR
     if (!deleteColour) {
       for (let sc of state.selection) {
-        let hasDigit = newState.digits.has(sc)
-        if (hasDigit) {
+        let digit = newState.digits.get(sc)
+        if (digit !== undefined && !digit.given) {
           highest = MODE_NORMAL
           break
         }
