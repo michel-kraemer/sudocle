@@ -1,12 +1,12 @@
-import Grid from "../components/Grid"
-import Pad from "../components/Pad"
-import StatusBar from "../components/StatusBar"
-import { xytok, ktoxy } from "../components/lib/utils"
+import Grid from "../../components/Grid"
+import Pad from "../../components/Pad"
+import StatusBar from "../../components/StatusBar"
+import { xytok, ktoxy } from "../../components/lib/utils"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLOURS,
   TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
   ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
-  ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../components/lib/Actions"
-import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../components/lib/Modes"
+  ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
+import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../../components/lib/Modes"
 import { useEffect, useReducer } from "react"
 import Head from "next/head"
 import { isEqual } from "lodash"
@@ -435,8 +435,12 @@ const Index = () => {
 
   // load game data
   useEffect(() => {
-    let params = new URLSearchParams(window.location.search)
-    let id = params.get("id")
+    let id = window.location.pathname
+    if (id.endsWith("/")) {
+      id = id.substring(0, id.length - 1)
+    }
+    id = id.substring(id.lastIndexOf("/") + 1)
+
     let url
     if (id === null || id === "") {
       url = "/empty-grid.json"
