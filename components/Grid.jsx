@@ -717,9 +717,8 @@ const Grid = ({ game, updateGame }) => {
 
     for (let e of cornerMarkElements.current) {
       let digits = game.cornerMarks.get(e.data.k)
-      // TODO improve performance a lot by NOT resetting ALL text elements!
       for (let ce of e.elements) {
-        ce.text = ""
+        ce.alpha = 0
       }
       if (digits !== undefined) {
         [...digits].sort().forEach((d, i) => {
@@ -728,6 +727,7 @@ const Grid = ({ game, updateGame }) => {
             n++
           }
           e.elements[n].text = d
+          e.elements[n].alpha = 1
         })
         cornerMarks.set(e.data.k, e)
       }
@@ -737,9 +737,10 @@ const Grid = ({ game, updateGame }) => {
       let digits = game.centreMarks.get(e.data.k)
       if (digits !== undefined) {
         e.text = [...digits].sort().join("")
+        e.alpha = 1
         centreMarks.set(e.data.k, e)
       } else {
-        e.text = ""
+        e.alpha = 0
       }
     }
 
@@ -748,20 +749,21 @@ const Grid = ({ game, updateGame }) => {
       if (digit !== undefined) {
         e.text = digit.digit
         e.style.fill = digit.given ? foregroundColor : digitColor
+        e.alpha = 1
 
         let com = cornerMarks.get(e.data.k)
         if (com !== undefined) {
           for (let ce of com.elements) {
-            ce.text = ""
+            ce.alpha = 0
           }
         }
 
         let cem = centreMarks.get(e.data.k)
         if (cem !== undefined) {
-          cem.text = ""
+          cem.alpha = 0
         }
       } else {
-        e.text = ""
+        e.alpha = 0
       }
     }
 
