@@ -7,13 +7,14 @@ import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLO
   ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../../components/lib/Modes"
-import { useEffect, useReducer } from "react"
+import { useEffect, useReducer, useRef, useState } from "react"
 import Head from "next/head"
 import { isEqual } from "lodash"
 import produce from "immer"
 import styles from "./index.scss"
 
 const DATABASE_URL = "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
+const STATUS_BAR_GAP = 10 // minimum gap between status bar and grid
 
 function makeGivenDigits(data) {
   if (data === undefined || data.cells === undefined) {
@@ -425,6 +426,16 @@ function gameReducer(state, action) {
 
 const Index = () => {
   const [game, updateGame] = useReducer(gameReducer, makeEmptyState())
+  const gameContainerRef = useRef()
+  const padContainerRef = useRef()
+  const [gridMaxWidth, setGridMaxWidth] = useState(0)
+  const [gridMaxHeight, setGridMaxHeight] = useState(0)
+  const [portrait, setPortrait] = useState(false)
+  const [statusBarHeight, setStatusBarHeight] = useState(0)
+
+  function onStatusBarHeightChange(newHeight) {
+    setStatusBarHeight(newHeight)
+  }
 
   function clearSelection() {
     updateGame({
@@ -581,6 +592,31 @@ const Index = () => {
     }
   }, [])
 
+  // register resize handler
+  useEffect(() => {
+    function onResize() {
+      let style = window.getComputedStyle(gameContainerRef.current)
+      let w = gameContainerRef.current.clientWidth - parseInt(style.paddingLeft) - parseInt(style.paddingRight)
+      let h = gameContainerRef.current.clientHeight - parseInt(style.paddingTop) - parseInt(style.paddingBottom)
+      let portrait = window.innerHeight > window.innerWidth
+      if (portrait) {
+        setGridMaxWidth(w)
+        setGridMaxHeight(h - padContainerRef.current.offsetHeight)
+      } else {
+        setGridMaxWidth(w - padContainerRef.current.offsetWidth)
+        setGridMaxHeight(h)
+      }
+      setPortrait(portrait)
+    }
+
+    window.addEventListener("resize", onResize)
+    onResize()
+
+    return () => {
+      window.removeEventListener("resize", onResize)
+    }
+  }, [])
+
   return (<>
     <Head>
       <meta httpEquiv="X-UA-Compatible" content="IE=edge"/>
@@ -590,12 +626,16 @@ const Index = () => {
       <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"/>
       <title>Sudoku</title>
     </Head>
-    <StatusBar solved={game.solved} />
-    <div className="game-container" onClick={clearSelection}>
+    <StatusBar solved={game.solved} onHeightChange={onStatusBarHeightChange} />
+    <div className="game-container" onClick={clearSelection} ref={gameContainerRef}>
       <div className="grid-container">
-        {game.data && <Grid game={game} updateGame={updateGame} />}
+        {game.data && <Grid game={game} updateGame={updateGame}
+          maxWidth={gridMaxWidth} maxHeight={gridMaxHeight - (statusBarHeight + STATUS_BAR_GAP) * 2}
+          portrait={portrait} />}
       </div>
-      <Pad updateGame={updateGame} mode={game.mode} />
+      <div className="pad-container" ref={padContainerRef}>
+        <Pad updateGame={updateGame} mode={game.mode} />
+      </div>
       <style jsx>{styles}</style>
     </div>
   </>)

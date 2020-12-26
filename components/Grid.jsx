@@ -201,9 +201,13 @@ function isGrey(nColour) {
   return r === g && r === b
 }
 
-const Grid = ({ game, updateGame }) => {
+const Grid = ({ game, updateGame, maxWidth, maxHeight, portrait }) => {
   const ref = useRef()
   const app = useRef()
+  const gridElement = useRef()
+  const allElement = useRef()
+  const gridBounds = useRef()
+  const allBounds = useRef()
   const cellElements = useRef([])
   const digitElements = useRef([])
   const centreMarkElements = useRef([])
@@ -354,31 +358,93 @@ const Grid = ({ game, updateGame }) => {
     e.stopPropagation()
   }
 
-  useEffect(() => {
-    let rootStyle = getComputedStyle(document.body)
-    let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
-    let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
-    setForegroundColor(foregroundColor)
-    setDigitColor(digitColor)
+  const onResize = useCallback(() => {
+    let marginTop = gridBounds.current.y - allBounds.current.y
+    let marginBottom = allBounds.current.y + allBounds.current.height -
+      (gridBounds.current.y + gridBounds.current.height)
+    let marginLeft = gridBounds.current.x - allBounds.current.x
+    let marginRight = allBounds.current.x + allBounds.current.width -
+      (gridBounds.current.x + gridBounds.current.width)
+    let additionalMarginX = 0
+    let additionalMarginY = 0
+    if (portrait) {
+      additionalMarginX = Math.abs(marginLeft - marginRight)
+    } else {
+      additionalMarginY = Math.abs(marginTop - marginBottom)
+    }
 
+    let w = allBounds.current.width
+    let h = allBounds.current.height
+    let wWithM = w + additionalMarginX
+    let hWithM = h + additionalMarginY
+    let scale = 1
+    if (wWithM > maxWidth || hWithM > maxHeight) {
+      let scaleX = maxWidth / wWithM
+      let scaleY = maxHeight / hWithM
+      scale = scaleX < scaleY ? scaleX : scaleY
+      w *= scale
+      h *= scale
+    }
+
+    app.current.renderer.resize(w, h)
+    allElement.current.x = -allBounds.current.x * scale
+    allElement.current.y = -allBounds.current.y * scale
+    allElement.current.scale.x = scale
+    allElement.current.scale.y = scale
+
+    if (marginTop > marginBottom) {
+      ref.current.style.marginTop = "0"
+      ref.current.style.marginBottom = `${additionalMarginY * scale}px`
+    } else {
+      ref.current.style.marginTop = `${additionalMarginY * scale}px`
+      ref.current.style.marginBottom = "0"
+    }
+    if (marginLeft > marginRight) {
+      ref.current.style.marginLeft = "0"
+      ref.current.style.marginRight = `${additionalMarginX * scale}px`
+    } else {
+      ref.current.style.marginLeft = `${additionalMarginX * scale}px`
+      ref.current.style.marginRight = "0"
+    }
+
+    app.current.render()
+  }, [maxWidth, maxHeight, portrait])
+
+  useEffect(() => {
     // create PixiJS app
     let newApp = new PIXI.Application({
       resolution: window.devicePixelRatio,
       antialias: true,
       transparent: true,
       autoDensity: true,
-      resizeTo: ref.current,
       autoStart: false
     })
     ref.current.appendChild(newApp.view)
-
     app.current = newApp
 
+    return () => {
+      newApp.destroy(true)
+      app.current = undefined
+    }
+  }, [])
+
+  useEffect(() => {
+    app.current.stage.removeChildren()
+
+    let rootStyle = getComputedStyle(document.body)
+    let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
+    let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
+    setForegroundColor(foregroundColor)
+    setDigitColor(digitColor)
+
     // create grid
+    let all = new PIXI.Container()
+    allElement.current = all
     let grid = new PIXI.Container()
+    gridElement.current = grid
     let cells = new PIXI.Container()
 
-    newApp.stage.sortableChildren = true
+    all.sortableChildren = true
     grid.sortableChildren = true
 
     // render cells
@@ -637,11 +703,8 @@ const Grid = ({ game, updateGame }) => {
       })
     })
 
-    grid.x = (newApp.screen.width - grid.width) / 2
-    grid.y = (newApp.screen.height - grid.height) / 2
-
     grid.addChild(cells)
-    newApp.stage.addChild(grid)
+    all.addChild(grid)
 
     // add lines
     game.data.lines.forEach(line => {
@@ -658,20 +721,26 @@ const Grid = ({ game, updateGame }) => {
         poly.lineTo(points[i], points[i + 1])
       }
       poly.zIndex = -1
-      newApp.stage.addChild(poly)
+      all.addChild(poly)
     })
 
     // add underlays and overlays
     game.data.underlays.forEach(underlay => {
-      newApp.stage.addChild(drawOverlay(underlay, grid.x, grid.y))
+      all.addChild(drawOverlay(underlay, grid.x, grid.y))
     })
     game.data.overlays.forEach(overlay => {
-      newApp.stage.addChild(drawOverlay(overlay, grid.x, grid.y))
+      all.addChild(drawOverlay(overlay, grid.x, grid.y))
     })
 
+    gridBounds.current = grid.getBounds()
+    allBounds.current = all.getBounds()
+
+    // draw a background that covers all elements
     let background = new PIXI.Graphics()
-    background.hitArea = new PIXI.Rectangle(0, 0, newApp.screen.width, newApp.screen.height)
-    background.drawRect(0, 0, newApp.screen.width, newApp.screen.height)
+    background.hitArea = new PIXI.Rectangle(allBounds.current.x, allBounds.current.y,
+      allBounds.current.width, allBounds.current.height)
+    background.drawRect(allBounds.current.x, allBounds.current.y,
+      allBounds.current.width, allBounds.current.height)
     background.interactive = true
     background.zIndex = -1000
     background.on("pointerdown", () => {
@@ -680,18 +749,18 @@ const Grid = ({ game, updateGame }) => {
         action: ACTION_CLEAR
       })
     })
-    newApp.stage.addChild(background)
 
-    newApp.render()
+    all.addChild(background)
+    allBounds.current = all.getBounds()
 
-    return () => {
-      newApp.destroy({
-        removeView: true
-      })
-      app.current = undefined
-    }
+    app.current.stage.addChild(all)
+    app.current.render()
   }, [game.data, cellSize, regions, cages, cellToScreenCoords, drawOverlay,
       selectCell, updateGame])
+
+  useEffect(() => {
+    onResize()
+  }, [onResize])
 
   // register keyboard handlers
   useEffect(() => {

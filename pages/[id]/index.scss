@@ -4,6 +4,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 0 3rem;
+
+  @media (orientation: portrait) {
+    flex-direction: column;
+    padding: 1rem 0;
+  }
 }
 
 .grid-container {
@@ -11,6 +17,5 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: 24rem;
-  height: 24rem;
+  height: 100%;
 }
