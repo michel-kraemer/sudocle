@@ -462,7 +462,7 @@ const Grid = ({ game, updateGame, maxWidth, maxHeight, portrait }) => {
     app.current = newApp
 
     return () => {
-      newApp.destroy(true)
+      newApp.destroy(true, true)
       app.current = undefined
     }
   }, [])
@@ -828,6 +828,19 @@ const Grid = ({ game, updateGame, maxWidth, maxHeight, portrait }) => {
 
     app.current.stage.addChild(all)
     app.current.render()
+
+    return () => {
+      allElement.current = undefined
+      gridElement.current = undefined
+      gridBounds.current = undefined
+      allBounds.current = undefined
+      cellElements.current = []
+      digitElements.current = []
+      centreMarkElements.current = []
+      cornerMarkElements.current = []
+      colourElements.current = []
+      errorElements.current = []
+    }
   }, [game.data, cellSize, regions, cages, cellToScreenCoords, drawOverlay,
       selectCell, updateGame])
 
