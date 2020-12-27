@@ -1,6 +1,8 @@
 import GameContext from "../../components/contexts/GameContext"
+import SettingsContext from "../../components/contexts/SettingsContext"
 import Grid from "../../components/Grid"
 import Pad from "../../components/Pad"
+import Settings from "../../components/Settings"
 import StatusBar from "../../components/StatusBar"
 import { TYPE_MODE, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
   ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
@@ -16,6 +18,7 @@ const STATUS_BAR_GAP = 10 // minimum gap between status bar and grid
 const Index = () => {
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
+  const settings = useContext(SettingsContext.State)
   const gameContainerRef = useRef()
   const padContainerRef = useRef()
   const [gridMaxWidth, setGridMaxWidth] = useState(0)
@@ -221,14 +224,19 @@ const Index = () => {
       <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"/>
       <title>Sudoku</title>
     </Head>
-    <StatusBar onHeightChange={onStatusBarHeightChange} />
-    <div className="game-container" onClick={clearSelection} ref={gameContainerRef}>
-      <div className="grid-container">
-        {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
-          maxHeight={gridMaxHeight - (statusBarHeight + STATUS_BAR_GAP) * 2} />}
-      </div>
-      <div className="pad-container" ref={padContainerRef}>
-        <Pad />
+    <div className="app" data-theme={settings.theme}>
+      <StatusBar onHeightChange={onStatusBarHeightChange} />
+      <div className="game-container" onClick={clearSelection} ref={gameContainerRef}>
+        <div className="grid-container">
+          {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
+            maxHeight={gridMaxHeight - (statusBarHeight + STATUS_BAR_GAP) * 2} />}
+        </div>
+        <div className="pad-container" ref={padContainerRef}>
+          <Pad />
+        </div>
+        <div className="settings-container">
+          <Settings />
+        </div>
       </div>
       <style jsx>{styles}</style>
     </div>

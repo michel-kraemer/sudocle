@@ -1,6 +1,9 @@
 :root {
-  --bg: #fff;
-  --fg: #333;
+  --bg: rgb(255, 255, 255);
+  --bg-alpha: rgba(255, 255, 255, 0.5);
+  --fg: rgb(51, 51, 51);
+  --fg-alpha: rgba(51, 51, 51, 0.5);
+  --grey-500: #ccc;
   --grey-600: #ddd;
   --grey-700: #eee;
   --primary: #2b3f77;
@@ -11,8 +14,11 @@
 }
 
 [data-theme="ctc"] {
-  --bg: #fff;
-  --fg: #000;
+  --bg: rgb(255, 255, 255);
+  --bg-alpha: rgba(255, 255, 255, 0.5);
+  --fg: rgb(0, 0, 0);
+  --fg-alpha: rgba(0, 0, 0, 0.5);
+  --grey-500: #bbb;
   --grey-600: #ccc;
   --grey-700: #90a4ae;
   --primary: #6a1b9a;
@@ -37,8 +43,11 @@
 }
 
 [data-theme="dark"] {
-  --bg: #2e3440;
-  --fg: #eceff4;
+  --bg: rgb(46, 52, 64);
+  --bg-alpha: rgba(46, 52, 64, 0.5);
+  --fg: rgb(236, 239, 244);
+  --fg-alpha: rgba(236, 239, 244, 0.5);
+  --grey-500: #2e3440;
   --grey-600: #3b4252;
   --grey-700: #434c5e;
   --primary: #81a1c1;

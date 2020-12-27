@@ -1,5 +1,6 @@
 import ColourPaletteContext from "./contexts/ColourPaletteContext"
 import GameContext from "./contexts/GameContext"
+import SettingsContext from "./contexts/SettingsContext"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
 import COLOUR_PALETTES from "./lib/ColourPalettes"
 import { xytok } from "./lib/utils"
@@ -258,6 +259,7 @@ const Grid = ({ maxWidth, maxHeight, portrait }) => {
   const colourPalette = useContext(ColourPaletteContext.State)
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
+  const settings = useContext(SettingsContext.State)
 
   const cellSize = game.data.cellSize * SCALE_FACTOR
 
@@ -472,12 +474,12 @@ const Grid = ({ maxWidth, maxHeight, portrait }) => {
       newApp.destroy(true, true)
       app.current = undefined
     }
-  }, [])
+  }, [settings.theme])
 
   useEffect(() => {
     app.current.stage.removeChildren()
 
-    let rootStyle = getComputedStyle(document.body)
+    let rootStyle = getComputedStyle(ref.current)
     let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
     let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
     setForegroundColor(foregroundColor)
@@ -848,12 +850,12 @@ const Grid = ({ maxWidth, maxHeight, portrait }) => {
       colourElements.current = []
       errorElements.current = []
     }
-  }, [game.data, cellSize, regions, cages, cellToScreenCoords, drawOverlay,
-      selectCell, updateGame])
+  }, [game.data, settings.theme, cellSize, regions, cages, cellToScreenCoords,
+      drawOverlay, selectCell, updateGame])
 
   useEffect(() => {
     onResize()
-  }, [onResize])
+  }, [onResize, settings.theme])
 
   // register keyboard handlers
   useEffect(() => {
