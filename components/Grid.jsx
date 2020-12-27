@@ -428,6 +428,10 @@ const Grid = ({ maxWidth, maxHeight, portrait }) => {
       h *= scale
     }
 
+    if (w < 0 || h < 0) {
+      return
+    }
+
     app.current.renderer.resize(w, h)
     allElement.current.x = -allBounds.current.x * scale
     allElement.current.y = -allBounds.current.y * scale
