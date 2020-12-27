@@ -36,6 +36,11 @@ const Index = () => {
 
   // load game data
   useEffect(() => {
+    if (game.data !== undefined) {
+      // game data already loaded
+      return
+    }
+
     let id = window.location.pathname
     if (id.endsWith("/")) {
       id = id.substring(0, id.length - 1)
@@ -63,7 +68,7 @@ const Index = () => {
 
     // TODO better error handling
     load().catch(e => console.error(e))
-  }, [updateGame])
+  }, [game.data, updateGame])
 
   // register keyboard handlers
   useEffect(() => {
