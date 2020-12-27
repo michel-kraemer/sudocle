@@ -1,4 +1,5 @@
 import ColourPaletteContext from "./contexts/ColourPaletteContext"
+import GameContext from "./contexts/GameContext"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
 import COLOUR_PALETTES from "./lib/ColourPalettes"
 import { xytok } from "./lib/utils"
@@ -236,7 +237,7 @@ function shortenLine(points) {
     lastPointX, lastPointY]
 }
 
-const Grid = ({ game, updateGame, maxWidth, maxHeight, portrait }) => {
+const Grid = ({ maxWidth, maxHeight, portrait }) => {
   const ref = useRef()
   const app = useRef()
   const gridElement = useRef()
@@ -255,6 +256,8 @@ const Grid = ({ game, updateGame, maxWidth, maxHeight, portrait }) => {
   const [digitColor, setDigitColor] = useState()
 
   const colourPalette = useContext(ColourPaletteContext.State)
+  const game = useContext(GameContext.State)
+  const updateGame = useContext(GameContext.Dispatch)
 
   const cellSize = game.data.cellSize * SCALE_FACTOR
 

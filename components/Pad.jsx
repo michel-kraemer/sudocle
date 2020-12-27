@@ -1,5 +1,6 @@
 import Button from "./Button"
 import ColourPaletteContext from "./contexts/ColourPaletteContext"
+import GameContext from "./contexts/GameContext"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
   ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
 import COLOUR_PALETTES from "./lib/ColourPalettes"
@@ -8,8 +9,10 @@ import { useContext, useState } from "react"
 import classNames from "classnames"
 import styles from "./Pad.scss"
 
-const Pad = ({ updateGame, mode }) => {
+const Pad = () => {
   const colourPalette = useContext(ColourPaletteContext.State)
+  const game = useContext(GameContext.State)
+  const updateGame = useContext(GameContext.Dispatch)
   const colours = COLOUR_PALETTES[colourPalette.palette].colours
 
   const [confirmRestart, setConfirmRestart] = useState(false)
@@ -105,20 +108,20 @@ const Pad = ({ updateGame, mode }) => {
 
   return <div className="pad">
     <div className="pad-left">
-      <Button active={mode === MODE_NORMAL} onClick={() => onMode(MODE_NORMAL)}>Normal</Button>
-      <Button active={mode === MODE_CORNER} onClick={() => onMode(MODE_CORNER)}>Corner</Button>
-      <Button active={mode === MODE_CENTRE} onClick={() => onMode(MODE_CENTRE)}>Centre</Button>
-      <Button active={mode === MODE_COLOUR} onClick={() => onMode(MODE_COLOUR)}>Colour</Button>
+      <Button active={game.mode === MODE_NORMAL} onClick={() => onMode(MODE_NORMAL)}>Normal</Button>
+      <Button active={game.mode === MODE_CORNER} onClick={() => onMode(MODE_CORNER)}>Corner</Button>
+      <Button active={game.mode === MODE_CENTRE} onClick={() => onMode(MODE_CENTRE)}>Centre</Button>
+      <Button active={game.mode === MODE_COLOUR} onClick={() => onMode(MODE_COLOUR)}>Colour</Button>
     </div>
     <div className="pad-right">
       {digits.map(d => (
         <Button key={d.digit} noPadding active onClick={() => onDigit(d.digit)}>
           <div className="digit-container">
-            <div className={classNames({ centre: mode === MODE_CENTRE,
-                corner: mode === MODE_CORNER, [d.corner]: mode === MODE_CORNER,
-                colour: mode === MODE_COLOUR })}>
-              {mode === MODE_COLOUR || d.digit}
-              {mode === MODE_COLOUR && <div className="colour"
+            <div className={classNames({ centre: game.mode === MODE_CENTRE,
+                corner: game.mode === MODE_CORNER, [d.corner]: game.mode === MODE_CORNER,
+                colour: game.mode === MODE_COLOUR })}>
+              {game.mode === MODE_COLOUR || d.digit}
+              {game.mode === MODE_COLOUR && <div className="colour"
                 style={{ backgroundColor: colours[d.colour] }}></div>}
             </div>
           </div>
