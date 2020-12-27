@@ -201,6 +201,41 @@ function isGrey(nColour) {
   return r === g && r === b
 }
 
+// PIXI makes lines with round cap slightly longer. This function shortens them.
+function shortenLine(points) {
+  if (points.length <= 2) {
+    return points
+  }
+
+  let firstPointX = points[0]
+  let firstPointY = points[1]
+  let secondPointX = points[2]
+  let secondPointY = points[3]
+  let lastPointX = points[points.length - 2]
+  let lastPointY = points[points.length - 1]
+  let secondToLastX = points[points.length - 4]
+  let secondToLastY = points[points.length - 3]
+
+  let dx = secondPointX - firstPointX
+  let dy = secondPointY - firstPointY
+  let l = Math.sqrt(dx * dx + dy * dy)
+  dx /= l
+  dy /= l
+  firstPointX = firstPointX + dx * 3
+  firstPointY = firstPointY + dy * 3
+
+  dx = secondToLastX - lastPointX
+  dy = secondToLastY - lastPointY
+  l = Math.sqrt(dx * dx + dy * dy)
+  dx /= l
+  dy /= l
+  lastPointX = lastPointX + dx * 3
+  lastPointY = lastPointY + dy * 3
+
+  return [firstPointX, firstPointY, ...points.slice(2, points.length - 2),
+    lastPointX, lastPointY]
+}
+
 const Grid = ({ game, updateGame, maxWidth, maxHeight, portrait }) => {
   const ref = useRef()
   const app = useRef()
@@ -710,10 +745,10 @@ const Grid = ({ game, updateGame, maxWidth, maxHeight, portrait }) => {
     grid.addChild(cells)
     all.addChild(grid)
 
-    // add lines
-    game.data.lines.forEach(line => {
+    // add lines and arrows
+    game.data.lines.concat(game.data.arrows).forEach(line => {
       let poly = new PIXI.Graphics()
-      let points = flatten(line.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y)))
+      let points = shortenLine(flatten(line.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y))))
       poly.lineStyle({
         width: line.thickness * SCALE_FACTOR,
         color: Color(line.color).rgbNumber(),
@@ -724,6 +759,40 @@ const Grid = ({ game, updateGame, maxWidth, maxHeight, portrait }) => {
       for (let i = 2; i < points.length; i += 2) {
         poly.lineTo(points[i], points[i + 1])
       }
+      poly.zIndex = -1
+      all.addChild(poly)
+    })
+
+    // add arrow heads
+    game.data.arrows.forEach(arrow => {
+      if (arrow.wayPoints.length <= 1) {
+        return
+      }
+      let poly = new PIXI.Graphics()
+      let lastPoint = cellToScreenCoords(arrow.wayPoints[arrow.wayPoints.length - 1], grid.x, grid.y)
+      let secondToLast = cellToScreenCoords(arrow.wayPoints[arrow.wayPoints.length - 2], grid.x, grid.y)
+      let dx = lastPoint[0] - secondToLast[0]
+      let dy = lastPoint[1] - secondToLast[1]
+      let l = Math.sqrt(dx * dx + dy * dy)
+      dx /= l
+      dy /= l
+      let f = arrow.headLength * cellSize * 0.7
+      let ex = lastPoint[0] - dx * f
+      let ey = lastPoint[1] - dy * f
+      let ex1 = ex - dy * f
+      let ey1 = ey + dx * f
+      let ex2 = ex + dy * f
+      let ey2 = ey - dx * f
+      poly.lineStyle({
+        width: arrow.thickness * SCALE_FACTOR,
+        color: Color(arrow.color).rgbNumber(),
+        cap: PIXI.LINE_CAP.ROUND,
+        join: PIXI.LINE_JOIN.ROUND
+      })
+      poly.moveTo(lastPoint[0], lastPoint[1])
+      poly.lineTo(ex1, ey1)
+      poly.moveTo(lastPoint[0], lastPoint[1])
+      poly.lineTo(ex2, ey2)
       poly.zIndex = -1
       all.addChild(poly)
     })
