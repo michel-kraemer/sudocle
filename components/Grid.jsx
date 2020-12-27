@@ -294,7 +294,11 @@ const Grid = ({ game, updateGame, maxWidth, maxHeight, portrait }) => {
       let w = overlay.width * cellSize
       let h = overlay.height * cellSize
       if (overlay.rounded) {
-        r.drawEllipse(0, 0, w / 2, h / 2)
+        if (w === h) {
+          r.drawEllipse(0, 0, w / 2, h / 2)
+        } else {
+          r.drawRoundedRect(-w / 2, -h / 2, w, h, Math.min(w, h) / 2 - 1)
+        }
       } else {
         r.drawRect(-w / 2, -h / 2, w, h)
       }
