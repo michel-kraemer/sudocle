@@ -366,7 +366,7 @@ function gameReducer(state, action) {
     return {
       ...state,
       errors,
-      solved: state.solved || errors.length === 0
+      solved: state.solved || errors.size === 0
     }
   }
 
