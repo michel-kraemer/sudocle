@@ -32,15 +32,11 @@
   --border-radius: 7px;
   --digit: #316bdd;
   --button-hover: #f3e5f5;
+  --button-active-hover: var(--primary-highlight);
 
   :global(.status-bar) {
     background-color: #90a4ae;
     color: #ffca28;
-  }
-
-  :global(.button.active:hover) {
-    background-color: var(--primary-highlight);
-    border-color: var(--primary-highlight);
   }
 }
 
@@ -60,4 +56,5 @@
   --alert: #bf616a;
   --digit: var(--primary);
   --button-hover: var(--grey-600);
+  --button-active-hover: var(--primary-highlight);
 }
