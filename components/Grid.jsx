@@ -238,7 +238,7 @@ function shortenLine(points) {
     lastPointX, lastPointY]
 }
 
-const Grid = ({ maxWidth, maxHeight, portrait }) => {
+const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const ref = useRef()
   const app = useRef()
   const gridElement = useRef()
@@ -842,6 +842,10 @@ const Grid = ({ maxWidth, maxHeight, portrait }) => {
         errorElements.current.push(rect)
       })
     })
+
+    if (onFinishRender) {
+      onFinishRender()
+    }
 
     return () => {
       allElement.current = undefined

@@ -25,6 +25,7 @@ const Index = () => {
   const [gridMaxHeight, setGridMaxHeight] = useState(0)
   const [portrait, setPortrait] = useState(false)
   const [statusBarHeight, setStatusBarHeight] = useState(0)
+  const [rendering, setRendering] = useState(true)
 
   function onStatusBarHeightChange(newHeight) {
     setStatusBarHeight(newHeight)
@@ -229,10 +230,14 @@ const Index = () => {
       <div className="game-container" onClick={clearSelection} ref={gameContainerRef}>
         <div className="grid-container">
           {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
-            maxHeight={gridMaxHeight - (statusBarHeight + STATUS_BAR_GAP) * 2} />}
+            maxHeight={gridMaxHeight - (statusBarHeight + STATUS_BAR_GAP) * 2}
+            onFinishRender={() => setRendering(false)} />}
         </div>
+        {rendering && <div className="loading">
+          Loading ...
+        </div>}
         <div className="pad-container" ref={padContainerRef}>
-          <Pad />
+          {rendering || <Pad />}
         </div>
         <Sidebar />
       </div>
