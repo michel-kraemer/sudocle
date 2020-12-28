@@ -1,6 +1,6 @@
 import RadioGroup from "./RadioGroup"
 import SettingsContext from "./contexts/SettingsContext"
-import { useContext, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 
 const Settings = () => {
   const settings = useContext(SettingsContext.State)
@@ -13,6 +13,10 @@ const Settings = () => {
       updateSettings({ theme })
     }, 100)
   }
+
+  useEffect(() => {
+    setThemeInternal(settings.theme)
+  }, [settings.theme])
 
   return (<>
     <h2>Settings</h2>

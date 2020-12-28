@@ -1,5 +1,7 @@
-import { createContext, useReducer } from "react"
+import { createContext, useEffect, useReducer } from "react"
 import { produce } from "immer"
+
+const LOCAL_STORAGE_KEY = "SudokuSettings"
 
 const State = createContext()
 const Dispatch = createContext()
@@ -14,6 +16,22 @@ const Provider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, {
     theme: "default"
   })
+
+  useEffect(() => {
+    if (typeof localStorage !== "undefined") {
+      let r = localStorage.getItem(LOCAL_STORAGE_KEY)
+      if (r !== undefined && r !== null) {
+        r = JSON.parse(r)
+        dispatch(r)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state))
+    }
+  }, [state])
 
   return (
     <State.Provider value={state}>
