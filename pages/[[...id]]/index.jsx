@@ -8,7 +8,7 @@ import { TYPE_MODE, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
   ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../../components/lib/Modes"
-import { useContext, useEffect, useRef, useState } from "react"
+import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import Head from "next/head"
 import styles from "./index.scss"
 
@@ -37,6 +37,8 @@ const Index = () => {
       action: ACTION_CLEAR
     })
   }
+
+  const onFinishRender = useCallback(() => setRendering(false), [])
 
   // load game data
   useEffect(() => {
@@ -231,7 +233,7 @@ const Index = () => {
         <div className="grid-container">
           {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
             maxHeight={gridMaxHeight - (statusBarHeight + STATUS_BAR_GAP) * 2}
-            onFinishRender={() => setRendering(false)} />}
+            onFinishRender={onFinishRender} />}
         </div>
         {rendering && <div className="loading">
           Loading ...

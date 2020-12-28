@@ -860,7 +860,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       errorElements.current = []
     }
   }, [game.data, settings.theme, cellSize, regions, cages, cellToScreenCoords,
-      drawOverlay, selectCell, updateGame])
+      drawOverlay, selectCell, updateGame, onFinishRender])
 
   useEffect(() => {
     onResize()
