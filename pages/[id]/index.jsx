@@ -2,7 +2,7 @@ import GameContext from "../../components/contexts/GameContext"
 import SettingsContext from "../../components/contexts/SettingsContext"
 import Grid from "../../components/Grid"
 import Pad from "../../components/Pad"
-import Settings from "../../components/Settings"
+import Sidebar from "../../components/Sidebar"
 import StatusBar from "../../components/StatusBar"
 import { TYPE_MODE, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
   ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
@@ -234,9 +234,7 @@ const Index = () => {
         <div className="pad-container" ref={padContainerRef}>
           <Pad />
         </div>
-        <div className="settings-container">
-          <Settings />
-        </div>
+        <Sidebar />
       </div>
       <style jsx>{styles}</style>
     </div>

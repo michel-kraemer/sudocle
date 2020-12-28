@@ -1,4 +1,3 @@
-import Sidebar from "./Sidebar"
 import RadioGroup from "./RadioGroup"
 import SettingsContext from "./contexts/SettingsContext"
 import { useContext, useState } from "react"
@@ -15,7 +14,7 @@ const Settings = () => {
     }, 100)
   }
 
-  return (<Sidebar>
+  return (<>
     <h2>Settings</h2>
     <h3>Theme</h3>
     <RadioGroup name="theme" value={themeInternal} options={[{
@@ -28,7 +27,7 @@ const Settings = () => {
       id: "dark",
       label: "Dark"
     }]} onChange={onChangeTheme} />
-  </Sidebar>)
+  </>)
 }
 
 export default Settings

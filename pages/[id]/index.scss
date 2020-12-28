@@ -24,20 +24,3 @@
   align-items: center;
   height: 100%;
 }
-
-.settings-container {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 600px;
-  max-width: 100%;
-  background-color: var(--bg);
-  box-shadow: -2px 0 5px 0 rgba(0, 0, 0, 0.2);
-  padding: 1rem 2rem;
-
-  @supports (backdrop-filter: blur(5px)) {
-    background-color: var(--bg-alpha);
-    backdrop-filter: blur(5px);
-  }
-}
