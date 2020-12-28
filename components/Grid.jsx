@@ -495,6 +495,8 @@ const Grid = ({ maxWidth, maxHeight, portrait }) => {
     all.sortableChildren = true
     grid.sortableChildren = true
 
+    // ***************** render everything that could contribute to bounds
+
     // render cells
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
@@ -585,6 +587,96 @@ const Grid = ({ maxWidth, maxHeight, portrait }) => {
       topleftBg.y = cage.topleft[0] * cellSize + 0.5
       grid.addChild(topleftBg)
     }
+
+    grid.addChild(cells)
+    all.addChild(grid)
+
+    // add lines and arrows
+    game.data.lines.concat(game.data.arrows).forEach(line => {
+      let poly = new PIXI.Graphics()
+      let points = shortenLine(flatten(line.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y))))
+      poly.lineStyle({
+        width: line.thickness * SCALE_FACTOR,
+        color: Color(line.color).rgbNumber(),
+        cap: PIXI.LINE_CAP.ROUND,
+        join: PIXI.LINE_JOIN.ROUND
+      })
+      poly.moveTo(points[0], points[1])
+      for (let i = 2; i < points.length; i += 2) {
+        poly.lineTo(points[i], points[i + 1])
+      }
+      poly.zIndex = -1
+      all.addChild(poly)
+    })
+
+    // add arrow heads
+    game.data.arrows.forEach(arrow => {
+      if (arrow.wayPoints.length <= 1) {
+        return
+      }
+      let poly = new PIXI.Graphics()
+      let lastPoint = cellToScreenCoords(arrow.wayPoints[arrow.wayPoints.length - 1], grid.x, grid.y)
+      let secondToLast = cellToScreenCoords(arrow.wayPoints[arrow.wayPoints.length - 2], grid.x, grid.y)
+      let dx = lastPoint[0] - secondToLast[0]
+      let dy = lastPoint[1] - secondToLast[1]
+      let l = Math.sqrt(dx * dx + dy * dy)
+      dx /= l
+      dy /= l
+      let f = arrow.headLength * cellSize * 0.7
+      let ex = lastPoint[0] - dx * f
+      let ey = lastPoint[1] - dy * f
+      let ex1 = ex - dy * f
+      let ey1 = ey + dx * f
+      let ex2 = ex + dy * f
+      let ey2 = ey - dx * f
+      poly.lineStyle({
+        width: arrow.thickness * SCALE_FACTOR,
+        color: Color(arrow.color).rgbNumber(),
+        cap: PIXI.LINE_CAP.ROUND,
+        join: PIXI.LINE_JOIN.ROUND
+      })
+      poly.moveTo(lastPoint[0], lastPoint[1])
+      poly.lineTo(ex1, ey1)
+      poly.moveTo(lastPoint[0], lastPoint[1])
+      poly.lineTo(ex2, ey2)
+      poly.zIndex = -1
+      all.addChild(poly)
+    })
+
+    // add underlays and overlays
+    game.data.underlays.forEach(underlay => {
+      all.addChild(drawOverlay(underlay, grid.x, grid.y))
+    })
+    game.data.overlays.forEach(overlay => {
+      all.addChild(drawOverlay(overlay, grid.x, grid.y))
+    })
+
+    // calculating bounds is expensive, so do it now after we've rendered
+    // all elements that could contribute to the bounds
+    gridBounds.current = grid.getBounds()
+    allBounds.current = all.getBounds()
+
+    // draw a background that covers all elements
+    let background = new PIXI.Graphics()
+    background.hitArea = new PIXI.Rectangle(allBounds.current.x, allBounds.current.y,
+      allBounds.current.width, allBounds.current.height)
+    background.drawRect(allBounds.current.x, allBounds.current.y,
+      allBounds.current.width, allBounds.current.height)
+    background.interactive = true
+    background.zIndex = -1000
+    background.on("pointerdown", () => {
+      updateGame({
+        type: TYPE_SELECTION,
+        action: ACTION_CLEAR
+      })
+    })
+
+    all.addChild(background)
+    allBounds.current = all.getBounds()
+    app.current.stage.addChild(all)
+    app.current.render()
+
+    // ***************** draw invisible elements but don't call render() again!
 
     // create empty text elements for all digits
     game.data.cells.forEach((row, y) => {
@@ -750,93 +842,6 @@ const Grid = ({ maxWidth, maxHeight, portrait }) => {
         errorElements.current.push(rect)
       })
     })
-
-    grid.addChild(cells)
-    all.addChild(grid)
-
-    // add lines and arrows
-    game.data.lines.concat(game.data.arrows).forEach(line => {
-      let poly = new PIXI.Graphics()
-      let points = shortenLine(flatten(line.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y))))
-      poly.lineStyle({
-        width: line.thickness * SCALE_FACTOR,
-        color: Color(line.color).rgbNumber(),
-        cap: PIXI.LINE_CAP.ROUND,
-        join: PIXI.LINE_JOIN.ROUND
-      })
-      poly.moveTo(points[0], points[1])
-      for (let i = 2; i < points.length; i += 2) {
-        poly.lineTo(points[i], points[i + 1])
-      }
-      poly.zIndex = -1
-      all.addChild(poly)
-    })
-
-    // add arrow heads
-    game.data.arrows.forEach(arrow => {
-      if (arrow.wayPoints.length <= 1) {
-        return
-      }
-      let poly = new PIXI.Graphics()
-      let lastPoint = cellToScreenCoords(arrow.wayPoints[arrow.wayPoints.length - 1], grid.x, grid.y)
-      let secondToLast = cellToScreenCoords(arrow.wayPoints[arrow.wayPoints.length - 2], grid.x, grid.y)
-      let dx = lastPoint[0] - secondToLast[0]
-      let dy = lastPoint[1] - secondToLast[1]
-      let l = Math.sqrt(dx * dx + dy * dy)
-      dx /= l
-      dy /= l
-      let f = arrow.headLength * cellSize * 0.7
-      let ex = lastPoint[0] - dx * f
-      let ey = lastPoint[1] - dy * f
-      let ex1 = ex - dy * f
-      let ey1 = ey + dx * f
-      let ex2 = ex + dy * f
-      let ey2 = ey - dx * f
-      poly.lineStyle({
-        width: arrow.thickness * SCALE_FACTOR,
-        color: Color(arrow.color).rgbNumber(),
-        cap: PIXI.LINE_CAP.ROUND,
-        join: PIXI.LINE_JOIN.ROUND
-      })
-      poly.moveTo(lastPoint[0], lastPoint[1])
-      poly.lineTo(ex1, ey1)
-      poly.moveTo(lastPoint[0], lastPoint[1])
-      poly.lineTo(ex2, ey2)
-      poly.zIndex = -1
-      all.addChild(poly)
-    })
-
-    // add underlays and overlays
-    game.data.underlays.forEach(underlay => {
-      all.addChild(drawOverlay(underlay, grid.x, grid.y))
-    })
-    game.data.overlays.forEach(overlay => {
-      all.addChild(drawOverlay(overlay, grid.x, grid.y))
-    })
-
-    gridBounds.current = grid.getBounds()
-    allBounds.current = all.getBounds()
-
-    // draw a background that covers all elements
-    let background = new PIXI.Graphics()
-    background.hitArea = new PIXI.Rectangle(allBounds.current.x, allBounds.current.y,
-      allBounds.current.width, allBounds.current.height)
-    background.drawRect(allBounds.current.x, allBounds.current.y,
-      allBounds.current.width, allBounds.current.height)
-    background.interactive = true
-    background.zIndex = -1000
-    background.on("pointerdown", () => {
-      updateGame({
-        type: TYPE_SELECTION,
-        action: ACTION_CLEAR
-      })
-    })
-
-    all.addChild(background)
-    allBounds.current = all.getBounds()
-
-    app.current.stage.addChild(all)
-    app.current.render()
 
     return () => {
       allElement.current = undefined
