@@ -218,6 +218,32 @@ const Index = () => {
     }
   }, [])
 
+  // register beforeunload handler
+  useEffect(() => {
+    if (process !== undefined && process.env !== undefined && process.env.NODE_ENV === "development") {
+      // disable this feature in development mode
+      return
+    }
+
+    function onBeforeUnload(e) {
+      if (game.nextUndoState === 0 || game.solved) {
+        // nothing to lose - we can close the tab
+        return
+      }
+
+      e.preventDefault()
+
+      // Chrome requires returnValue to be set
+      e.returnValue = ""
+    }
+
+    window.addEventListener("beforeunload", onBeforeUnload)
+
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload)
+    }
+  }, [game.nextUndoState, game.solved])
+
   return (<>
     <Head>
       <meta httpEquiv="X-UA-Compatible" content="IE=edge"/>
