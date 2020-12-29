@@ -22,7 +22,11 @@ const Pad = () => {
     let nColours = +computedStyle.getPropertyValue("--colors")
     let newColours = []
     for (let i = 0; i < nColours; ++i) {
-      newColours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
+      let pos = +computedStyle.getPropertyValue(`--color-${i + 1}-pos`)
+      newColours[pos - 1] = {
+        colour: computedStyle.getPropertyValue(`--color-${i + 1}`),
+        digit: i + 1
+      }
     }
     setColours(newColours)
   }, [settings.colourPalette])
@@ -81,48 +85,33 @@ const Pad = () => {
 
   const digits = [{
     digit: 1,
-    corner: "top-left",
-    colour: 0
+    corner: "top-left"
   }, {
     digit: 2,
-    corner: "top",
-    colour: 1
+    corner: "top"
   }, {
     digit: 3,
-    corner: "top-right",
-    colour: 2
+    corner: "top-right"
   }, {
     digit: 4,
-    corner: "left",
-    colour: 3
+    corner: "left"
   }, {
-    digit: 5,
-    colour: 4
+    digit: 5
   }, {
     digit: 6,
-    corner: "right",
-    colour: 5
+    corner: "right"
   }, {
     digit: 7,
-    corner: "bottom-left",
-    colour: 6
+    corner: "bottom-left"
   }, {
     digit: 8,
-    corner: "bottom",
-    colour: 7
+    corner: "bottom"
   }, {
     digit: 9,
-    corner: "bottom-right",
-    colour: 8
+    corner: "bottom-right"
   }]
 
-  let extended = false
-  if (game.mode === MODE_COLOUR && colours.length > 9) {
-    for (let i = 9; i < colours.length; ++i) {
-      digits.push({ digit: i + 1, colour: i })
-    }
-    extended = true
-  }
+  let extended = game.mode === MODE_COLOUR && colours.length > 9
 
   return <div className="pad" ref={ref}>
     <div className="pad-left">
@@ -132,19 +121,25 @@ const Pad = () => {
       <Button active={game.mode === MODE_COLOUR} onClick={() => onMode(MODE_COLOUR)}>Colour</Button>
     </div>
     <div className={classNames("pad-right", { extended })}>
-      {digits.map(d => (
+      {game.mode !== MODE_COLOUR && (digits.map(d => (
         <Button key={d.digit} noPadding active onClick={() => onDigit(d.digit)}>
           <div className="digit-container">
             <div className={classNames({ centre: game.mode === MODE_CENTRE,
-                corner: game.mode === MODE_CORNER, [d.corner]: game.mode === MODE_CORNER,
-                colour: game.mode === MODE_COLOUR, extended })}>
-              {game.mode === MODE_COLOUR || d.digit}
-              {game.mode === MODE_COLOUR && <div className="colour"
-                style={{ backgroundColor: colours[d.colour] }}></div>}
+                corner: game.mode === MODE_CORNER, [d.corner]: game.mode === MODE_CORNER })}>
+              {d.digit}
             </div>
           </div>
         </Button>
-      ))}
+      )))}
+      {game.mode === MODE_COLOUR && (colours.map((c, i) => (
+        <Button key={i} noPadding active onClick={() => onDigit(c.digit)}>
+          <div className="digit-container">
+            <div className={classNames("colour", { extended })}>
+              <div className="colour" style={{ backgroundColor: c.colour }}></div>
+            </div>
+          </div>
+        </Button>
+      )))}
       <div className={classNames("delete", { extended })}>
         <Button onClick={onDelete}>Delete</Button>
       </div>

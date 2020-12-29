@@ -35,37 +35,21 @@ const Settings = () => {
   }, [settings.theme])
 
   useEffect(() => {
-    let defaultStyle = getComputedStyle(document.body)
-    let nColoursDefault = +defaultStyle.getPropertyValue("--colors")
-    let newColoursDefault = []
-    for (let i = 0; i < nColoursDefault; ++i) {
-      newColoursDefault[i] = defaultStyle.getPropertyValue(`--color-${i + 1}`)
+    function makeColours(elem) {
+      let style = getComputedStyle(elem)
+      let nColours = +style.getPropertyValue("--colors")
+      let result = []
+      for (let i = 0; i < nColours; ++i) {
+        let pos = +style.getPropertyValue(`--color-${i + 1}-pos`)
+        result[pos - 1] = style.getPropertyValue(`--color-${i + 1}`)
+      }
+      return result
     }
-    setColoursDefault(newColoursDefault)
 
-    let extendedStyle = getComputedStyle(refPlaceholderExtended.current)
-    let nColoursExtended = +extendedStyle.getPropertyValue("--colors")
-    let newColoursExtended = []
-    for (let i = 0; i < nColoursExtended; ++i) {
-      newColoursExtended[i] = extendedStyle.getPropertyValue(`--color-${i + 1}`)
-    }
-    setColoursExtended(newColoursExtended)
-
-    let ctcStyle = getComputedStyle(refPlaceholderCTC.current)
-    let nColoursCTC = +ctcStyle.getPropertyValue("--colors")
-    let newColoursCTC = []
-    for (let i = 0; i < nColoursCTC; ++i) {
-      newColoursCTC[i] = ctcStyle.getPropertyValue(`--color-${i + 1}`)
-    }
-    setColoursCTC(newColoursCTC)
-
-    let wongStyle = getComputedStyle(refPlaceholderWong.current)
-    let nColoursWong = +wongStyle.getPropertyValue("--colors")
-    let newColoursWong = []
-    for (let i = 0; i < nColoursWong; ++i) {
-      newColoursWong[i] = wongStyle.getPropertyValue(`--color-${i + 1}`)
-    }
-    setColoursWong(newColoursWong)
+    setColoursDefault(makeColours(document.body))
+    setColoursExtended(makeColours(refPlaceholderExtended.current))
+    setColoursCTC(makeColours(refPlaceholderCTC.current))
+    setColoursWong(makeColours(refPlaceholderWong.current))
   }, [])
 
   return (<>
