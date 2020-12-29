@@ -291,7 +291,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
   }, [cellSize])
 
-  const drawOverlay = useCallback((overlay, mx, my) => {
+  const drawOverlay = useCallback((overlay, mx, my, zIndex = -1) => {
     let r = new PIXI.Graphics()
 
     if (overlay.text !== undefined) {
@@ -345,7 +345,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       }
     }
 
-    r.zIndex = -1
+    r.zIndex = zIndex
 
     return r
   }, [cellSize, cellToScreenCoords])
@@ -637,7 +637,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       all.addChild(drawOverlay(underlay, grid.x, grid.y))
     })
     game.data.overlays.forEach(overlay => {
-      all.addChild(drawOverlay(overlay, grid.x, grid.y))
+      all.addChild(drawOverlay(overlay, grid.x, grid.y, 1))
     })
 
     // calculating bounds is expensive, so do it now after we've rendered
@@ -824,7 +824,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         rect.x = x * cellSize
         rect.y = y * cellSize
         rect.alpha = 0
-        rect.zIndex = 5
+        rect.zIndex = 1
         rect.data = {
           k: xytok(x, y)
         }
