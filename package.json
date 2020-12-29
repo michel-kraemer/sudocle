@@ -19,7 +19,7 @@
     "lucide-react": "^0.11.0",
     "next": "^10.0.3",
     "normalize.css": "^8.0.1",
-    "pixi.js": "^5.3.5",
+    "pixi.js-legacy": "^5.3.7",
     "polygon-clipping": "^0.15.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",

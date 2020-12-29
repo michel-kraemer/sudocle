@@ -12,7 +12,7 @@ const SCALE_FACTOR = 1.2
 
 let PIXI
 if (typeof window !== "undefined") {
-  PIXI = require("pixi.js")
+  PIXI = require("pixi.js-legacy")
 }
 
 function unionCells(cells) {
