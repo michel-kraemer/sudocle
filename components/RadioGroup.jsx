@@ -1,16 +1,16 @@
 import styles from "./RadioGroup.scss"
 
 const RadioGroup = ({ name, value, options, onChange }) => {
-  function onChangeInternal(event) {
+  function onChangeInternal(id) {
     if (onChange) {
-      onChange(event.target.id)
+      onChange(id)
     }
   }
 
   return (<div className="radio-group">
     {options.map(o => <div className="item" key={o.id}>
-      <input className="input" type="radio" name={name} id={o.id}
-        checked={o.id === value} onChange={onChangeInternal} />
+      <input className="input" type="radio" name={name} id={`${name}-${o.id}`}
+        checked={o.id === value} onChange={() => onChangeInternal(o.id)} />
       <label className="label" htmlFor={o.id}>
         {o.label}
       </label>
