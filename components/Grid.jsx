@@ -967,7 +967,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         e.beginFill(colourNumber)
         e.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
         e.endFill()
-        e.alpha = 0.5
+        if (colourNumber === 0xffffff) {
+          e.alpha = 1.0
+        } else {
+          e.alpha = 0.5
+        }
       } else {
         e.alpha = 0
       }
