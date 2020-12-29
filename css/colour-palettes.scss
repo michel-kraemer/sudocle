@@ -1,4 +1,16 @@
 :root {
+  --color-1: #1b2b34;
+  --color-2: #a7adba;
+  --color-3: #fff;
+  --color-4: #b3ee9f;
+  --color-5: #ee6bee;
+  --color-6: #ff8f51;
+  --color-7: #ff4c56;
+  --color-8: #ffca5e;
+  --color-9: #39f;
+}
+
+[data-colour-palette="ctc"] {
   --color-1: #000;
   --color-2: #bfbfbf;
   --color-3: #fff;
@@ -8,4 +20,16 @@
   --color-7: #e6261f;
   --color-8: #f7d038;
   --color-9: #34bbe6;
+}
+
+[data-colour-palette="wong"] {
+  --color-1: #000;
+  --color-2: #bfbfbf;
+  --color-3: #fff;
+  --color-4: rgb(230, 159, 0);
+  --color-5: rgb(86, 180, 233);
+  --color-6: rgb(0, 158, 115);
+  --color-7: rgb(240, 228, 66);
+  --color-8: rgb(0, 114, 178);
+  --color-9: rgb(213, 94, 0);
 }

@@ -227,7 +227,7 @@ const Index = () => {
       <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"/>
       <title>Sudoku</title>
     </Head>
-    <div className="app" data-theme={settings.theme}>
+    <div className="app" data-theme={settings.theme} data-colour-palette={settings.colourPalette}>
       <StatusBar onHeightChange={onStatusBarHeightChange} />
       <div className="game-container" onClick={clearSelection} ref={gameContainerRef}>
         <div className="grid-container">

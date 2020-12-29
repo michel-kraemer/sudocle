@@ -5,9 +5,15 @@
 
 .item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   position: relative;
   line-height: 1rem;
+}
+
+.input-container {
+  height: 1rem;
+  display: flex;
+  align-items: center;
 }
 
 .input {
