@@ -1,4 +1,5 @@
 :root {
+  --colors: 9;
   --color-1: #1b2b34;
   --color-2: #a7adba;
   --color-3: #fff;
@@ -10,7 +11,24 @@
   --color-9: #39f;
 }
 
+[data-colour-palette="extended"] {
+  --colors: 12;
+  --color-1: #000;
+  --color-2: #5a6971;
+  --color-3: #a7adba;
+  --color-4: #fff;
+  --color-5: #b3ee9f;
+  --color-6: #ee6bee;
+  --color-7: #ff8f51;
+  --color-8: #ff4c56;
+  --color-9: #ffca5e;
+  --color-10: #39f;
+  --color-11: #ab5333;
+  --color-12: #a8f6e3;
+}
+
 [data-colour-palette="ctc"] {
+  --colors: 9;
   --color-1: #000;
   --color-2: #bfbfbf;
   --color-3: #fff;
@@ -23,6 +41,7 @@
 }
 
 [data-colour-palette="wong"] {
+  --colors: 10;
   --color-1: #000;
   --color-2: #bfbfbf;
   --color-3: #fff;
@@ -32,4 +51,5 @@
   --color-7: rgb(240, 228, 66);
   --color-8: rgb(0, 114, 178);
   --color-9: rgb(213, 94, 0);
+  --color-10: rgb(204, 121, 167);
 }

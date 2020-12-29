@@ -22,11 +22,19 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(1.56rem, 1fr));
   grid-gap: 0.2rem;
+
+  &.extended {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .delete {
   grid-column-start: 1;
   grid-column-end: 4;
+
+  &.extended {
+    grid-column-end: 5;
+  }
 }
 
 .pad-bottom {
@@ -59,6 +67,10 @@
   display: flex;
   width: 0.6rem;
   height: 0.6rem;
+
+  &.extended {
+    width: 0.5rem;
+  }
 }
 
 .top-left {

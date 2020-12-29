@@ -19,8 +19,9 @@ const Pad = () => {
 
   useEffect(() => {
     let computedStyle = getComputedStyle(ref.current)
+    let nColours = +computedStyle.getPropertyValue("--colors")
     let newColours = []
-    for (let i = 0; i < 9; ++i) {
+    for (let i = 0; i < nColours; ++i) {
       newColours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
     }
     setColours(newColours)
@@ -115,6 +116,14 @@ const Pad = () => {
     colour: 8
   }]
 
+  let extended = false
+  if (game.mode === MODE_COLOUR && colours.length > 9) {
+    for (let i = 9; i < colours.length; ++i) {
+      digits.push({ digit: i + 1, colour: i })
+    }
+    extended = true
+  }
+
   return <div className="pad" ref={ref}>
     <div className="pad-left">
       <Button active={game.mode === MODE_NORMAL} onClick={() => onMode(MODE_NORMAL)}>Normal</Button>
@@ -122,13 +131,13 @@ const Pad = () => {
       <Button active={game.mode === MODE_CENTRE} onClick={() => onMode(MODE_CENTRE)}>Centre</Button>
       <Button active={game.mode === MODE_COLOUR} onClick={() => onMode(MODE_COLOUR)}>Colour</Button>
     </div>
-    <div className="pad-right">
+    <div className={classNames("pad-right", { extended })}>
       {digits.map(d => (
         <Button key={d.digit} noPadding active onClick={() => onDigit(d.digit)}>
           <div className="digit-container">
             <div className={classNames({ centre: game.mode === MODE_CENTRE,
                 corner: game.mode === MODE_CORNER, [d.corner]: game.mode === MODE_CORNER,
-                colour: game.mode === MODE_COLOUR })}>
+                colour: game.mode === MODE_COLOUR, extended })}>
               {game.mode === MODE_COLOUR || d.digit}
               {game.mode === MODE_COLOUR && <div className="colour"
                 style={{ backgroundColor: colours[d.colour] }}></div>}
@@ -136,7 +145,7 @@ const Pad = () => {
           </div>
         </Button>
       ))}
-      <div className="delete">
+      <div className={classNames("delete", { extended })}>
         <Button onClick={onDelete}>Delete</Button>
       </div>
     </div>

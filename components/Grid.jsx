@@ -938,14 +938,19 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     }
 
     let computedStyle = getComputedStyle(ref.current)
+    let nColours = +computedStyle.getPropertyValue("--colors")
     let colours = []
-    for (let i = 0; i < 9; ++i) {
+    for (let i = 0; i < nColours; ++i) {
       colours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
     }
     for (let e of colourElements.current) {
       let colour = game.colours.get(e.data.k)
       if (colour !== undefined) {
-        let colourNumber = Color(colours[colour.colour - 1]).rgbNumber()
+        let palCol = colours[colour.colour - 1]
+        if (palCol === undefined) {
+          palCol = colours[1]
+        }
+        let colourNumber = Color(palCol).rgbNumber()
         e.clear()
         e.beginFill(colourNumber)
         e.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
