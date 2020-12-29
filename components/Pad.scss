@@ -52,7 +52,6 @@
   position: relative;
   height: 100%;
   width: 100%;
-  margin: 0.2rem;
 }
 
 .centre, .corner {
@@ -65,46 +64,43 @@
 
 .colour {
   display: flex;
-  width: 0.6rem;
-  height: 0.6rem;
-
-  &.extended {
-    width: 0.5rem;
-  }
+  width: 100%;
+  height: 100%;
+  border-radius: var(--border-radius-inner);
 }
 
 .top-left {
-  top: 0;
-  left: 0;
+  top: 0.05rem;
+  left: 0.2rem;
 }
 
 .top {
-  top: 0;
+  top: 0.05rem;
 }
 
 .top-right {
-  top: 0;
-  right: 0;
+  top: 0.05rem;
+  right: 0.2rem;
 }
 
 .left {
-  left: 0;
+  left: 0.2rem;
 }
 
 .right {
-  right: 0;
+  right: 0.2rem;
 }
 
 .bottom-left {
-  bottom: 0;
-  left: 0;
+  bottom: 0.05rem;
+  left: 0.2rem;
 }
 
 .bottom {
-  bottom: 0;
+  bottom: 0.05rem;
 }
 
 .bottom-right {
-  bottom: 0;
-  right: 0;
+  bottom: 0.05rem;
+  right: 0.2rem;
 }

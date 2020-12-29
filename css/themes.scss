@@ -13,6 +13,7 @@
   --primary-highlight: #{lighten(#2b3f77, 10%)};
   --alert: #b81e1e;
   --border-radius: 10px;
+  --border-radius-inner: 8px;
   --digit: #{lighten(#2b3f77, 20%)};
   --button-hover: var(--grey-700);
   --button-active-hover: var(--primary-highlight);
@@ -30,6 +31,7 @@
   --primary-highlight: #7b1fa2;
   --alert: #c00;
   --border-radius: 7px;
+  --border-radius-inner: 5px;
   --digit: #316bdd;
   --button-hover: #f3e5f5;
   --button-active-hover: var(--primary-highlight);
