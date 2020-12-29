@@ -2,7 +2,6 @@ import ColourPaletteContext from "./contexts/ColourPaletteContext"
 import GameContext from "./contexts/GameContext"
 import SettingsContext from "./contexts/SettingsContext"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
-import COLOUR_PALETTES from "./lib/ColourPalettes"
 import { xytok } from "./lib/utils"
 import Color from "color"
 import polygonClipping from "polygon-clipping"
@@ -940,7 +939,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       }
     }
 
-    let colours = COLOUR_PALETTES[colourPalette.palette].colours
+    let computedStyle = getComputedStyle(ref.current)
+    let colours = []
+    for (let i = 0; i < 9; ++i) {
+      colours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
+    }
     for (let e of colourElements.current) {
       let colour = game.colours.get(e.data.k)
       if (colour !== undefined) {

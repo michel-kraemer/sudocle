@@ -3,19 +3,28 @@ import ColourPaletteContext from "./contexts/ColourPaletteContext"
 import GameContext from "./contexts/GameContext"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
   ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
-import COLOUR_PALETTES from "./lib/ColourPalettes"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "./lib/Modes"
-import { useContext, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import classNames from "classnames"
 import styles from "./Pad.scss"
 
 const Pad = () => {
+  const ref = useRef()
   const colourPalette = useContext(ColourPaletteContext.State)
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
-  const colours = COLOUR_PALETTES[colourPalette.palette].colours
+  const [colours, setColours] = useState([])
 
   const [confirmRestart, setConfirmRestart] = useState(false)
+
+  useEffect(() => {
+    let computedStyle = getComputedStyle(ref.current)
+    let newColours = []
+    for (let i = 0; i < 9; ++i) {
+      newColours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
+    }
+    setColours(newColours)
+  }, [colourPalette.palette])
 
   function onDigit(digit) {
     updateGame({
@@ -106,7 +115,7 @@ const Pad = () => {
     colour: 8
   }]
 
-  return <div className="pad">
+  return <div className="pad" ref={ref}>
     <div className="pad-left">
       <Button active={game.mode === MODE_NORMAL} onClick={() => onMode(MODE_NORMAL)}>Normal</Button>
       <Button active={game.mode === MODE_CORNER} onClick={() => onMode(MODE_CORNER)}>Corner</Button>
