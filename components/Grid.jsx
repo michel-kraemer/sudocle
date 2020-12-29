@@ -1,4 +1,3 @@
-import ColourPaletteContext from "./contexts/ColourPaletteContext"
 import GameContext from "./contexts/GameContext"
 import SettingsContext from "./contexts/SettingsContext"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
@@ -255,7 +254,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const [foregroundColor, setForegroundColor] = useState()
   const [digitColor, setDigitColor] = useState()
 
-  const colourPalette = useContext(ColourPaletteContext.State)
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
   const settings = useContext(SettingsContext.State)
@@ -964,7 +962,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     app.current.render()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
-      game.errors, colourPalette.palette, foregroundColor, digitColor])
+      game.errors, settings.colourPalette, foregroundColor, digitColor])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick}>

@@ -1,5 +1,5 @@
 import Button from "./Button"
-import ColourPaletteContext from "./contexts/ColourPaletteContext"
+import SettingsContext from "./contexts/SettingsContext"
 import GameContext from "./contexts/GameContext"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
   ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
@@ -10,7 +10,7 @@ import styles from "./Pad.scss"
 
 const Pad = () => {
   const ref = useRef()
-  const colourPalette = useContext(ColourPaletteContext.State)
+  const settings = useContext(SettingsContext.State)
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
   const [colours, setColours] = useState([])
@@ -24,7 +24,7 @@ const Pad = () => {
       newColours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
     }
     setColours(newColours)
-  }, [colourPalette.palette])
+  }, [settings.colourPalette])
 
   function onDigit(digit) {
     updateGame({

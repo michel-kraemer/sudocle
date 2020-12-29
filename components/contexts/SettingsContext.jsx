@@ -6,7 +6,10 @@ const LOCAL_STORAGE_KEY = "SudokuSettings"
 const State = createContext()
 const Dispatch = createContext()
 
-const reducer = produce((draft, { theme }) => {
+const reducer = produce((draft, { colourPalette, theme }) => {
+  if (colourPalette !== undefined) {
+    draft.colourPalette = colourPalette
+  }
   if (theme !== undefined) {
     draft.theme = theme
   }
@@ -14,6 +17,7 @@ const reducer = produce((draft, { theme }) => {
 
 const Provider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, {
+    colourPalette: "default",
     theme: "default"
   })
 
