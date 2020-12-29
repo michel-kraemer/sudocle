@@ -248,6 +248,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const centreMarkElements = useRef([])
   const cornerMarkElements = useRef([])
   const colourElements = useRef([])
+  const selectionElements = useRef([])
   const errorElements = useRef([])
   const keyMetaPressed = useRef(false)
   const keyShiftPressed = useRef(false)
@@ -514,15 +515,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         // since our cells have a transparent background, we need to
         // define a hit area
         cell.hitArea = new PIXI.Rectangle(0, 0, cellSize, cellSize)
-
-        // add an invisible rectangle for selection
-        let selection = new PIXI.Graphics()
-        selection.beginFill(0xffd700, 0.5)
-        selection.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
-        selection.endFill()
-        selection.alpha = 0
-        selection.zIndex = 5
-        cell.addChild(selection)
 
         cell.on("pointerdown", function (e) {
           selectCell(this)
@@ -822,6 +814,25 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       })
     })
 
+    // create invisible rectangles for selection
+    game.data.cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let rect = new PIXI.Graphics()
+        rect.beginFill(0xffd700, 0.5)
+        rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
+        rect.endFill()
+        rect.x = x * cellSize
+        rect.y = y * cellSize
+        rect.alpha = 0
+        rect.zIndex = 5
+        rect.data = {
+          k: xytok(x, y)
+        }
+        grid.addChild(rect)
+        selectionElements.current.push(rect)
+      })
+    })
+
     // create invisible rectangles for errors
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
@@ -854,6 +865,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       centreMarkElements.current = []
       cornerMarkElements.current = []
       colourElements.current = []
+      selectionElements.current = []
       errorElements.current = []
     }
   }, [game.data, settings.theme, cellSize, regions, cages, cellToScreenCoords,
@@ -875,8 +887,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   }, [onKeyDown, onKeyUp])
 
   useEffect(() => {
-    cellElements.current.forEach(cell => {
-      cell.children[0].alpha = !game.selection.has(cell.data.k) ? 0 : 1
+    selectionElements.current.forEach(s => {
+      s.alpha = !game.selection.has(s.data.k) ? 0 : 1
     })
     app.current.render()
   }, [game.selection])
