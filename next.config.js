@@ -1,6 +1,12 @@
+const version = require("./package.json").version
+
 const config = {
   // create a folder for each page
   trailingSlash: true,
+
+  env: {
+    version
+  },
 
   webpack: (config, { dev, defaultLoaders }) => {
     config.module.rules.push({

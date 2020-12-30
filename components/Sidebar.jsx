@@ -1,3 +1,4 @@
+import About from "./About"
 import Help from "./Help"
 import Settings from "./Settings"
 import classNames from "classnames"
@@ -7,7 +8,7 @@ import styles from "./Sidebar.scss"
 
 const ID_SETTINGS = "settings"
 const ID_HELP = "help"
-const ID_INFO = "info"
+const ID_ABOUT = "about"
 
 const Sidebar = () => {
   // true as soon as sidebar expands but only until it starts to collapse
@@ -37,7 +38,7 @@ const Sidebar = () => {
     id: ID_HELP,
     icon: <HelpCircle />
   }, {
-    id: ID_INFO,
+    id: ID_ABOUT,
     icon: <Info />
   }]
 
@@ -78,6 +79,7 @@ const Sidebar = () => {
     <div className="sidebar-container">
       {expanded && activeTabId === ID_SETTINGS && <Settings />}
       {expanded && activeTabId === ID_HELP && <Help />}
+      {expanded && activeTabId === ID_ABOUT && <About />}
     </div>
     <div className="close-button">
       <X size="1rem" onClick={() => onTabClick(activeTabId)} />

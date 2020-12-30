@@ -37,3 +37,12 @@ body {
   max-height: 100vh;
   overflow: hidden;
 }
+
+a {
+  color: var(--primary);
+  text-decoration: underline;
+
+  &:hover {
+    color: var(--primary-highlight);
+  }
+}
