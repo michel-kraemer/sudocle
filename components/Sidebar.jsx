@@ -9,8 +9,12 @@ const ID_HELP = "help"
 const ID_INFO = "info"
 
 const Sidebar = () => {
+  // true as soon as sidebar expands but only until it starts to collapse
   const [visible, setVisible] = useState(false)
+
+  // true as soon as sidebar expands and until it has completely collapsed
   const [expanded, setExpanded] = useState(false)
+
   const [activeTabId, setActiveTabId] = useState(ID_SETTINGS)
 
   function onTabClick(id) {
@@ -71,7 +75,8 @@ const Sidebar = () => {
       </svg>
     </div>
     <div className="sidebar-container">
-      {activeTabId === ID_SETTINGS && <Settings />}
+      {expanded && activeTabId === ID_SETTINGS && <Settings />}
+      {expanded && activeTabId === ID_HELP && <Help />}
       <div className="close-button">
         <X size="1rem" onClick={() => onTabClick(activeTabId)} />
       </div>
