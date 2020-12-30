@@ -478,6 +478,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     app.current.stage.removeChildren()
 
     let rootStyle = getComputedStyle(ref.current)
+    let backgroundColor = Color(rootStyle.getPropertyValue("--bg")).rgbNumber()
     let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
     let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
     setForegroundColor(foregroundColor)
@@ -649,8 +650,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     let background = new PIXI.Graphics()
     background.hitArea = new PIXI.Rectangle(allBounds.current.x, allBounds.current.y,
       allBounds.current.width, allBounds.current.height)
+    background.beginFill(backgroundColor)
     background.drawRect(allBounds.current.x, allBounds.current.y,
       allBounds.current.width, allBounds.current.height)
+    background.endFill()
     background.interactive = true
     background.zIndex = -1000
     background.on("pointerdown", () => {
@@ -818,7 +821,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let rect = new PIXI.Graphics()
-        rect.beginFill(0xffd700, 0.5)
+        rect.beginFill(0xffde2a, 0.5)
         rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
         rect.endFill()
         rect.x = x * cellSize
