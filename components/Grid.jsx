@@ -250,6 +250,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const colourElements = useRef([])
   const selectionElements = useRef([])
   const errorElements = useRef([])
+  const keyCtrlPressed = useRef(false)
   const keyMetaPressed = useRef(false)
   const keyShiftPressed = useRef(false)
   const [foregroundColor, setForegroundColor] = useState()
@@ -352,7 +353,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
   const selectCell = useCallback((cell, append = false) => {
     let action = append ? ACTION_PUSH : ACTION_SET
-    if (keyMetaPressed.current) {
+    if (keyMetaPressed.current || keyCtrlPressed.current) {
       if (keyShiftPressed.current) {
         action = ACTION_REMOVE
       } else {
@@ -369,22 +370,23 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const onKey = useCallback(e => {
     keyShiftPressed.current = e.shiftKey
     keyMetaPressed.current = e.metaKey
+    keyCtrlPressed.current = e.ctrlKey
   }, [])
 
   const onKeyDown = useCallback(e => {
     onKey(e)
 
-    let digit = e.code.match("Digit([1-9])")
+    let digit = e.code.match("(Digit|Numpad)([1-9])")
     if (digit) {
       updateGame({
         type: TYPE_DIGITS,
         action: ACTION_SET,
-        digit: +digit[1]
+        digit: +digit[2]
       })
       e.preventDefault()
     }
 
-    if (e.key === "Backspace" || e.key === "Delete") {
+    if (e.key === "Backspace" || e.key === "Delete" || e.key === "Clear") {
       updateGame({
         type: TYPE_DIGITS,
         action: ACTION_REMOVE
@@ -418,7 +420,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         }
       }
 
-      let action = e.metaKey ? ACTION_PUSH : ACTION_SET
+      let action = (e.metaKey || e.ctrlKey) ? ACTION_PUSH : ACTION_SET
       updateGame({
         type: TYPE_SELECTION,
         action,

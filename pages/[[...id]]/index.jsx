@@ -106,7 +106,7 @@ const Index = () => {
           mode: MODE_COLOUR
         })
         e.preventDefault()
-      } else if (e.key === "z" && (e.metaKey || e.ctrlKey)) {
+      } else if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey)) {
         updateGame({
           type: e.shiftKey ? TYPE_REDO : TYPE_UNDO
         })
@@ -150,28 +150,28 @@ const Index = () => {
           mode: MODE_COLOUR
         })
         e.preventDefault()
-      } else if (e.code === "ArrowRight" || e.code === "KeyD") {
+      } else if (e.key === "ArrowRight" || e.code === "KeyD") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_RIGHT,
           append: (e.metaKey || e.ctrlKey)
         })
         e.preventDefault()
-      } else if (e.code === "ArrowLeft" || e.code === "KeyA") {
+      } else if (e.key === "ArrowLeft" || e.code === "KeyA") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_LEFT,
           append: (e.metaKey || e.ctrlKey)
         })
         e.preventDefault()
-      } else if (e.code === "ArrowUp" || e.code === "KeyW") {
+      } else if (e.key === "ArrowUp" || e.code === "KeyW") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_UP,
           append: (e.metaKey || e.ctrlKey)
         })
         e.preventDefault()
-      } else if (e.code === "ArrowDown" || e.code === "KeyS") {
+      } else if (e.key === "ArrowDown" || e.code === "KeyS") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_DOWN,
