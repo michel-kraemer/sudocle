@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useLayoutEffect, useState } from "react"
 import styles from "./Help.scss"
 
 const Help = () => {
@@ -23,7 +23,7 @@ const Help = () => {
     return def
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof navigator !== "undefined" && navigator.platform !== undefined) {
       let p = navigator.platform.toLowerCase()
       if (p.indexOf("mac") >= 0 || p.indexOf("iphone") >= 0 || p.indexOf("ipad") >= 0) {
