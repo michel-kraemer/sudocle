@@ -113,6 +113,9 @@ const Help = () => {
 
       <div className="divider"></div>
 
+      <div className="key"><kbd>{meta}</kbd> + <kbd>A</kbd></div>
+      <div className="desc">Select all cells</div>
+
       <div className="key"><kbd>&#x2190;</kbd>, <kbd>&#x2191;</kbd>, <kbd>&#x2192;</kbd>, <kbd>&#x2193;</kbd><br />
         <div className="alt-key"><kbd>{keyW.toUpperCase()}</kbd>, <kbd>
           {keyA.toUpperCase()}</kbd>, <kbd>{keyS.toUpperCase()}</kbd>, <kbd>

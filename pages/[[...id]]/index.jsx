@@ -5,7 +5,7 @@ import Pad from "../../components/Pad"
 import Sidebar from "../../components/Sidebar"
 import StatusBar from "../../components/StatusBar"
 import { TYPE_MODE, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
-  ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
+  ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../../components/lib/Modes"
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
@@ -114,6 +114,12 @@ const Index = () => {
       } else if (e.key === "y" && (e.metaKey || e.ctrlKey)) {
         updateGame({
           type: TYPE_REDO
+        })
+        e.preventDefault()
+      } else if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
+        updateGame({
+          type: TYPE_SELECTION,
+          action: ACTION_ALL
         })
         e.preventDefault()
       } else if (e.code === "KeyZ") {

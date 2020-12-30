@@ -10,6 +10,7 @@ module.exports = {
   TYPE_RESTART: "restart",
   TYPE_CHECK: "check",
 
+  ACTION_ALL: "all",
   ACTION_SET: "set",
   ACTION_PUSH: "push",
   ACTION_CLEAR: "clear",

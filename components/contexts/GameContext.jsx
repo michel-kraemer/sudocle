@@ -1,7 +1,7 @@
 import { xytok, ktoxy } from "../lib/utils"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLOURS,
   TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
-  ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
+  ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
   import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../lib/Modes"
 import { createContext, useReducer } from "react"
@@ -160,6 +160,14 @@ function digitsReducer(digits, action, selection, attrName = "digit") {
 function selectionReducer(selection, action, cells = []) {
   return produce(selection, draft => {
     switch (action.action) {
+      case ACTION_ALL:
+        draft.clear()
+        cells.forEach((row, y) => {
+          row.forEach((col, x) => {
+            draft.add(xytok(x, y))
+          })
+        })
+        return
       case ACTION_CLEAR:
         draft.clear()
         return
