@@ -7,6 +7,8 @@ html {
 }
 
 :root {
+  --font-family: "Roboto", sans-serif;
+
   font-size: 30px;
   text-rendering: geometricPrecision;
 
@@ -28,7 +30,7 @@ html {
 }
 
 body {
-  font-family: "Roboto", sans-serif;
+  font-family: var(--font-family);
   width: 100vw;
   height: 100vh;
   max-width: 100vw;

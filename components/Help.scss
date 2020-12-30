@@ -1,0 +1,33 @@
+.shortcuts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-column-gap: 1rem;
+  grid-row-gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.divider {
+  grid-column-start: 1;
+  grid-column-start: 2;
+}
+
+.alt-key {
+  margin-top: 0.25rem;
+
+  &::before {
+    content: "or";
+    margin-right: 0.4rem;
+  }
+}
+
+kbd {
+  font-family: var(--font-family);
+  display: inline-block;
+  border: 1px solid var(--fg-500);
+  border-radius: 5px;
+  background-color: var(--bg-alpha);
+  padding: 0.2em 0.3em;
+  min-width: 1.7em;
+  text-align: center;
+}

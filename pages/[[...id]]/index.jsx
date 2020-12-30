@@ -220,7 +220,8 @@ const Index = () => {
 
   // register beforeunload handler
   useEffect(() => {
-    if (process !== undefined && process.env !== undefined && process.env.NODE_ENV === "development") {
+    if (typeof process !== "undefined" && process.env !== undefined &&
+        process.env.NODE_ENV === "development") {
       // disable this feature in development mode
       return
     }

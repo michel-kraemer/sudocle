@@ -1,3 +1,4 @@
+import Help from "./Help"
 import Settings from "./Settings"
 import classNames from "classnames"
 import { HelpCircle, Info, Sliders, X } from "lucide-react"
@@ -77,9 +78,9 @@ const Sidebar = () => {
     <div className="sidebar-container">
       {expanded && activeTabId === ID_SETTINGS && <Settings />}
       {expanded && activeTabId === ID_HELP && <Help />}
-      <div className="close-button">
-        <X size="1rem" onClick={() => onTabClick(activeTabId)} />
-      </div>
+    </div>
+    <div className="close-button">
+      <X size="1rem" onClick={() => onTabClick(activeTabId)} />
     </div>
     <style jsx>{styles}</style>
   </div>)
