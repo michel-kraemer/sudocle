@@ -400,6 +400,33 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     e.stopPropagation()
   }
 
+  function onDoubleClick(e) {
+    if (game.selection.size === 0 || !e.altKey) {
+      return
+    }
+
+    // get color of last cell clicked
+    let last = [...game.selection].pop()
+    let colour = game.colours.get(last)
+
+    if (colour !== undefined) {
+      // find all cells with the same colour
+      let allCells = []
+      for (let [k, c] of game.colours) {
+        if (c.colour === colour.colour) {
+          allCells.push(k)
+        }
+      }
+
+      let action = e.metaKey ? ACTION_PUSH : ACTION_SET
+      updateGame({
+        type: TYPE_SELECTION,
+        action,
+        k: allCells
+      })
+    }
+  }
+
   const onResize = useCallback(() => {
     let marginTop = gridBounds.current.y - allBounds.current.y
     let marginBottom = allBounds.current.y + allBounds.current.height -
@@ -989,7 +1016,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       game.errors, settings.colourPalette, foregroundColor, digitColor])
 
   return (
-    <div ref={ref} className="grid" onClick={onBackgroundClick}>
+    <div ref={ref} className="grid" onClick={onBackgroundClick} onDoubleClick={onDoubleClick}>
       <style jsx>{styles}</style>
     </div>
   )

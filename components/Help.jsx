@@ -66,6 +66,9 @@ const Help = () => {
 
       <div className="key"><kbd>{meta}</kbd> + <kbd>{shift}</kbd> + <kbd>Click</kbd></div>
       <div className="desc">Deselect cell(s)</div>
+
+      <div className="key"><kbd>{alt}</kbd> + <kbd>Double click</kbd></div>
+      <div className="desc">Select cells with same colour</div>
     </div>
 
     <h3>Keyboard shortcuts</h3>

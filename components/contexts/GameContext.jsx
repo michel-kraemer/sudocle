@@ -171,16 +171,37 @@ function selectionReducer(selection, action, cells = []) {
       case ACTION_CLEAR:
         draft.clear()
         return
-      case ACTION_SET:
+      case ACTION_SET: {
         draft.clear()
-        draft.add(action.k)
+        if (Array.isArray(action.k)) {
+          for (let k of action.k) {
+            draft.add(k)
+          }
+        } else {
+          draft.add(action.k)
+        }
         return
-      case ACTION_PUSH:
-        draft.add(action.k)
+      }
+      case ACTION_PUSH: {
+        if (Array.isArray(action.k)) {
+          for (let k of action.k) {
+            draft.add(k)
+          }
+        } else {
+          draft.add(action.k)
+        }
         return
-      case ACTION_REMOVE:
-        draft.delete(action.k)
+      }
+      case ACTION_REMOVE: {
+        if (Array.isArray(action.k)) {
+          for (let k of action.k) {
+            draft.delete(k)
+          }
+        } else {
+          draft.delete(action.k)
+        }
         return
+      }
     }
 
     if (draft.size > 0 && (action.action === ACTION_RIGHT ||
