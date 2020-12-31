@@ -523,6 +523,28 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     all.sortableChildren = true
     grid.sortableChildren = true
 
+    // ***************** Layers and zIndexes:
+
+    // all                            sortable
+    //   background            -1000
+    //   lines and arrows         -1
+    //   arrow heads              -1
+    //   underlays                -1
+    //   colour                    0
+    //   errors                   10
+    //   selection                20
+    //   grid                     30  sortable
+    //     region                 10
+    //     cage outline            1
+    //     cage label              3
+    //     cage label background   2
+    //     cells
+    //       cell                  0
+    //   overlays                 40
+    //   digit                    50
+    //   corner marks             50
+    //   centre marks             50
+
     // ***************** render everything that could contribute to bounds
 
     // render cells
@@ -608,6 +630,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     }
 
     grid.addChild(cells)
+    grid.zIndex = 30
     all.addChild(grid)
 
     // add lines and arrows
@@ -670,7 +693,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       all.addChild(drawOverlay(underlay, grid.x, grid.y))
     })
     game.data.overlays.forEach(overlay => {
-      all.addChild(drawOverlay(overlay, grid.x, grid.y, 1))
+      all.addChild(drawOverlay(overlay, grid.x, grid.y, 40))
     })
 
     // calculating bounds is expensive, so do it now after we've rendered
@@ -709,14 +732,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           fontFamily: "Tahoma, Verdana, sans-serif",
           fontSize: 40
         })
-        text.zIndex = 10
+        text.zIndex = 50
         text.x = x * cellSize + cellSize / 2
         text.y = y * cellSize + cellSize / 2 - 0.5
         text.anchor.set(0.5)
         text.data = {
           k: xytok(x, y)
         }
-        grid.addChild(text)
+        all.addChild(text)
         digitElements.current.push(text)
       })
     })
@@ -739,7 +762,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
             fontSize: 26
           })
 
-          text.zIndex = 10
+          text.zIndex = 50
 
           let cx = x * cellSize + cellSize / 2
           let cy = y * cellSize + cellSize / 2 - 0.5
@@ -804,7 +827,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           text.scale.x = 0.5
           text.scale.y = 0.5
 
-          grid.addChild(text)
+          all.addChild(text)
           cell.elements.push(text)
         }
 
@@ -819,7 +842,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           fontFamily: "Tahoma, Verdana, sans-serif",
           fontSize: 28
         })
-        text.zIndex = 10
+        text.zIndex = 50
         text.x = x * cellSize + cellSize / 2
         text.y = y * cellSize + cellSize / 2 - 0.5
         text.anchor.set(0.5)
@@ -829,7 +852,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         text.data = {
           k: xytok(x, y)
         }
-        grid.addChild(text)
+        all.addChild(text)
         centreMarkElements.current.push(text)
       })
     })
@@ -841,10 +864,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         rect.x = x * cellSize
         rect.y = y * cellSize
         rect.alpha = 0
+        rect.zIndex = 0
         rect.data = {
           k: xytok(x, y)
         }
-        grid.addChild(rect)
+        all.addChild(rect)
         colourElements.current.push(rect)
       })
     })
@@ -859,11 +883,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         rect.x = x * cellSize
         rect.y = y * cellSize
         rect.alpha = 0
-        rect.zIndex = 1
+        rect.zIndex = 20
         rect.data = {
           k: xytok(x, y)
         }
-        grid.addChild(rect)
+        all.addChild(rect)
         selectionElements.current.push(rect)
       })
     })
@@ -878,10 +902,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         rect.x = x * cellSize
         rect.y = y * cellSize
         rect.alpha = 0
+        rect.zIndex = 10
         rect.data = {
           k: xytok(x, y)
         }
-        grid.addChild(rect)
+        all.addChild(rect)
         errorElements.current.push(rect)
       })
     })
