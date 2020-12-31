@@ -376,12 +376,22 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const onKeyDown = useCallback(e => {
     onKey(e)
 
-    let digit = e.code.match("(Digit|Numpad)([1-9])")
+    let digit = e.code.match("Digit([1-9])")
     if (digit) {
       updateGame({
         type: TYPE_DIGITS,
         action: ACTION_SET,
-        digit: +digit[2]
+        digit: +digit[1]
+      })
+      e.preventDefault()
+    }
+
+    let numpad = e.code.match("Numpad([1-9])")
+    if (numpad && +e.key === +numpad[1]) {
+      updateGame({
+        type: TYPE_DIGITS,
+        action: ACTION_SET,
+        digit: +numpad[1]
       })
       e.preventDefault()
     }
