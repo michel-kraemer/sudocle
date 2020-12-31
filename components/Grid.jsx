@@ -634,16 +634,19 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         return
       }
       let poly = new PIXI.Graphics()
-      let lastPoint = cellToScreenCoords(arrow.wayPoints[arrow.wayPoints.length - 1], grid.x, grid.y)
-      let secondToLast = cellToScreenCoords(arrow.wayPoints[arrow.wayPoints.length - 2], grid.x, grid.y)
-      let dx = lastPoint[0] - secondToLast[0]
-      let dy = lastPoint[1] - secondToLast[1]
+      let points = shortenLine(flatten(arrow.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y))))
+      let lastPointX = points[points.length - 2]
+      let lastPointY = points[points.length - 1]
+      let secondToLastX = points[points.length - 4]
+      let secondToLastY = points[points.length - 3]
+      let dx = lastPointX - secondToLastX
+      let dy = lastPointY - secondToLastY
       let l = Math.sqrt(dx * dx + dy * dy)
       dx /= l
       dy /= l
       let f = arrow.headLength * cellSize * 0.7
-      let ex = lastPoint[0] - dx * f
-      let ey = lastPoint[1] - dy * f
+      let ex = lastPointX - dx * f
+      let ey = lastPointY - dy * f
       let ex1 = ex - dy * f
       let ey1 = ey + dx * f
       let ex2 = ex + dy * f
@@ -654,9 +657,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         cap: PIXI.LINE_CAP.ROUND,
         join: PIXI.LINE_JOIN.ROUND
       })
-      poly.moveTo(lastPoint[0], lastPoint[1])
+      poly.moveTo(lastPointX, lastPointY)
       poly.lineTo(ex1, ey1)
-      poly.moveTo(lastPoint[0], lastPoint[1])
+      poly.moveTo(lastPointX, lastPointY)
       poly.lineTo(ex2, ey2)
       poly.zIndex = -1
       all.addChild(poly)
