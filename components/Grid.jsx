@@ -486,9 +486,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   }, [maxWidth, maxHeight, portrait])
 
   useEffect(() => {
+    // optimised resolution for different screens
+    let resolution = Math.min(window.devicePixelRatio,
+      window.devicePixelRatio === 2 ? 3 : 2.5)
+
     // create PixiJS app
     let newApp = new PIXI.Application({
-      resolution: window.devicePixelRatio,
+      resolution,
       antialias: true,
       transparent: true,
       autoDensity: true,
@@ -512,6 +516,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
     setForegroundColor(foregroundColor)
     setDigitColor(digitColor)
+
+    // optimised font sizes for different screens
+    let fontSizeCornerMarks = window.devicePixelRatio >= 2 ? 27 : 28
+    let fontSizeCentreMarks = window.devicePixelRatio >= 2 ? 28 : 29
 
     // create grid
     let all = new PIXI.Container()
@@ -759,7 +767,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         for (let i = 0; i < 10; ++i) {
           let text = new PIXI.Text("", {
             fontFamily: "Tahoma, Verdana, sans-serif",
-            fontSize: 26
+            fontSize: fontSizeCornerMarks
           })
 
           text.zIndex = 50
@@ -840,7 +848,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
           fontFamily: "Tahoma, Verdana, sans-serif",
-          fontSize: 28
+          fontSize: fontSizeCentreMarks
         })
         text.zIndex = 50
         text.x = x * cellSize + cellSize / 2
