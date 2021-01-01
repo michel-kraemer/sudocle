@@ -270,7 +270,7 @@ const Index = () => {
     </Head>
     <div className="app" data-theme={settings.theme} data-colour-palette={settings.colourPalette}>
       <StatusBar />
-      <div className="game-container" onClick={clearSelection} ref={gameContainerRef}>
+      <div className="game-container" onMouseDown={clearSelection} ref={gameContainerRef}>
         <div className="grid-container">
           {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
             maxHeight={gridMaxHeight} onFinishRender={onFinishRender} />}
