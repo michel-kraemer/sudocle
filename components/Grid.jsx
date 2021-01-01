@@ -624,27 +624,29 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       poly.zIndex = 1
       grid.addChild(poly)
 
-      // create cage label
-      // use larger font and scale down afterwards to improve text rendering
-      let topleftText = new PIXI.Text(cage.value, {
-        fontFamily: "Tahoma, Verdana, sans-serif",
-        fontSize: 26
-      })
-      topleftText.zIndex = 3
-      topleftText.x = cage.topleft[1] * cellSize + cellSize / 20
-      topleftText.y = cage.topleft[0] * cellSize + cellSize / 60
-      topleftText.scale.x = 0.5
-      topleftText.scale.y = 0.5
-      grid.addChild(topleftText)
+      if (cage.value !== undefined && cage.value.trim() !== "") {
+        // create cage label
+        // use larger font and scale down afterwards to improve text rendering
+        let topleftText = new PIXI.Text(cage.value, {
+          fontFamily: "Tahoma, Verdana, sans-serif",
+          fontSize: 26
+        })
+        topleftText.zIndex = 3
+        topleftText.x = cage.topleft[1] * cellSize + cellSize / 20
+        topleftText.y = cage.topleft[0] * cellSize + cellSize / 60
+        topleftText.scale.x = 0.5
+        topleftText.scale.y = 0.5
+        grid.addChild(topleftText)
 
-      let topleftBg = new PIXI.Graphics()
-      topleftBg.beginFill(0xffffff)
-      topleftBg.drawRect(0, 0, topleftText.width + cellSize / 10 - 1, topleftText.height + cellSize / 60)
-      topleftBg.endFill()
-      topleftBg.zIndex = 2
-      topleftBg.x = cage.topleft[1] * cellSize + 0.5
-      topleftBg.y = cage.topleft[0] * cellSize + 0.5
-      grid.addChild(topleftBg)
+        let topleftBg = new PIXI.Graphics()
+        topleftBg.beginFill(0xffffff)
+        topleftBg.drawRect(0, 0, topleftText.width + cellSize / 10 - 1, topleftText.height + cellSize / 60)
+        topleftBg.endFill()
+        topleftBg.zIndex = 2
+        topleftBg.x = cage.topleft[1] * cellSize + 0.5
+        topleftBg.y = cage.topleft[0] * cellSize + 0.5
+        grid.addChild(topleftBg)
+      }
     }
 
     grid.addChild(cells)
