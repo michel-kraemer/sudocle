@@ -13,7 +13,6 @@ import Head from "next/head"
 import styles from "./index.scss"
 
 const DATABASE_URL = "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
-const STATUS_BAR_GAP = 10 // minimum gap between status bar and grid
 
 const Index = () => {
   const game = useContext(GameContext.State)
@@ -24,12 +23,7 @@ const Index = () => {
   const [gridMaxWidth, setGridMaxWidth] = useState(0)
   const [gridMaxHeight, setGridMaxHeight] = useState(0)
   const [portrait, setPortrait] = useState(false)
-  const [statusBarHeight, setStatusBarHeight] = useState(0)
   const [rendering, setRendering] = useState(true)
-
-  function onStatusBarHeightChange(newHeight) {
-    setStatusBarHeight(newHeight)
-  }
 
   function clearSelection() {
     updateGame({
@@ -201,17 +195,28 @@ const Index = () => {
 
   // register resize handler
   useEffect(() => {
+    let oldW = 0
+    let oldH = 0
+
     function onResize() {
       let style = window.getComputedStyle(gameContainerRef.current)
       let w = gameContainerRef.current.clientWidth - parseInt(style.paddingLeft) - parseInt(style.paddingRight)
       let h = gameContainerRef.current.clientHeight - parseInt(style.paddingTop) - parseInt(style.paddingBottom)
       let portrait = window.innerHeight > window.innerWidth
+      let newW
+      let newH
       if (portrait) {
-        setGridMaxWidth(w)
-        setGridMaxHeight(h - padContainerRef.current.offsetHeight)
+        newW = w
+        newH = h - padContainerRef.current.offsetHeight
       } else {
-        setGridMaxWidth(w - padContainerRef.current.offsetWidth)
-        setGridMaxHeight(h)
+        newW = w - padContainerRef.current.offsetWidth
+        newH = h
+      }
+      if (oldW !== newW || oldH !== newH) {
+        setGridMaxWidth(newW)
+        setGridMaxHeight(newH)
+        oldW = newW
+        oldH = newH
       }
       setPortrait(portrait)
     }
@@ -219,7 +224,10 @@ const Index = () => {
     window.addEventListener("resize", onResize)
     onResize()
 
+    let interval = setInterval(onResize, 1000)
+
     return () => {
+      clearInterval(interval)
       window.removeEventListener("resize", onResize)
     }
   }, [])
@@ -261,12 +269,11 @@ const Index = () => {
       <title>Sudoku</title>
     </Head>
     <div className="app" data-theme={settings.theme} data-colour-palette={settings.colourPalette}>
-      <StatusBar onHeightChange={onStatusBarHeightChange} />
+      <StatusBar />
       <div className="game-container" onClick={clearSelection} ref={gameContainerRef}>
         <div className="grid-container">
           {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
-            maxHeight={gridMaxHeight - (statusBarHeight + STATUS_BAR_GAP) * 2}
-            onFinishRender={onFinishRender} />}
+            maxHeight={gridMaxHeight} onFinishRender={onFinishRender} />}
         </div>
         {rendering && <div className="loading">
           Loading ...
