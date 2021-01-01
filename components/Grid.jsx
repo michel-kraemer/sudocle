@@ -250,9 +250,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const colourElements = useRef([])
   const selectionElements = useRef([])
   const errorElements = useRef([])
-  const keyCtrlPressed = useRef(false)
-  const keyMetaPressed = useRef(false)
-  const keyShiftPressed = useRef(false)
   const [foregroundColor, setForegroundColor] = useState()
   const [digitColor, setDigitColor] = useState()
 
@@ -351,10 +348,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     return r
   }, [cellSize, cellToScreenCoords])
 
-  const selectCell = useCallback((cell, append = false) => {
+  const selectCell = useCallback((cell, evt, append = false) => {
     let action = append ? ACTION_PUSH : ACTION_SET
-    if (keyMetaPressed.current || keyCtrlPressed.current) {
-      if (keyShiftPressed.current) {
+    let oe = evt.data.originalEvent
+    if (oe.metaKey || oe.ctrlKey) {
+      if (oe.shiftKey) {
         action = ACTION_REMOVE
       } else {
         action = ACTION_PUSH
@@ -367,15 +365,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     })
   }, [updateGame])
 
-  const onKey = useCallback(e => {
-    keyShiftPressed.current = e.shiftKey
-    keyMetaPressed.current = e.metaKey
-    keyCtrlPressed.current = e.ctrlKey
-  }, [])
-
   const onKeyDown = useCallback(e => {
-    onKey(e)
-
     let digit = e.code.match("Digit([1-9])")
     if (digit) {
       updateGame({
@@ -402,11 +392,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         action: ACTION_REMOVE
       })
     }
-  }, [onKey, updateGame])
-
-  const onKeyUp = useCallback(e => {
-    onKey(e)
-  }, [onKey])
+  }, [updateGame])
 
   function onBackgroundClick(e) {
     e.stopPropagation()
@@ -587,14 +573,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         cell.hitArea = new PIXI.Rectangle(0, 0, cellSize, cellSize)
 
         cell.on("pointerdown", function (e) {
-          selectCell(this)
+          selectCell(this, e)
           e.stopPropagation()
           e.data.originalEvent.preventDefault()
         })
 
         cell.on("pointerover", function (e) {
           if (e.data.buttons === 1) {
-            selectCell(this, true)
+            selectCell(this, e, true)
           }
           e.stopPropagation()
         })
@@ -958,13 +944,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   // register keyboard handlers
   useEffect(() => {
     window.addEventListener("keydown", onKeyDown)
-    window.addEventListener("keyup", onKeyUp)
 
     return () => {
       window.removeEventListener("keydown", onKeyDown)
-      window.removeEventListener("keyup", onKeyUp)
     }
-  }, [onKeyDown, onKeyUp])
+  }, [onKeyDown])
 
   useEffect(() => {
     selectionElements.current.forEach(s => {
