@@ -20,8 +20,9 @@ function makeGivenDigits(data) {
   data.cells.forEach((row, y) => {
     row.forEach((col, x) => {
       if (col.value !== undefined) {
+        let n = /^\d+$/.test(col.value) ? +col.value : col.value
         r.set(xytok(x, y), {
-          digit: +col.value,
+          digit: n,
           given: true
         })
       }
