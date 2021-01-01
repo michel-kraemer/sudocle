@@ -504,7 +504,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     let newApp = new PIXI.Application({
       resolution,
       antialias: true,
-      transparent: true,
+      transparent: false,
       autoDensity: true,
       autoStart: false
     })
