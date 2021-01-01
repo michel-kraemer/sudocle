@@ -1,35 +1,16 @@
 import About from "./About"
 import Help from "./Help"
 import Settings from "./Settings"
+import SidebarContext from "./contexts/SidebarContext"
 import classNames from "classnames"
 import { HelpCircle, Info, Sliders, X } from "lucide-react"
-import { useState } from "react"
+import { useContext } from "react"
+import { ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
 import styles from "./Sidebar.scss"
 
-const ID_SETTINGS = "settings"
-const ID_HELP = "help"
-const ID_ABOUT = "about"
-
 const Sidebar = () => {
-  // true as soon as sidebar expands but only until it starts to collapse
-  const [visible, setVisible] = useState(false)
-
-  // true as soon as sidebar expands and until it has completely collapsed
-  const [expanded, setExpanded] = useState(false)
-
-  const [activeTabId, setActiveTabId] = useState(ID_SETTINGS)
-
-  function onTabClick(id) {
-    if (!visible) {
-      setVisible(true)
-      setExpanded(true)
-    } else if (id === activeTabId) {
-      setVisible(false)
-      setTimeout(() => setExpanded(false), 300)
-    }
-
-    setActiveTabId(id)
-  }
+  const sidebarState = useContext(SidebarContext.State)
+  const onTabClick = useContext(SidebarContext.OnTabClick)
 
   let tabs = [{
     id: ID_SETTINGS,
@@ -49,10 +30,11 @@ const Sidebar = () => {
   tabs.forEach((t, i) => t.y = (tabs.length - i - 1) * 90)
 
   // move active tab to end so it will be rendered on top
-  let activeTabIndex = tabs.findIndex(t => t.id === activeTabId)
+  let activeTabIndex = tabs.findIndex(t => t.id === sidebarState.activeTabId)
   tabs = [...tabs.slice(0, activeTabIndex), ...tabs.slice(activeTabIndex + 1), tabs[activeTabIndex]]
 
-  return (<div className={classNames("sidebar", { visible, expanded, collapsed: !expanded })}>
+  return (<div className={classNames("sidebar", { visible: sidebarState.visible,
+      expanded: sidebarState.expanded, collapsed: !sidebarState.expanded })}>
     <div className="sidebar-tabs">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 500">
         <defs>
@@ -64,7 +46,7 @@ const Sidebar = () => {
         </defs>
         {tabs.map(t => (
           <g key={t.id} transform={`translate(0, ${t.y})`}
-              className={classNames("tab-handle", { active: t.id === activeTabId })}
+              className={classNames("tab-handle", { active: t.id === sidebarState.activeTabId })}
               onClick={() => onTabClick(t.id)}>
             <use xlinkHref="#tab-handle" className="tab-handle-path" />
             <g className="tab-icon">
@@ -77,12 +59,12 @@ const Sidebar = () => {
       </svg>
     </div>
     <div className="sidebar-container">
-      {expanded && activeTabId === ID_SETTINGS && <Settings />}
-      {expanded && activeTabId === ID_HELP && <Help />}
-      {expanded && activeTabId === ID_ABOUT && <About />}
+      {sidebarState.expanded && sidebarState.activeTabId === ID_SETTINGS && <Settings />}
+      {sidebarState.expanded && sidebarState.activeTabId === ID_HELP && <Help />}
+      {sidebarState.expanded && sidebarState.activeTabId === ID_ABOUT && <About />}
     </div>
     <div className="close-button">
-      <X size="1rem" onClick={() => onTabClick(activeTabId)} />
+      <X size="1rem" onClick={() => onTabClick(sidebarState.activeTabId)} />
     </div>
     <style jsx>{styles}</style>
   </div>)

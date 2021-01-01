@@ -1,5 +1,6 @@
 import GameContext from "../components/contexts/GameContext"
 import SettingsContext from "../components/contexts/SettingsContext"
+import SidebarContext from "../components/contexts/SidebarContext"
 import styles from "./_app.scss?type=global"
 import { enableAllPlugins } from "immer"
 
@@ -9,7 +10,9 @@ const App = ({ Component, pageProps }) => (
   <>
     <GameContext.Provider>
       <SettingsContext.Provider>
-        <Component {...pageProps} />
+        <SidebarContext.Provider>
+          <Component {...pageProps} />
+        </SidebarContext.Provider>
       </SettingsContext.Provider>
     </GameContext.Provider>
     <style jsx>{styles}</style>

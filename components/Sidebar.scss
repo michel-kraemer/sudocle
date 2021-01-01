@@ -17,6 +17,10 @@
 
   &.collapsed {
     width: 2.5rem;
+
+    @media (orientation: portrait) {
+      z-index: -2000;
+    }
   }
 
   :global(h2) {
@@ -33,6 +37,12 @@
 .sidebar-tabs {
   width: 2rem;
   margin-top: 2rem;
+
+  .collapsed & {
+    @media (orientation: portrait) {
+      display: none;
+    }
+  }
 }
 
 .tab-handle {
