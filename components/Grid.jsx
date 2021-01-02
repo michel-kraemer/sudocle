@@ -796,6 +796,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     gridBounds.current = grid.getBounds()
     allBounds.current = all.getBounds()
 
+    // Align bounds to half pixel. This makes sure the grid is always sharp
+    // and lines to not sit between pixels.
+    allBounds.current.x = Math.floor(allBounds.current.x * 2) / 2
+    allBounds.current.y = Math.floor(allBounds.current.y * 2) / 2
+    allBounds.current.width = Math.ceil(allBounds.current.width * 2) / 2
+    allBounds.current.height = Math.ceil(allBounds.current.height * 2) / 2
+
     // draw a background that covers all elements
     let background = new PIXI.Graphics()
     background.hitArea = new PIXI.Rectangle(allBounds.current.x, allBounds.current.y,
