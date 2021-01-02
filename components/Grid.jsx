@@ -48,6 +48,16 @@ function hasCageValue(x, y, cages) {
   return false
 }
 
+function hasGivenCornerMarks(cell) {
+  if (cell.pencilMarks === undefined) {
+    return false
+  }
+  if (Array.isArray(cell.pencilMarks) && cell.pencilMarks.length === 0) {
+    return false
+  }
+  return cell.pencilMarks !== ""
+}
+
 // shrink polygon inwards by distance `d`
 function shrinkPolygon(points, d) {
   let result = []
@@ -234,6 +244,84 @@ function shortenLine(points) {
 
   return [firstPointX, firstPointY, ...points.slice(2, points.length - 2),
     lastPointX, lastPointY]
+}
+
+function makeCornerMarks(x, y, cellSize, fontSize, leaveRoom, n = 10, fontWeight = "normal") {
+  let result = []
+
+  for (let i = 0; i < n; ++i) {
+    let text = new PIXI.Text("", {
+      fontFamily: "Tahoma, Verdana, sans-serif",
+      fontSize,
+      fontWeight
+    })
+
+    let cx = x * cellSize + cellSize / 2
+    let cy = y * cellSize + cellSize / 2 - 0.5
+    let mx = cellSize / 3.2
+    let my = cellSize / 3.4
+
+    switch (i) {
+      case 0:
+        if (leaveRoom) {
+          text.x = cx - mx / 3
+          text.y = cy - my
+        } else {
+          text.x = cx - mx
+          text.y = cy - my
+        }
+        break
+      case 4:
+        if (leaveRoom) {
+          text.x = cx + mx / 3
+          text.y = cy - my
+        } else {
+          text.x = cx
+          text.y = cy - my
+        }
+        break
+      case 1:
+        text.x = cx + mx
+        text.y = cy - my
+        break
+      case 6:
+        text.x = cx - mx
+        text.y = cy
+        break
+      case 7:
+        text.x = cx + mx
+        text.y = cy
+        break
+      case 2:
+        text.x = cx - mx
+        text.y = cy + my
+        break
+      case 5:
+        text.x = cx
+        text.y = cy + my
+        break
+      case 3:
+        text.x = cx + mx
+        text.y = cy + my
+        break
+      case 8:
+        text.x = cx - mx / 3
+        text.y = cy + my
+        break
+      case 9:
+        text.x = cx + mx / 3
+        text.y = cy + my
+        break
+    }
+
+    text.anchor.set(0.5)
+    text.scale.x = 0.5
+    text.scale.y = 0.5
+
+    result.push(text)
+  }
+
+  return result
 }
 
 const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
@@ -545,6 +633,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     //     cells
     //       cell                  0
     //   overlays                 40
+    //   given corner marks       41
     //   digit                    50
     //   corner marks             50
     //   centre marks             50
@@ -729,6 +818,31 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     app.current.stage.addChild(all)
     app.current.render()
 
+    // ***************** draw other elements that don't contribute to the bounds
+
+    // create text elements for given corner marks
+    game.data.cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let arr = col.pencilMarks
+        if (arr === undefined) {
+          return
+        }
+        if (!Array.isArray(arr)) {
+          arr = [arr]
+        }
+
+        let hcv = hasCageValue(x, y, cages)
+        let cms = makeCornerMarks(x, y, cellSize, fontSizeCornerMarks, hcv,
+            arr.length, "bold")
+        cms.forEach((cm, i) => {
+          cm.zIndex = 41
+          cm.style.fill = foregroundColor
+          cm.text = arr[i]
+          all.addChild(cm)
+        })
+      })
+    })
+
     // ***************** draw invisible elements but don't call render() again!
 
     // create empty text elements for all digits
@@ -760,81 +874,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           elements: []
         }
 
-        let hcv = hasCageValue(x, y, cages)
-
-        for (let i = 0; i < 10; ++i) {
-          let text = new PIXI.Text("", {
-            fontFamily: "Tahoma, Verdana, sans-serif",
-            fontSize: fontSizeCornerMarks
-          })
-
-          text.zIndex = 50
-
-          let cx = x * cellSize + cellSize / 2
-          let cy = y * cellSize + cellSize / 2 - 0.5
-          let mx = cellSize / 3.2
-          let my = cellSize / 3.4
-
-          switch (i) {
-            case 0:
-              if (hcv) {
-                text.x = cx - mx / 3
-                text.y = cy - my
-              } else {
-                text.x = cx - mx
-                text.y = cy - my
-              }
-              break
-            case 4:
-              if (hcv) {
-                text.x = cx + mx / 3
-                text.y = cy - my
-              } else {
-                text.x = cx
-                text.y = cy - my
-              }
-              break
-            case 1:
-              text.x = cx + mx
-              text.y = cy - my
-              break
-            case 6:
-              text.x = cx - mx
-              text.y = cy
-              break
-            case 7:
-              text.x = cx + mx
-              text.y = cy
-              break
-            case 2:
-              text.x = cx - mx
-              text.y = cy + my
-              break
-            case 5:
-              text.x = cx
-              text.y = cy + my
-              break
-            case 3:
-              text.x = cx + mx
-              text.y = cy + my
-              break
-            case 8:
-              text.x = cx - mx / 3
-              text.y = cy + my
-              break
-            case 9:
-              text.x = cx + mx / 3
-              text.y = cy + my
-              break
-          }
-
-          text.anchor.set(0.5)
-          text.style.fill = digitColor
-          text.scale.x = 0.5
-          text.scale.y = 0.5
-
-          all.addChild(text)
-          cell.elements.push(text)
+        let leaveRoom = hasCageValue(x, y, cages) || hasGivenCornerMarks(col)
+        let cms = makeCornerMarks(x, y, cellSize, fontSizeCornerMarks, leaveRoom, 10)
+        for (let cm of cms) {
+          cm.zIndex = 50
+          cm.style.fill = digitColor
+          all.addChild(cm)
+          cell.elements.push(cm)
         }
 
         cornerMarkElements.current.push(cell)
