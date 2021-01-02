@@ -328,6 +328,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const ref = useRef()
   const app = useRef()
   const gridElement = useRef()
+  const cellsElement = useRef()
   const allElement = useRef()
   const gridBounds = useRef()
   const allBounds = useRef()
@@ -438,9 +439,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
   const selectCell = useCallback((cell, evt, append = false) => {
     let action = append ? ACTION_PUSH : ACTION_SET
-    let oe = evt.data.originalEvent
-    if (oe.metaKey || oe.ctrlKey) {
-      if (oe.shiftKey) {
+    let oe = evt?.data?.originalEvent
+    if (oe?.metaKey || oe?.ctrlKey) {
+      if (oe?.shiftKey) {
         action = ACTION_REMOVE
       } else {
         action = ACTION_PUSH
@@ -569,6 +570,19 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     app.current.render()
   }, [maxWidth, maxHeight, portrait])
 
+  const onTouchMove = useCallback((e) => {
+    let touch = e.touches[0]
+    let x = touch.pageX
+    let y = touch.pageY
+    let interactionManager = app.current.renderer.plugins.interaction
+    let p = {}
+    interactionManager.mapPositionToPoint(p, x, y)
+    let hit = interactionManager.hitTest(p, cellsElement.current)
+    if (hit?.data?.k !== undefined) {
+      selectCell(hit, e, true)
+    }
+  }, [selectCell])
+
   useEffect(() => {
     // optimised resolution for different screens
     let resolution = Math.min(window.devicePixelRatio,
@@ -585,11 +599,15 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     ref.current.appendChild(newApp.view)
     app.current = newApp
 
+    // register touch handler
+    newApp.view.addEventListener("touchmove", onTouchMove)
+
     return () => {
+      newApp.view.removeEventListener("touchmove", onTouchMove)
       newApp.destroy(true, true)
       app.current = undefined
     }
-  }, [settings.theme])
+  }, [settings.theme, onTouchMove])
 
   useEffect(() => {
     app.current.stage.removeChildren()
@@ -611,6 +629,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     let grid = new PIXI.Container()
     gridElement.current = grid
     let cells = new PIXI.Container()
+    cellsElement.current = cells
 
     all.sortableChildren = true
     grid.sortableChildren = true
@@ -977,6 +996,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     return () => {
       allElement.current = undefined
       gridElement.current = undefined
+      cellsElement.current = undefined
       gridBounds.current = undefined
       allBounds.current = undefined
       cellElements.current = []
