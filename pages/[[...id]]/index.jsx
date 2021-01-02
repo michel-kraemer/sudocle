@@ -18,6 +18,7 @@ const Index = () => {
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
   const settings = useContext(SettingsContext.State)
+  const appRef = useRef()
   const gameContainerRef = useRef()
   const padContainerRef = useRef()
   const [gridMaxWidth, setGridMaxWidth] = useState(0)
@@ -25,11 +26,20 @@ const Index = () => {
   const [portrait, setPortrait] = useState(false)
   const [rendering, setRendering] = useState(true)
 
-  function clearSelection() {
-    updateGame({
-      type: TYPE_SELECTION,
-      action: ACTION_CLEAR
-    })
+  function onMouseDown(e) {
+    // check if we hit a target that would clear the selction
+    let shouldClearSelection = e.target === appRef.current ||
+      e.target === gameContainerRef.current ||
+      e.target === padContainerRef.current ||
+      // pad itself but not its buttons
+      e.target.parentElement === padContainerRef.current
+
+    if (shouldClearSelection) {
+      updateGame({
+        type: TYPE_SELECTION,
+        action: ACTION_CLEAR
+      })
+    }
   }
 
   const onFinishRender = useCallback(() => setRendering(false), [])
@@ -268,9 +278,10 @@ const Index = () => {
       <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"/>
       <title>Sudoku</title>
     </Head>
-    <div className="app" data-theme={settings.theme} data-colour-palette={settings.colourPalette}>
+    <div className="app" data-theme={settings.theme} data-colour-palette={settings.colourPalette}
+        onMouseDown={onMouseDown} ref={appRef}>
       <StatusBar />
-      <div className="game-container" onMouseDown={clearSelection} ref={gameContainerRef}>
+      <div className="game-container" ref={gameContainerRef}>
         <div className="grid-container">
           {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
             maxHeight={gridMaxHeight} onFinishRender={onFinishRender} />}
