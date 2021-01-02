@@ -12,6 +12,10 @@
   min-height: 2em;
   line-height: 1em;
 
+  &:focus {
+    outline: none;
+  }
+
   &:hover {
     background-color: var(--button-hover);
   }

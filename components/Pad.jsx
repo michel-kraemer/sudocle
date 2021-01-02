@@ -4,7 +4,7 @@ import GameContext from "./contexts/GameContext"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
   ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "./lib/Modes"
-import { useContext, useEffect, useRef, useState } from "react"
+import { useContext, useEffect, useRef, useReducer, useState } from "react"
 import classNames from "classnames"
 import styles from "./Pad.scss"
 
@@ -15,7 +15,26 @@ const Pad = () => {
   const updateGame = useContext(GameContext.Dispatch)
   const [colours, setColours] = useState([])
 
-  const [confirmRestart, setConfirmRestart] = useState(false)
+  const confirmRestartSetTime = useRef(+new Date())
+  const confirmRestartTimer = useRef()
+  const [confirmRestart, setConfirmRestart] = useReducer((_, v) => {
+    confirmRestartSetTime.current = +new Date()
+
+    // clear old timer
+    if (confirmRestartTimer.current !== undefined) {
+      clearTimeout(confirmRestartTimer.current)
+      confirmRestartTimer.current = undefined
+    }
+
+    // automatically reset flag after 5 seconds
+    if (v) {
+      confirmRestartTimer.current = setTimeout(() => {
+        setConfirmRestart(false)
+      }, 5000)
+    }
+
+    return v
+  }, false)
 
   useEffect(() => {
     let computedStyle = getComputedStyle(ref.current)
@@ -70,11 +89,18 @@ const Pad = () => {
     if (!confirmRestart) {
       setConfirmRestart(true)
     } else {
-      updateGame({
-        type: TYPE_RESTART
-      })
-      setConfirmRestart(false)
+      // prevent accidental double click
+      if (new Date() - confirmRestartSetTime.current > 200) {
+        updateGame({
+          type: TYPE_RESTART
+        })
+        setConfirmRestart(false)
+      }
     }
+  }
+
+  function onRestartBlur() {
+    setConfirmRestart(false)
   }
 
   function onCheck() {
@@ -147,7 +173,7 @@ const Pad = () => {
     <div className="pad-bottom">
       <Button onClick={onUndo}>Undo</Button>
       <Button onClick={onRedo}>Redo</Button>
-      <Button onClick={onRestart} alert={confirmRestart}>
+      <Button onClick={onRestart} alert={confirmRestart} onBlur={onRestartBlur}>
         {confirmRestart ? "Confirm?" : "Restart"}
       </Button>
       <Button onClick={onCheck}>Check</Button>
