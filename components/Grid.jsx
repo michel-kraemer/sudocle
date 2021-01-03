@@ -383,14 +383,19 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     if (overlay.text !== undefined) {
       let fontSize = overlay.fontSize || 20
-      fontSize *= SCALE_FACTOR * (1 / 0.75)
+      fontSize *= SCALE_FACTOR
+      if (overlay.fontSize < 14) {
+        fontSize *= (1 / 0.75)
+      }
       let text = new PIXI.Text(overlay.text, {
         fontFamily: "Tahoma, Verdana, sans-serif",
         fontSize
       })
       text.anchor.set(0.5)
-      text.scale.x = 0.75
-      text.scale.y = 0.75
+      if (overlay.fontSize < 14) {
+        text.scale.x = 0.75
+        text.scale.y = 0.75
+      }
       r.addChild(text)
     }
 
@@ -537,7 +542,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     if (wWithM > maxWidth || hWithM > maxHeight) {
       let scaleX = maxWidth / wWithM
       let scaleY = maxHeight / hWithM
-      scale = scaleX < scaleY ? scaleX : scaleY
+      // round scale to nearest .5 so we likely get sharper grid lines
+      scale = Math.ceil((scaleX < scaleY ? scaleX : scaleY) * 20) / 20
       w *= scale
       h *= scale
     }
@@ -598,6 +604,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     })
     ref.current.appendChild(newApp.view)
     app.current = newApp
+
+    // good for dpi < 2
+    if (window.devicePixelRatio < 2) {
+      PIXI.settings.ROUND_PIXELS = true
+      PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+    }
 
     // register touch handler
     newApp.view.addEventListener("touchmove", onTouchMove)
@@ -817,14 +829,22 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // Align bounds pixels. This makes sure the grid is always sharp
     // and lines do not sit between pixels.
-    let lx = allBounds.current.x
-    let ly = allBounds.current.y
-    let lw = allBounds.current.width
-    let lh = allBounds.current.height
-    allBounds.current.x = Math.floor(allBounds.current.x)
-    allBounds.current.y = Math.floor(allBounds.current.y)
-    allBounds.current.width = Math.ceil(lx + lw) - allBounds.current.x
-    allBounds.current.height = Math.ceil(ly + lh) - allBounds.current.y
+    let gx1 = gridBounds.current.x
+    let gy1 = gridBounds.current.y
+    let mx1 = gx1 - allBounds.current.x
+    let my1 = gy1 - allBounds.current.y
+    let gx2 = gx1 + gridBounds.current.width
+    let gy2 = gy1 + gridBounds.current.height
+    let ax2 = allBounds.current.x + allBounds.current.width
+    let ay2 = allBounds.current.y + allBounds.current.height
+    let mx2 = ax2 - gx2
+    let my2 = ay2 - gy2
+    let ax2b = gx2 + Math.ceil(mx2)
+    let ay2b = gy2 + Math.ceil(my2)
+    allBounds.current.x = gx1 - Math.ceil(mx1)
+    allBounds.current.y = gy1 - Math.ceil(my1)
+    allBounds.current.width = ax2b - allBounds.current.x
+    allBounds.current.height = ay2b - allBounds.current.y
 
     // draw a background that covers all elements
     let background = new PIXI.Graphics()
