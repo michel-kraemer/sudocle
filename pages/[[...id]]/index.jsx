@@ -20,6 +20,7 @@ const Index = () => {
   const settings = useContext(SettingsContext.State)
   const appRef = useRef()
   const gameContainerRef = useRef()
+  const gridContainerRef = useRef()
   const padContainerRef = useRef()
   const [gridMaxWidth, setGridMaxWidth] = useState(0)
   const [gridMaxHeight, setGridMaxHeight] = useState(0)
@@ -30,6 +31,7 @@ const Index = () => {
     // check if we hit a target that would clear the selction
     let shouldClearSelection = e.target === appRef.current ||
       e.target === gameContainerRef.current ||
+      e.target === gridContainerRef.current ||
       e.target === padContainerRef.current ||
       // pad itself but not its buttons
       e.target.parentElement === padContainerRef.current
@@ -282,7 +284,7 @@ const Index = () => {
         onMouseDown={onMouseDown} ref={appRef}>
       <StatusBar />
       <div className="game-container" ref={gameContainerRef}>
-        <div className="grid-container">
+        <div className="grid-container" ref={gridContainerRef}>
           {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
             maxHeight={gridMaxHeight} onFinishRender={onFinishRender} />}
         </div>
