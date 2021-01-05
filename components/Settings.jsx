@@ -1,4 +1,5 @@
 import RadioGroup from "./RadioGroup"
+import RangeSlider from "./RangeSlider"
 import SettingsContext from "./contexts/SettingsContext"
 import { useContext, useEffect, useRef, useState } from "react"
 import styles from "./Settings.scss"
@@ -28,6 +29,31 @@ const Settings = () => {
     setTimeout(() => {
       updateSettings({ theme })
     }, 100)
+  }
+
+  function onChangeFontSizeDigits(value) {
+    updateSettings({ fontSizeFactorDigits: value })
+  }
+
+  function onChangeFontSizeCornerMarks(value) {
+    updateSettings({ fontSizeFactorCornerMarks: value })
+  }
+
+  function onChangeFontSizeCentreMarks(value) {
+    updateSettings({ fontSizeFactorCentreMarks: value })
+  }
+
+  function fontSizeValueToDescription(value) {
+    if (value === 0.75) {
+      return "Small"
+    } else if (value === 1) {
+      return "Normal"
+    } else if (value === 1.25) {
+      return "Large"
+    } else if (value === 1.5) {
+      return "Maximum"
+    }
+    return undefined
   }
 
   useEffect(() => {
@@ -88,6 +114,27 @@ const Settings = () => {
       label: <div className="palette-label"><div>Wong (optimised for colour-blindness)</div>
         <Palette colours={coloursWong} /></div>
     }]} onChange={(colourPalette) => updateSettings({ colourPalette })} />
+
+    <h3>Font sizes</h3>
+    <div className="slider">
+      <RangeSlider id="range-digits" label="Digits"
+        min="0.75" max="1.5" step="0.25" value={settings.fontSizeFactorDigits}
+        onChange={onChangeFontSizeDigits} valueChangeOnMouseUp={true}
+        valueToDescription={fontSizeValueToDescription} />
+    </div>
+    <div className="slider">
+      <RangeSlider id="range-corner-marks" label="Corner marks"
+        min="0.75" max="1.5" step="0.25" value={settings.fontSizeFactorCornerMarks}
+        onChange={onChangeFontSizeCornerMarks} valueChangeOnMouseUp={true}
+        valueToDescription={fontSizeValueToDescription} />
+    </div>
+    <div className="slider">
+      <RangeSlider id="range-centre-marks" label="Centre marks"
+        min="0.75" max="1.5" step="0.25" value={settings.fontSizeFactorCentreMarks}
+        onChange={onChangeFontSizeCentreMarks} valueChangeOnMouseUp={true}
+        valueToDescription={fontSizeValueToDescription} />
+    </div>
+
     <style jsx>{styles}</style>
   </>)
 }

@@ -14,6 +14,7 @@
   --alert: #b81e1e;
   --border-radius: 10px;
   --border-radius-inner: 8px;
+  --border-radius-mini: 4px;
   --digit: #{lighten(#2b3f77, 20%)};
   --button-hover: var(--grey-700);
   --button-active-hover: var(--primary-highlight);
@@ -32,6 +33,7 @@
   --alert: #c00;
   --border-radius: 7px;
   --border-radius-inner: 5px;
+  --border-radius-mini: 3px;
   --digit: #316bdd;
   --button-hover: #f3e5f5;
   --button-active-hover: var(--primary-highlight);

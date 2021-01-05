@@ -574,7 +574,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     }
 
     app.current.render()
-  }, [maxWidth, maxHeight, portrait])
+  }, [maxWidth, maxHeight, portrait, settings.fontSizeFactorDigits,
+      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks])
 
   const onTouchMove = useCallback((e) => {
     let touch = e.touches[0]
@@ -619,7 +620,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       newApp.destroy(true, true)
       app.current = undefined
     }
-  }, [settings.theme, onTouchMove])
+  }, [settings.theme, settings.fontSizeFactorDigits,
+      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
+      onTouchMove])
 
   useEffect(() => {
     app.current.stage.removeChildren()
@@ -634,6 +637,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // optimised font sizes for different screens
     let fontSizeCornerMarks = window.devicePixelRatio >= 2 ? 27 : 28
     let fontSizeCentreMarks = window.devicePixelRatio >= 2 ? 28 : 29
+
+    let fontSizeCageLabels = 26
+    let fontSizeDigits = 40
+
+    // scale fonts
+    fontSizeCornerMarks *= settings.fontSizeFactorCornerMarks
+    fontSizeCentreMarks *= settings.fontSizeFactorCentreMarks
+    fontSizeDigits *= settings.fontSizeFactorDigits
 
     // create grid
     let all = new PIXI.Container()
@@ -735,7 +746,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         // use larger font and scale down afterwards to improve text rendering
         let topleftText = new PIXI.Text(cage.value, {
           fontFamily: "Tahoma, Verdana, sans-serif",
-          fontSize: 26
+          fontSize: fontSizeCageLabels
         })
         topleftText.zIndex = 3
         topleftText.x = cage.topleft[1] * cellSize + cellSize / 20
@@ -900,7 +911,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
           fontFamily: "Tahoma, Verdana, sans-serif",
-          fontSize: 40
+          fontSize: fontSizeDigits
         })
         text.zIndex = 50
         text.x = x * cellSize + cellSize / 2
@@ -1031,7 +1042,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       selectionElements.current = []
       errorElements.current = []
     }
-  }, [game.data, settings.theme, cellSize, regions, cages, cellToScreenCoords,
+  }, [game.data, settings.theme, settings.fontSizeFactorDigits,
+      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
+      cellSize, regions, cages, cellToScreenCoords,
       drawOverlay, selectCell, updateGame, onFinishRender])
 
   useEffect(() => {
@@ -1144,7 +1157,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     app.current.render()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
-      game.errors, settings.colourPalette, foregroundColor, digitColor])
+      game.errors, settings.colourPalette, foregroundColor, digitColor,
+      settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
+      settings.fontSizeFactorCornerMarks])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick} onDoubleClick={onDoubleClick}>
