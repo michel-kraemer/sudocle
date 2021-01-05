@@ -615,18 +615,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // register touch handler
     newApp.view.addEventListener("touchmove", onTouchMove)
 
-    return () => {
-      newApp.view.removeEventListener("touchmove", onTouchMove)
-      newApp.destroy(true, true)
-      app.current = undefined
-    }
-  }, [settings.theme, settings.fontSizeFactorDigits,
-      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
-      onTouchMove])
-
-  useEffect(() => {
-    app.current.stage.removeChildren()
-
     let rootStyle = getComputedStyle(ref.current)
     let backgroundColor = Color(rootStyle.getPropertyValue("--bg")).rgbNumber()
     let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
@@ -1041,11 +1029,15 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       colourElements.current = []
       selectionElements.current = []
       errorElements.current = []
+
+      newApp.view.removeEventListener("touchmove", onTouchMove)
+      newApp.destroy(true, true)
+      app.current = undefined
     }
   }, [game.data, settings.theme, settings.fontSizeFactorDigits,
       settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
       cellSize, regions, cages, cellToScreenCoords,
-      drawOverlay, selectCell, updateGame, onFinishRender])
+      drawOverlay, selectCell, updateGame, onFinishRender, onTouchMove])
 
   useEffect(() => {
     onResize()
