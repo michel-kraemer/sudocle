@@ -9,6 +9,11 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "r
 import { flatten } from "lodash"
 
 const SCALE_FACTOR = 1.2
+const FONT_SIZE_DIGITS = 40
+const FONT_SIZE_CORNER_MARKS_HIGH_DPI = 27
+const FONT_SIZE_CORNER_MARKS_LOW_DPI = 28
+const FONT_SIZE_CENTRE_MARKS_HIGH_DPI = 28
+const FONT_SIZE_CENTRE_MARKS_LOW_DPI = 29
 
 let PIXI
 if (typeof window !== "undefined") {
@@ -574,8 +579,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     }
 
     app.current.render()
-  }, [maxWidth, maxHeight, portrait, settings.fontSizeFactorDigits,
-      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks])
+  }, [maxWidth, maxHeight, portrait])
 
   const onTouchMove = useCallback((e) => {
     let touch = e.touches[0]
@@ -622,17 +626,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     setForegroundColor(foregroundColor)
     setDigitColor(digitColor)
 
-    // optimised font sizes for different screens
-    let fontSizeCornerMarks = window.devicePixelRatio >= 2 ? 27 : 28
-    let fontSizeCentreMarks = window.devicePixelRatio >= 2 ? 28 : 29
-
     let fontSizeCageLabels = 26
-    let fontSizeDigits = 40
-
-    // scale fonts
-    fontSizeCornerMarks *= settings.fontSizeFactorCornerMarks
-    fontSizeCentreMarks *= settings.fontSizeFactorCentreMarks
-    fontSizeDigits *= settings.fontSizeFactorDigits
 
     // create grid
     let all = new PIXI.Container()
@@ -881,8 +875,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         }
 
         let hcv = hasCageValue(x, y, cages)
-        let cms = makeCornerMarks(x, y, cellSize, fontSizeCornerMarks, hcv,
-            arr.length, "bold")
+        let cms = makeCornerMarks(x, y, cellSize, FONT_SIZE_CORNER_MARKS_HIGH_DPI,
+            hcv, arr.length, "bold")
         cms.forEach((cm, i) => {
           cm.zIndex = 41
           cm.style.fill = foregroundColor
@@ -899,7 +893,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
           fontFamily: "Tahoma, Verdana, sans-serif",
-          fontSize: fontSizeDigits
+          fontSize: FONT_SIZE_DIGITS
         })
         text.zIndex = 50
         text.x = x * cellSize + cellSize / 2
@@ -924,7 +918,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         }
 
         let leaveRoom = hasCageValue(x, y, cages) || hasGivenCornerMarks(col)
-        let cms = makeCornerMarks(x, y, cellSize, fontSizeCornerMarks, leaveRoom, 10)
+        let cms = makeCornerMarks(x, y, cellSize, FONT_SIZE_CORNER_MARKS_HIGH_DPI,
+            leaveRoom, 10)
         for (let cm of cms) {
           cm.zIndex = 50
           cm.style.fill = digitColor
@@ -941,7 +936,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
           fontFamily: "Tahoma, Verdana, sans-serif",
-          fontSize: fontSizeCentreMarks
+          fontSize: FONT_SIZE_CENTRE_MARKS_HIGH_DPI
         })
         text.zIndex = 50
         text.x = x * cellSize + cellSize / 2
@@ -1034,8 +1029,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       newApp.destroy(true, true)
       app.current = undefined
     }
-  }, [game.data, settings.theme, settings.fontSizeFactorDigits,
-      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
+  }, [game.data, settings.theme,
       cellSize, regions, cages, cellToScreenCoords,
       drawOverlay, selectCell, updateGame, onFinishRender, onTouchMove])
 
@@ -1051,6 +1045,34 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       window.removeEventListener("keydown", onKeyDown)
     }
   }, [onKeyDown])
+
+  useEffect(() => {
+    // optimised font sizes for different screens
+    let fontSizeCornerMarks = window.devicePixelRatio >= 2 ?
+        FONT_SIZE_CORNER_MARKS_HIGH_DPI : FONT_SIZE_CORNER_MARKS_LOW_DPI
+    let fontSizeCentreMarks = window.devicePixelRatio >= 2 ?
+        FONT_SIZE_CENTRE_MARKS_HIGH_DPI : FONT_SIZE_CENTRE_MARKS_LOW_DPI
+
+    // scale fonts
+    let fontSizeDigits = FONT_SIZE_DIGITS * settings.fontSizeFactorDigits
+    fontSizeCornerMarks *= settings.fontSizeFactorCornerMarks
+    fontSizeCentreMarks *= settings.fontSizeFactorCentreMarks
+
+    for (let e of digitElements.current) {
+      e.style.fontSize = fontSizeDigits
+    }
+
+    for (let e of cornerMarkElements.current) {
+      for (let ce of e.elements) {
+        ce.style.fontSize = fontSizeCornerMarks
+      }
+    }
+
+    for (let e of centreMarkElements.current) {
+      e.style.fontSize = fontSizeCentreMarks
+    }
+  }, [settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
+      settings.fontSizeFactorCornerMarks])
 
   useEffect(() => {
     selectionElements.current.forEach(s => {

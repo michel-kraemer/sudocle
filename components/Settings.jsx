@@ -119,19 +119,19 @@ const Settings = () => {
     <div className="slider">
       <RangeSlider id="range-digits" label="Digits"
         min="0.75" max="1.5" step="0.25" value={settings.fontSizeFactorDigits}
-        onChange={onChangeFontSizeDigits} valueChangeOnMouseUp={true}
+        onChange={onChangeFontSizeDigits}
         valueToDescription={fontSizeValueToDescription} />
     </div>
     <div className="slider">
       <RangeSlider id="range-corner-marks" label="Corner marks"
         min="0.75" max="1.5" step="0.25" value={settings.fontSizeFactorCornerMarks}
-        onChange={onChangeFontSizeCornerMarks} valueChangeOnMouseUp={true}
+        onChange={onChangeFontSizeCornerMarks}
         valueToDescription={fontSizeValueToDescription} />
     </div>
     <div className="slider">
       <RangeSlider id="range-centre-marks" label="Centre marks"
         min="0.75" max="1.5" step="0.25" value={settings.fontSizeFactorCentreMarks}
-        onChange={onChangeFontSizeCentreMarks} valueChangeOnMouseUp={true}
+        onChange={onChangeFontSizeCentreMarks}
         valueToDescription={fontSizeValueToDescription} />
     </div>
 
