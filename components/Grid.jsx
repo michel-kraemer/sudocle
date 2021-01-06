@@ -12,7 +12,7 @@ const SCALE_FACTOR = 1.2
 const FONT_SIZE_DIGITS = 40
 const FONT_SIZE_CORNER_MARKS_HIGH_DPI = 27
 const FONT_SIZE_CORNER_MARKS_LOW_DPI = 28
-const FONT_SIZE_CENTRE_MARKS_HIGH_DPI = 28
+const FONT_SIZE_CENTRE_MARKS_HIGH_DPI = 29
 const FONT_SIZE_CENTRE_MARKS_LOW_DPI = 29
 
 let PIXI
@@ -261,62 +261,66 @@ function makeCornerMarks(x, y, cellSize, fontSize, leaveRoom, n = 10, fontWeight
       fontWeight
     })
 
-    let cx = x * cellSize + cellSize / 2
-    let cy = y * cellSize + cellSize / 2 - 0.5
-    let mx = cellSize / 3.2
-    let my = cellSize / 3.4
+    text.data = {
+      draw: function (cellSize) {
+        let cx = x * cellSize + cellSize / 2
+        let cy = y * cellSize + cellSize / 2 - 0.5
+        let mx = cellSize / 3.2
+        let my = cellSize / 3.4
 
-    switch (i) {
-      case 0:
-        if (leaveRoom) {
-          text.x = cx - mx / 3
-          text.y = cy - my
-        } else {
-          text.x = cx - mx
-          text.y = cy - my
+        switch (i) {
+          case 0:
+            if (leaveRoom) {
+              text.x = cx - mx / 3
+              text.y = cy - my
+            } else {
+              text.x = cx - mx
+              text.y = cy - my
+            }
+            break
+          case 4:
+            if (leaveRoom) {
+              text.x = cx + mx / 3
+              text.y = cy - my
+            } else {
+              text.x = cx
+              text.y = cy - my
+            }
+            break
+          case 1:
+            text.x = cx + mx
+            text.y = cy - my
+            break
+          case 6:
+            text.x = cx - mx
+            text.y = cy
+            break
+          case 7:
+            text.x = cx + mx
+            text.y = cy
+            break
+          case 2:
+            text.x = cx - mx
+            text.y = cy + my
+            break
+          case 5:
+            text.x = cx
+            text.y = cy + my
+            break
+          case 3:
+            text.x = cx + mx
+            text.y = cy + my
+            break
+          case 8:
+            text.x = cx - mx / 3
+            text.y = cy + my
+            break
+          case 9:
+            text.x = cx + mx / 3
+            text.y = cy + my
+            break
         }
-        break
-      case 4:
-        if (leaveRoom) {
-          text.x = cx + mx / 3
-          text.y = cy - my
-        } else {
-          text.x = cx
-          text.y = cy - my
-        }
-        break
-      case 1:
-        text.x = cx + mx
-        text.y = cy - my
-        break
-      case 6:
-        text.x = cx - mx
-        text.y = cy
-        break
-      case 7:
-        text.x = cx + mx
-        text.y = cy
-        break
-      case 2:
-        text.x = cx - mx
-        text.y = cy + my
-        break
-      case 5:
-        text.x = cx
-        text.y = cy + my
-        break
-      case 3:
-        text.x = cx + mx
-        text.y = cy + my
-        break
-      case 8:
-        text.x = cx - mx / 3
-        text.y = cy + my
-        break
-      case 9:
-        text.x = cx + mx / 3
-        text.y = cy + my
-        break
+      }
     }
 
     text.anchor.set(0.5)
@@ -345,8 +349,10 @@ function getThemeColours(elem) {
 }
 
 function drawBackground(graphics, bounds, themeColours) {
+  graphics.hitArea = new PIXI.Rectangle(bounds.x - 5, bounds.y - 5,
+    bounds.width + 10, bounds.height + 10)
   graphics.beginFill(themeColours.backgroundColor)
-  graphics.drawRect(bounds.x, bounds.y, bounds.width, bounds.height)
+  graphics.drawRect(bounds.x - 5, bounds.y - 5, bounds.width + 10, bounds.height + 10)
   graphics.endFill()
 }
 
@@ -359,17 +365,97 @@ function changeLineColour(graphicElements, colour) {
   }
 }
 
+function cellToScreenCoords(cell, mx, my, cellSize) {
+  return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
+}
+
+function drawOverlay(overlay, mx, my, zIndex = -1) {
+  let r = new PIXI.Graphics()
+  r.zIndex = zIndex
+
+  let text
+  let fontSize = overlay.fontSize || 20
+  if (overlay.text !== undefined) {
+    fontSize *= SCALE_FACTOR
+    if (overlay.fontSize < 14) {
+      fontSize *= (1 / 0.75)
+    }
+    text = new PIXI.Text(overlay.text, {
+      fontFamily: "Tahoma, Verdana, sans-serif",
+      fontSize
+    })
+    text.anchor.set(0.5)
+    if (overlay.fontSize < 14) {
+      text.scale.x = 0.75
+      text.scale.y = 0.75
+    }
+    r.addChild(text)
+  }
+
+  r.data = {
+    draw: function (cellSize, zoomFactor) {
+      let center = cellToScreenCoords(overlay.center, mx, my, cellSize)
+      r.x = center[0]
+      r.y = center[1]
+
+      if (text !== undefined) {
+        text.style.fontSize = Math.round(fontSize * zoomFactor)
+      }
+
+      if (overlay.backgroundColor !== undefined || overlay.borderColor !== undefined) {
+        let nBackgroundColour
+        if (overlay.backgroundColor !== undefined) {
+          nBackgroundColour = Color(overlay.backgroundColor).rgbNumber()
+          r.beginFill(nBackgroundColour, isGrey(nBackgroundColour) ? 1 : 0.5)
+        }
+        if (overlay.borderColor !== undefined) {
+          let nBorderColour = Color(overlay.borderColor).rgbNumber()
+          if (nBorderColour !== nBackgroundColour &&
+              !(overlay.width === 1 && overlay.height === 1 && isGrey(nBorderColour))) {
+            r.lineStyle({
+              width: 2,
+              color: nBorderColour,
+              alpha: isGrey(nBorderColour) ? 1 : 0.5,
+              alignment: 0
+            })
+          }
+        }
+        let w = overlay.width * cellSize
+        let h = overlay.height * cellSize
+        if (overlay.rounded) {
+          if (w === h) {
+            r.drawEllipse(0, 0, w / 2, h / 2)
+          } else {
+            r.drawRoundedRect(-w / 2, -h / 2, w, h, Math.min(w, h) / 2 - 1)
+          }
+        } else {
+          r.drawRect(-w / 2, -h / 2, w, h)
+        }
+        if (overlay.backgroundColor !== undefined) {
+          r.endFill()
+        }
+      }
+    }
+  }
+
+  return r
+}
+
 const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const ref = useRef()
   const app = useRef()
   const gridElement = useRef()
   const cellsElement = useRef()
   const allElement = useRef()
-  const gridBounds = useRef()
-  const allBounds = useRef()
   const cellElements = useRef([])
   const regionElements = useRef([])
   const cageElements = useRef([])
+  const cageLabelTextElements = useRef([])
+  const cageLabelBackgroundElements = useRef([])
+  const lineElements = useRef([])
+  const arrowHeadElements = useRef([])
+  const underlayElements = useRef([])
+  const overlayElements = useRef([])
   const backgroundElement = useRef()
   const givenCornerMarkElements = useRef([])
   const digitElements = useRef([])
@@ -384,15 +470,16 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const settings = useContext(SettingsContext.State)
 
   const cellSize = game.data.cellSize * SCALE_FACTOR
+  const cellSizeFactor = useRef(1)
 
   const regions = useMemo(() => game.data.regions.map(region => {
-    return unionCells(region).map(v => v * cellSize)
-  }), [game.data, cellSize])
+    return unionCells(region)
+  }), [game.data])
 
   const cages = useMemo(() => game.data.cages
     .filter(cage => cage.cells?.length)
     .map(cage => {
-      let union = unionCells(cage.cells).map(v => v * cellSize)
+      let union = unionCells(cage.cells)
 
       // find top-left cell
       let topleft = cage.cells[0]
@@ -409,75 +496,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         value: cage.value,
         topleft
       }
-    }), [game.data, cellSize])
-
-  const cellToScreenCoords = useCallback((cell, mx, my) => {
-    return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
-  }, [cellSize])
-
-  const drawOverlay = useCallback((overlay, mx, my, zIndex = -1) => {
-    let r = new PIXI.Graphics()
-
-    if (overlay.text !== undefined) {
-      let fontSize = overlay.fontSize || 20
-      fontSize *= SCALE_FACTOR
-      if (overlay.fontSize < 14) {
-        fontSize *= (1 / 0.75)
-      }
-      let text = new PIXI.Text(overlay.text, {
-        fontFamily: "Tahoma, Verdana, sans-serif",
-        fontSize
-      })
-      text.anchor.set(0.5)
-      if (overlay.fontSize < 14) {
-        text.scale.x = 0.75
-        text.scale.y = 0.75
-      }
-      r.addChild(text)
-    }
-
-    let center = cellToScreenCoords(overlay.center, mx, my)
-    r.x = center[0]
-    r.y = center[1]
-
-    if (overlay.backgroundColor !== undefined || overlay.borderColor !== undefined) {
-      let nBackgroundColour
-      if (overlay.backgroundColor !== undefined) {
-        nBackgroundColour = Color(overlay.backgroundColor).rgbNumber()
-        r.beginFill(nBackgroundColour, isGrey(nBackgroundColour) ? 1 : 0.5)
-      }
-      if (overlay.borderColor !== undefined) {
-        let nBorderColour = Color(overlay.borderColor).rgbNumber()
-        if (nBorderColour !== nBackgroundColour &&
-            !(overlay.width === 1 && overlay.height === 1 && isGrey(nBorderColour))) {
-          r.lineStyle({
-            width: 2,
-            color: nBorderColour,
-            alpha: isGrey(nBorderColour) ? 1 : 0.5,
-            alignment: 0
-          })
-        }
-      }
-      let w = overlay.width * cellSize
-      let h = overlay.height * cellSize
-      if (overlay.rounded) {
-        if (w === h) {
-          r.drawEllipse(0, 0, w / 2, h / 2)
-        } else {
-          r.drawRoundedRect(-w / 2, -h / 2, w, h, Math.min(w, h) / 2 - 1)
-        }
-      } else {
-        r.drawRect(-w / 2, -h / 2, w, h)
-      }
-      if (overlay.backgroundColor !== undefined) {
-        r.endFill()
-      }
-    }
-
-    r.zIndex = zIndex
-
-    return r
-  }, [cellSize, cellToScreenCoords])
+    }), [game.data])
 
   const selectCell = useCallback((cell, evt, append = false) => {
     let action = append ? ACTION_PUSH : ACTION_SET
@@ -555,63 +574,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       })
     }
   }
-
-  const onResize = useCallback(() => {
-    let marginTop = gridBounds.current.y - allBounds.current.y
-    let marginBottom = allBounds.current.y + allBounds.current.height -
-      (gridBounds.current.y + gridBounds.current.height)
-    let marginLeft = gridBounds.current.x - allBounds.current.x
-    let marginRight = allBounds.current.x + allBounds.current.width -
-      (gridBounds.current.x + gridBounds.current.width)
-    let additionalMarginX = 0
-    let additionalMarginY = 0
-    if (portrait) {
-      additionalMarginX = Math.abs(marginLeft - marginRight)
-    } else {
-      additionalMarginY = Math.abs(marginTop - marginBottom)
-    }
-
-    let w = allBounds.current.width
-    let h = allBounds.current.height
-    let wWithM = w + additionalMarginX
-    let hWithM = h + additionalMarginY
-    let scale = 1
-    if (wWithM > maxWidth || hWithM > maxHeight) {
-      let scaleX = maxWidth / wWithM
-      let scaleY = maxHeight / hWithM
-      // round scale to nearest .5 so we likely get sharper grid lines
-      scale = Math.ceil((scaleX < scaleY ? scaleX : scaleY) * 20) / 20
-      w *= scale
-      h *= scale
-    }
-
-    if (w < 0 || h < 0) {
-      return
-    }
-
-    app.current.renderer.resize(w, h)
-    allElement.current.x = -allBounds.current.x * scale
-    allElement.current.y = -allBounds.current.y * scale
-    allElement.current.scale.x = scale
-    allElement.current.scale.y = scale
-
-    if (marginTop > marginBottom) {
-      ref.current.style.marginTop = "0"
-      ref.current.style.marginBottom = `${additionalMarginY * scale}px`
-    } else {
-      ref.current.style.marginTop = `${additionalMarginY * scale}px`
-      ref.current.style.marginBottom = "0"
-    }
-    if (marginLeft > marginRight) {
-      ref.current.style.marginLeft = "0"
-      ref.current.style.marginRight = `${additionalMarginX * scale}px`
-    } else {
-      ref.current.style.marginLeft = `${additionalMarginX * scale}px`
-      ref.current.style.marginRight = "0"
-    }
-
-    app.current.render()
-  }, [maxWidth, maxHeight, portrait])
 
   const onTouchMove = useCallback((e) => {
     let touch = e.touches[0]
@@ -699,18 +661,19 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         cell.buttonMode = true
 
         cell.data = {
-          k: xytok(x, y)
+          k: xytok(x, y),
+          draw: function (cellSize) {
+            cell.lineStyle({ width: 1, color: themeColours.foregroundColor })
+            cell.drawRect(0, 0, cellSize, cellSize)
+
+            cell.x = x * cellSize
+            cell.y = y * cellSize
+
+            // since our cells have a transparent background, we need to
+            // define a hit area
+            cell.hitArea = new PIXI.Rectangle(0, 0, cellSize, cellSize)
+          }
         }
-
-        cell.lineStyle({ width: 1, color: themeColours.foregroundColor })
-        cell.drawRect(0, 0, cellSize, cellSize)
-
-        cell.x = x * cellSize
-        cell.y = y * cellSize
-
-        // since our cells have a transparent background, we need to
-        // define a hit area
-        cell.hitArea = new PIXI.Rectangle(0, 0, cellSize, cellSize)
 
         cell.on("pointerdown", function (e) {
           selectCell(this, e)
@@ -733,23 +696,30 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // render regions
     for (let r of regions) {
       let poly = new PIXI.Graphics()
-      poly.lineStyle({ width: 3, color: themeColours.foregroundColor })
-      poly.drawPolygon(r)
+      poly.data = {
+        draw: function (cellSize) {
+          poly.lineStyle({ width: 3, color: themeColours.foregroundColor })
+          poly.drawPolygon(r.map(v => v * cellSize))
+        }
+      }
       poly.zIndex = 10
       grid.addChild(poly)
       regionElements.current.push(poly)
-      cageElements.current = []
     }
 
     // render cages
     for (let cage of cages) {
       // draw outline
       let poly = new PIXI.Graphics()
-      let disposedOutline = disposePolygon(cage.outline, regions, 1)
-      let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
-      poly.lineStyle({ width: 1, color: themeColours.foregroundColor })
-      drawDashedPolygon(shrunkenOutline, 3, 2, poly)
       poly.zIndex = 1
+      poly.data = {
+        draw: function (cellSize) {
+          let disposedOutline = disposePolygon(cage.outline.map(v => v * cellSize), regions, 1)
+          let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
+          poly.lineStyle({ width: 1, color: themeColours.foregroundColor })
+          drawDashedPolygon(shrunkenOutline, 3, 2, poly)
+        }
+      }
       grid.addChild(poly)
       cageElements.current.push(poly)
 
@@ -761,20 +731,31 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           fontSize: fontSizeCageLabels
         })
         topleftText.zIndex = 3
-        topleftText.x = cage.topleft[1] * cellSize + cellSize / 20
-        topleftText.y = cage.topleft[0] * cellSize + cellSize / 60
         topleftText.scale.x = 0.5
         topleftText.scale.y = 0.5
+        topleftText.data = {
+          draw: function (cellSize) {
+            topleftText.x = cage.topleft[1] * cellSize + cellSize / 20
+            topleftText.y = cage.topleft[0] * cellSize + cellSize / 60
+          }
+        }
         grid.addChild(topleftText)
+        cageLabelTextElements.current.push(topleftText)
 
         let topleftBg = new PIXI.Graphics()
-        topleftBg.beginFill(0xffffff)
-        topleftBg.drawRect(0, 0, topleftText.width + cellSize / 10 - 1, topleftText.height + cellSize / 60)
-        topleftBg.endFill()
         topleftBg.zIndex = 2
-        topleftBg.x = cage.topleft[1] * cellSize + 0.5
-        topleftBg.y = cage.topleft[0] * cellSize + 0.5
+        topleftBg.data = {
+          draw: function (cellSize) {
+            topleftBg.beginFill(0xffffff)
+            topleftBg.drawRect(0, 0, topleftText.width + cellSize / 10 - 1,
+                topleftText.height + cellSize / 60)
+            topleftBg.endFill()
+            topleftBg.x = cage.topleft[1] * cellSize + 0.5
+            topleftBg.y = cage.topleft[0] * cellSize + 0.5
+          }
+        }
         grid.addChild(topleftBg)
+        cageLabelBackgroundElements.current.push(topleftBg)
       }
     }
 
@@ -785,19 +766,25 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // add lines and arrows
     game.data.lines.concat(game.data.arrows).forEach(line => {
       let poly = new PIXI.Graphics()
-      let points = shortenLine(flatten(line.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y))))
-      poly.lineStyle({
-        width: line.thickness * SCALE_FACTOR,
-        color: Color(line.color).rgbNumber(),
-        cap: PIXI.LINE_CAP.ROUND,
-        join: PIXI.LINE_JOIN.ROUND
-      })
-      poly.moveTo(points[0], points[1])
-      for (let i = 2; i < points.length; i += 2) {
-        poly.lineTo(points[i], points[i + 1])
-      }
       poly.zIndex = -1
+      poly.data = {
+        draw: function (cellSize) {
+          let points = shortenLine(flatten(line.wayPoints.map(wp =>
+              cellToScreenCoords(wp, grid.x, grid.y, cellSize))))
+          poly.lineStyle({
+            width: line.thickness * SCALE_FACTOR,
+            color: Color(line.color).rgbNumber(),
+            cap: PIXI.LINE_CAP.ROUND,
+            join: PIXI.LINE_JOIN.ROUND
+          })
+          poly.moveTo(points[0], points[1])
+          for (let i = 2; i < points.length; i += 2) {
+            poly.lineTo(points[i], points[i + 1])
+          }
+        }
+      }
       all.addChild(poly)
+      lineElements.current.push(poly)
     })
 
     // add arrow heads
@@ -806,74 +793,57 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         return
       }
       let poly = new PIXI.Graphics()
-      let points = shortenLine(flatten(arrow.wayPoints.map(wp => cellToScreenCoords(wp, grid.x, grid.y))))
-      let lastPointX = points[points.length - 2]
-      let lastPointY = points[points.length - 1]
-      let secondToLastX = points[points.length - 4]
-      let secondToLastY = points[points.length - 3]
-      let dx = lastPointX - secondToLastX
-      let dy = lastPointY - secondToLastY
-      let l = Math.sqrt(dx * dx + dy * dy)
-      dx /= l
-      dy /= l
-      let f = arrow.headLength * cellSize * 0.7
-      let ex = lastPointX - dx * f
-      let ey = lastPointY - dy * f
-      let ex1 = ex - dy * f
-      let ey1 = ey + dx * f
-      let ex2 = ex + dy * f
-      let ey2 = ey - dx * f
-      poly.lineStyle({
-        width: arrow.thickness * SCALE_FACTOR,
-        color: Color(arrow.color).rgbNumber(),
-        cap: PIXI.LINE_CAP.ROUND,
-        join: PIXI.LINE_JOIN.ROUND
-      })
-      poly.moveTo(lastPointX, lastPointY)
-      poly.lineTo(ex1, ey1)
-      poly.moveTo(lastPointX, lastPointY)
-      poly.lineTo(ex2, ey2)
       poly.zIndex = -1
+      poly.data = {
+        draw: function (cellSize) {
+          let points = shortenLine(flatten(arrow.wayPoints.map(wp =>
+              cellToScreenCoords(wp, grid.x, grid.y, cellSize))))
+          let lastPointX = points[points.length - 2]
+          let lastPointY = points[points.length - 1]
+          let secondToLastX = points[points.length - 4]
+          let secondToLastY = points[points.length - 3]
+          let dx = lastPointX - secondToLastX
+          let dy = lastPointY - secondToLastY
+          let l = Math.sqrt(dx * dx + dy * dy)
+          dx /= l
+          dy /= l
+          let f = arrow.headLength * cellSize * 0.7
+          let ex = lastPointX - dx * f
+          let ey = lastPointY - dy * f
+          let ex1 = ex - dy * f
+          let ey1 = ey + dx * f
+          let ex2 = ex + dy * f
+          let ey2 = ey - dx * f
+          poly.lineStyle({
+            width: arrow.thickness * SCALE_FACTOR,
+            color: Color(arrow.color).rgbNumber(),
+            cap: PIXI.LINE_CAP.ROUND,
+            join: PIXI.LINE_JOIN.ROUND
+          })
+          poly.moveTo(lastPointX, lastPointY)
+          poly.lineTo(ex1, ey1)
+          poly.moveTo(lastPointX, lastPointY)
+          poly.lineTo(ex2, ey2)
+        }
+      }
       all.addChild(poly)
+      arrowHeadElements.current.push(poly)
     })
 
     // add underlays and overlays
     game.data.underlays.forEach(underlay => {
-      all.addChild(drawOverlay(underlay, grid.x, grid.y))
+      let e = drawOverlay(underlay, grid.x, grid.y)
+      all.addChild(e)
+      underlayElements.current.push(e)
     })
     game.data.overlays.forEach(overlay => {
-      all.addChild(drawOverlay(overlay, grid.x, grid.y, 40))
+      let e = drawOverlay(overlay, grid.x, grid.y, 40)
+      all.addChild(e)
+      overlayElements.current.push(e)
     })
-
-    // calculating bounds is expensive, so do it now after we've rendered
-    // all elements that could contribute to the bounds
-    gridBounds.current = grid.getBounds()
-    allBounds.current = all.getBounds()
-
-    // Align bounds pixels. This makes sure the grid is always sharp
-    // and lines do not sit between pixels.
-    let gx1 = gridBounds.current.x
-    let gy1 = gridBounds.current.y
-    let mx1 = gx1 - allBounds.current.x
-    let my1 = gy1 - allBounds.current.y
-    let gx2 = gx1 + gridBounds.current.width
-    let gy2 = gy1 + gridBounds.current.height
-    let ax2 = allBounds.current.x + allBounds.current.width
-    let ay2 = allBounds.current.y + allBounds.current.height
-    let mx2 = ax2 - gx2
-    let my2 = ay2 - gy2
-    let ax2b = gx2 + Math.ceil(mx2)
-    let ay2b = gy2 + Math.ceil(my2)
-    allBounds.current.x = gx1 - Math.ceil(mx1)
-    allBounds.current.y = gy1 - Math.ceil(my1)
-    allBounds.current.width = ax2b - allBounds.current.x
-    allBounds.current.height = ay2b - allBounds.current.y
 
     // draw a background that covers all elements
     let background = new PIXI.Graphics()
-    background.hitArea = new PIXI.Rectangle(allBounds.current.x, allBounds.current.y,
-      allBounds.current.width, allBounds.current.height)
-    drawBackground(background, allBounds.current, themeColours)
     background.interactive = true
     background.zIndex = -1000
     background.on("pointerdown", () => {
@@ -884,10 +854,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     })
     backgroundElement.current = background
 
-    all.addChild(background)
-    allBounds.current = all.getBounds()
+    app.current.stage.addChild(background)
     app.current.stage.addChild(all)
-    app.current.render()
 
     // ***************** draw other elements that don't contribute to the bounds
 
@@ -925,11 +893,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           fontSize: FONT_SIZE_DIGITS
         })
         text.zIndex = 50
-        text.x = x * cellSize + cellSize / 2
-        text.y = y * cellSize + cellSize / 2 - 0.5
         text.anchor.set(0.5)
         text.data = {
-          k: xytok(x, y)
+          k: xytok(x, y),
+          draw: function (cellSize) {
+            text.x = x * cellSize + cellSize / 2
+            text.y = y * cellSize + cellSize / 2 - 0.5
+          }
         }
         all.addChild(text)
         digitElements.current.push(text)
@@ -968,14 +938,16 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           fontSize: FONT_SIZE_CENTRE_MARKS_HIGH_DPI
         })
         text.zIndex = 50
-        text.x = x * cellSize + cellSize / 2
-        text.y = y * cellSize + cellSize / 2 - 0.5
         text.anchor.set(0.5)
         text.style.fill = themeColours.digitColor
         text.scale.x = 0.5
         text.scale.y = 0.5
         text.data = {
-          k: xytok(x, y)
+          k: xytok(x, y),
+          draw: function (cellSize) {
+            text.x = x * cellSize + cellSize / 2
+            text.y = y * cellSize + cellSize / 2 - 0.5
+          }
         }
         all.addChild(text)
         centreMarkElements.current.push(text)
@@ -986,12 +958,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let rect = new PIXI.Graphics()
-        rect.x = x * cellSize
-        rect.y = y * cellSize
         rect.alpha = 0
         rect.zIndex = 0
         rect.data = {
-          k: xytok(x, y)
+          k: xytok(x, y),
+          draw: function (cellSize) {
+            rect.x = x * cellSize
+            rect.y = y * cellSize
+          }
         }
         all.addChild(rect)
         colourElements.current.push(rect)
@@ -1002,15 +976,17 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let rect = new PIXI.Graphics()
-        rect.beginFill(0xffde2a, 0.5)
-        rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
-        rect.endFill()
-        rect.x = x * cellSize
-        rect.y = y * cellSize
         rect.alpha = 0
         rect.zIndex = 20
         rect.data = {
-          k: xytok(x, y)
+          k: xytok(x, y),
+          draw: function (cellSize) {
+            rect.beginFill(0xffde2a, 0.5)
+            rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
+            rect.endFill()
+            rect.x = x * cellSize
+            rect.y = y * cellSize
+          }
         }
         all.addChild(rect)
         selectionElements.current.push(rect)
@@ -1021,15 +997,17 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let rect = new PIXI.Graphics()
-        rect.beginFill(0xb33a3a, 0.5)
-        rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
-        rect.endFill()
-        rect.x = x * cellSize
-        rect.y = y * cellSize
         rect.alpha = 0
         rect.zIndex = 10
         rect.data = {
-          k: xytok(x, y)
+          k: xytok(x, y),
+          draw: function (cellSize) {
+            rect.beginFill(0xb33a3a, 0.5)
+            rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
+            rect.endFill()
+            rect.x = x * cellSize
+            rect.y = y * cellSize
+          }
         }
         all.addChild(rect)
         errorElements.current.push(rect)
@@ -1044,11 +1022,15 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       allElement.current = undefined
       gridElement.current = undefined
       cellsElement.current = undefined
-      gridBounds.current = undefined
-      allBounds.current = undefined
       cellElements.current = []
       regionElements.current = []
       cageElements.current = []
+      cageLabelTextElements.current = []
+      cageLabelBackgroundElements.current = []
+      lineElements.current = []
+      arrowHeadElements.current = []
+      underlayElements.current = []
+      overlayElements.current = []
       givenCornerMarkElements.current = []
       digitElements.current = []
       centreMarkElements.current = []
@@ -1061,12 +1043,106 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       newApp.destroy(true, true)
       app.current = undefined
     }
-  }, [game.data, cellSize, regions, cages, cellToScreenCoords,
-      drawOverlay, selectCell, updateGame, onFinishRender, onTouchMove])
+  }, [game.data, cellSize, regions, cages, selectCell, updateGame,
+      onFinishRender, onTouchMove])
 
   useEffect(() => {
-    onResize()
-  }, [onResize, settings.theme])
+    let cs = cellSize
+    let allBounds
+    let gridBounds
+
+    cellSizeFactor.current = 1
+    allElement.current.x = allElement.current.y = 0
+
+    for (let i = 0; i < 10; ++i) {
+      let elementsToRedraw = [cellElements, regionElements, cageElements,
+        cageLabelTextElements, cageLabelBackgroundElements, lineElements, arrowHeadElements,
+        underlayElements, overlayElements, givenCornerMarkElements, digitElements,
+        centreMarkElements, colourElements, selectionElements, errorElements]
+      for (let r of elementsToRedraw) {
+        for (let e of r.current) {
+          if (e.clear !== undefined) {
+            e.clear()
+          }
+          e.data.draw(cs, cellSizeFactor.current)
+        }
+      }
+      for (let e of cornerMarkElements.current) {
+        for (let ce of e.elements) {
+          ce.data.draw(cs)
+        }
+      }
+
+      allElement.current.calculateBounds()
+      allBounds = allElement.current.getBounds()
+      gridBounds = gridElement.current.getBounds()
+
+      // Align bounds to pixels. This makes sure the grid is always sharp
+      // and lines do not sit between pixels.
+      let gx1 = gridBounds.x
+      let gy1 = gridBounds.y
+      let mx1 = gx1 - allBounds.x
+      let my1 = gy1 - allBounds.y
+      let gx2 = gx1 + gridBounds.width
+      let gy2 = gy1 + gridBounds.height
+      let ax2 = allBounds.x + allBounds.width
+      let ay2 = allBounds.y + allBounds.height
+      let mx2 = ax2 - gx2
+      let my2 = ay2 - gy2
+      let ax2b = gx2 + Math.ceil(mx2)
+      let ay2b = gy2 + Math.ceil(my2)
+      allBounds.x = gx1 - Math.ceil(mx1)
+      allBounds.y = gy1 - Math.ceil(my1)
+      allBounds.width = ax2b - allBounds.x
+      allBounds.height = ay2b - allBounds.y
+
+      if (allBounds.width <= maxWidth && allBounds.height <= maxHeight) {
+        break
+      }
+
+      // leave 5 pixels of leeway for rounding errors
+      let sx = (maxWidth - 5) / allBounds.width
+      let sy = (maxHeight - 5) / allBounds.height
+      cellSizeFactor.current = Math.min(sx, sy)
+      cs = Math.floor(cellSize * cellSizeFactor.current)
+    }
+
+    let marginTop = gridBounds.y - allBounds.y
+    let marginBottom = allBounds.y + allBounds.height -
+      (gridBounds.y + gridBounds.height)
+    let marginLeft = gridBounds.x - allBounds.x
+    let marginRight = allBounds.x + allBounds.width -
+      (gridBounds.x + gridBounds.width)
+    let additionalMarginX = 0
+    let additionalMarginY = 0
+    if (portrait) {
+      additionalMarginX = Math.abs(marginLeft - marginRight)
+    } else {
+      additionalMarginY = Math.abs(marginTop - marginBottom)
+    }
+
+    let w = allBounds.width
+    let h = allBounds.height
+
+    app.current.renderer.resize(w, h)
+    allElement.current.x = -allBounds.x
+    allElement.current.y = -allBounds.y
+
+    if (marginTop > marginBottom) {
+      ref.current.style.marginTop = "0"
+      ref.current.style.marginBottom = `${additionalMarginY}px`
+    } else {
+      ref.current.style.marginTop = `${additionalMarginY}px`
+      ref.current.style.marginBottom = "0"
+    }
+    if (marginLeft > marginRight) {
+      ref.current.style.marginLeft = "0"
+      ref.current.style.marginRight = `${additionalMarginX}px`
+    } else {
+      ref.current.style.marginLeft = `${additionalMarginX}px`
+      ref.current.style.marginRight = "0"
+    }
+  }, [cellSize, maxWidth, maxHeight, portrait])
 
   // register keyboard handlers
   useEffect(() => {
@@ -1093,24 +1169,24 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // change font size of digits
     for (let e of digitElements.current) {
-      e.style.fontSize = fontSizeDigits
+      e.style.fontSize = Math.round(fontSizeDigits * cellSizeFactor.current)
     }
 
     // change font size of corner marks
     for (let e of cornerMarkElements.current) {
       for (let ce of e.elements) {
-        ce.style.fontSize = fontSizeCornerMarks
+        ce.style.fontSize = Math.round(fontSizeCornerMarks * cellSizeFactor.current)
       }
     }
 
     // change font size of centre marks
     for (let e of centreMarkElements.current) {
-      e.style.fontSize = fontSizeCentreMarks
+      e.style.fontSize = Math.round(fontSizeCentreMarks * cellSizeFactor.current)
     }
 
     // change font size and colour of given corner marks
     for (let e of givenCornerMarkElements.current) {
-      e.style.fontSize = fontSizeCornerMarks
+      e.style.fontSize = Math.round(fontSizeCornerMarks * cellSizeFactor.current)
       e.style.fill = themeColours.foregroundColor
     }
 
@@ -1121,9 +1197,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // change background colour
     backgroundElement.current.clear()
-    drawBackground(backgroundElement.current, allBounds.current, themeColours)
+    drawBackground(backgroundElement.current, allElement.current.getBounds(), themeColours)
   }, [settings.theme, settings.fontSizeFactorDigits,
-      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks])
+      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
+      maxWidth, maxHeight, portrait])
 
   useEffect(() => {
     selectionElements.current.forEach(s => {
@@ -1191,6 +1268,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       }
     }
 
+    let scaledCellSize = Math.floor(cellSize * cellSizeFactor.current)
     let computedStyle = getComputedStyle(ref.current)
     let nColours = +computedStyle.getPropertyValue("--colors")
     let colours = []
@@ -1207,7 +1285,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         let colourNumber = Color(palCol).rgbNumber()
         e.clear()
         e.beginFill(colourNumber)
-        e.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
+        e.drawRect(0.5, 0.5, scaledCellSize - 1, scaledCellSize - 1)
         e.endFill()
         if (colourNumber === 0xffffff) {
           e.alpha = 1.0
@@ -1227,7 +1305,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
       game.errors, settings.theme, settings.colourPalette,
       settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
-      settings.fontSizeFactorCornerMarks])
+      settings.fontSizeFactorCornerMarks, maxWidth, maxHeight, portrait])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick} onDoubleClick={onDoubleClick}>
