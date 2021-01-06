@@ -16,6 +16,7 @@
   --border-radius-inner: 8px;
   --border-radius-mini: 4px;
   --digit: #{lighten(#2b3f77, 20%)};
+  --digit-small: #{lighten(#2b3f77, 10%)};
   --button-hover: var(--grey-700);
   --button-active-hover: var(--primary-highlight);
 }
@@ -35,6 +36,7 @@
   --border-radius-inner: 5px;
   --border-radius-mini: 3px;
   --digit: #316bdd;
+  --digit-small: #{darken(#316bdd, 10%)};
   --button-hover: #f3e5f5;
   --button-active-hover: var(--primary-highlight);
 
@@ -59,6 +61,7 @@
   --primary-highlight: #{lighten(#81a1c1, 10%)};
   --alert: #bf616a;
   --digit: var(--primary);
+  --digit-small: var(--primary-highlight);
   --button-hover: var(--grey-600);
   --button-active-hover: var(--primary-highlight);
 }

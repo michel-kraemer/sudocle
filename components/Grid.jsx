@@ -334,11 +334,13 @@ function getThemeColours(elem) {
   let backgroundColor = Color(rootStyle.getPropertyValue("--bg")).rgbNumber()
   let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
   let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
+  let smallDigitColor = Color(rootStyle.getPropertyValue("--digit-small")).rgbNumber()
 
   return {
     backgroundColor,
     foregroundColor,
-    digitColor
+    digitColor,
+    smallDigitColor
   }
 }
 
@@ -1147,7 +1149,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
             n++
           }
           e.elements[n].text = d
-          e.elements[n].style.fill = themeColours.digitColor
+          e.elements[n].style.fill = themeColours.smallDigitColor
           e.elements[n].alpha = 1
         })
         cornerMarks.set(e.data.k, e)
@@ -1158,7 +1160,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       let digits = game.centreMarks.get(e.data.k)
       if (digits !== undefined) {
         e.text = [...digits].sort().join("")
-        e.style.fill = themeColours.digitColor
+        e.style.fill = themeColours.smallDigitColor
         e.alpha = 1
         centreMarks.set(e.data.k, e)
       } else {
