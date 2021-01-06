@@ -5,7 +5,7 @@ import { xytok } from "./lib/utils"
 import Color from "color"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useContext, useEffect, useMemo, useRef } from "react"
 import { flatten } from "lodash"
 
 const SCALE_FACTOR = 1.2
@@ -329,6 +329,34 @@ function makeCornerMarks(x, y, cellSize, fontSize, leaveRoom, n = 10, fontWeight
   return result
 }
 
+function getThemeColours(elem) {
+  let rootStyle = window.getComputedStyle(elem)
+  let backgroundColor = Color(rootStyle.getPropertyValue("--bg")).rgbNumber()
+  let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
+  let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
+
+  return {
+    backgroundColor,
+    foregroundColor,
+    digitColor
+  }
+}
+
+function drawBackground(graphics, bounds, themeColours) {
+  graphics.beginFill(themeColours.backgroundColor)
+  graphics.drawRect(bounds.x, bounds.y, bounds.width, bounds.height)
+  graphics.endFill()
+}
+
+function changeLineColour(graphicElements, colour) {
+  for (let e of graphicElements) {
+    for (let i = 0; i < e.geometry.graphicsData.length; ++i) {
+      e.geometry.graphicsData[i].lineStyle.color = colour
+    }
+    e.geometry.invalidate()
+  }
+}
+
 const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const ref = useRef()
   const app = useRef()
@@ -338,14 +366,16 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const gridBounds = useRef()
   const allBounds = useRef()
   const cellElements = useRef([])
+  const regionElements = useRef([])
+  const cageElements = useRef([])
+  const backgroundElement = useRef()
+  const givenCornerMarkElements = useRef([])
   const digitElements = useRef([])
   const centreMarkElements = useRef([])
   const cornerMarkElements = useRef([])
   const colourElements = useRef([])
   const selectionElements = useRef([])
   const errorElements = useRef([])
-  const [foregroundColor, setForegroundColor] = useState()
-  const [digitColor, setDigitColor] = useState()
 
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
@@ -619,12 +649,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // register touch handler
     newApp.view.addEventListener("touchmove", onTouchMove)
 
-    let rootStyle = getComputedStyle(ref.current)
-    let backgroundColor = Color(rootStyle.getPropertyValue("--bg")).rgbNumber()
-    let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
-    let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
-    setForegroundColor(foregroundColor)
-    setDigitColor(digitColor)
+    let themeColours = getThemeColours(ref.current)
 
     let fontSizeCageLabels = 26
 
@@ -675,7 +700,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           k: xytok(x, y)
         }
 
-        cell.lineStyle({ width: 1, color: foregroundColor })
+        cell.lineStyle({ width: 1, color: themeColours.foregroundColor })
         cell.drawRect(0, 0, cellSize, cellSize)
 
         cell.x = x * cellSize
@@ -706,10 +731,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // render regions
     for (let r of regions) {
       let poly = new PIXI.Graphics()
-      poly.lineStyle({ width: 3, color: foregroundColor })
+      poly.lineStyle({ width: 3, color: themeColours.foregroundColor })
       poly.drawPolygon(r)
       poly.zIndex = 10
       grid.addChild(poly)
+      regionElements.current.push(poly)
+      cageElements.current = []
     }
 
     // render cages
@@ -718,10 +745,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       let poly = new PIXI.Graphics()
       let disposedOutline = disposePolygon(cage.outline, regions, 1)
       let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
-      poly.lineStyle({ width: 1, color: foregroundColor })
+      poly.lineStyle({ width: 1, color: themeColours.foregroundColor })
       drawDashedPolygon(shrunkenOutline, 3, 2, poly)
       poly.zIndex = 1
       grid.addChild(poly)
+      cageElements.current.push(poly)
 
       if (cage.value !== undefined && cage.value.trim() !== "") {
         // create cage label
@@ -843,10 +871,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     let background = new PIXI.Graphics()
     background.hitArea = new PIXI.Rectangle(allBounds.current.x, allBounds.current.y,
       allBounds.current.width, allBounds.current.height)
-    background.beginFill(backgroundColor)
-    background.drawRect(allBounds.current.x, allBounds.current.y,
-      allBounds.current.width, allBounds.current.height)
-    background.endFill()
+    drawBackground(background, allBounds.current, themeColours)
     background.interactive = true
     background.zIndex = -1000
     background.on("pointerdown", () => {
@@ -855,6 +880,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         action: ACTION_CLEAR
       })
     })
+    backgroundElement.current = background
 
     all.addChild(background)
     allBounds.current = all.getBounds()
@@ -879,9 +905,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
             hcv, arr.length, "bold")
         cms.forEach((cm, i) => {
           cm.zIndex = 41
-          cm.style.fill = foregroundColor
+          cm.style.fill = themeColours.foregroundColor
           cm.text = arr[i]
           all.addChild(cm)
+          givenCornerMarkElements.current.push(cm)
         })
       })
     })
@@ -922,7 +949,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
             leaveRoom, 10)
         for (let cm of cms) {
           cm.zIndex = 50
-          cm.style.fill = digitColor
+          cm.style.fill = themeColours.digitColor
           all.addChild(cm)
           cell.elements.push(cm)
         }
@@ -942,7 +969,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         text.x = x * cellSize + cellSize / 2
         text.y = y * cellSize + cellSize / 2 - 0.5
         text.anchor.set(0.5)
-        text.style.fill = digitColor
+        text.style.fill = themeColours.digitColor
         text.scale.x = 0.5
         text.scale.y = 0.5
         text.data = {
@@ -1018,6 +1045,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       gridBounds.current = undefined
       allBounds.current = undefined
       cellElements.current = []
+      regionElements.current = []
+      cageElements.current = []
+      givenCornerMarkElements.current = []
       digitElements.current = []
       centreMarkElements.current = []
       cornerMarkElements.current = []
@@ -1029,8 +1059,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       newApp.destroy(true, true)
       app.current = undefined
     }
-  }, [game.data, settings.theme,
-      cellSize, regions, cages, cellToScreenCoords,
+  }, [game.data, cellSize, regions, cages, cellToScreenCoords,
       drawOverlay, selectCell, updateGame, onFinishRender, onTouchMove])
 
   useEffect(() => {
@@ -1047,6 +1076,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   }, [onKeyDown])
 
   useEffect(() => {
+    let themeColours = getThemeColours(ref.current)
+
     // optimised font sizes for different screens
     let fontSizeCornerMarks = window.devicePixelRatio >= 2 ?
         FONT_SIZE_CORNER_MARKS_HIGH_DPI : FONT_SIZE_CORNER_MARKS_LOW_DPI
@@ -1058,21 +1089,39 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     fontSizeCornerMarks *= settings.fontSizeFactorCornerMarks
     fontSizeCentreMarks *= settings.fontSizeFactorCentreMarks
 
+    // change font size of digits
     for (let e of digitElements.current) {
       e.style.fontSize = fontSizeDigits
     }
 
+    // change font size of corner marks
     for (let e of cornerMarkElements.current) {
       for (let ce of e.elements) {
         ce.style.fontSize = fontSizeCornerMarks
       }
     }
 
+    // change font size of centre marks
     for (let e of centreMarkElements.current) {
       e.style.fontSize = fontSizeCentreMarks
     }
-  }, [settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
-      settings.fontSizeFactorCornerMarks])
+
+    // change font size and colour of given corner marks
+    for (let e of givenCornerMarkElements.current) {
+      e.style.fontSize = fontSizeCornerMarks
+      e.style.fill = themeColours.foregroundColor
+    }
+
+    // change line colour of cells, regions, cages
+    changeLineColour(cellElements.current, themeColours.foregroundColor)
+    changeLineColour(regionElements.current, themeColours.foregroundColor)
+    changeLineColour(cageElements.current, themeColours.foregroundColor)
+
+    // change background colour
+    backgroundElement.current.clear()
+    drawBackground(backgroundElement.current, allBounds.current, themeColours)
+  }, [settings.theme, settings.fontSizeFactorDigits,
+      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks])
 
   useEffect(() => {
     selectionElements.current.forEach(s => {
@@ -1082,6 +1131,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   }, [game.selection])
 
   useEffect(() => {
+    let themeColours = getThemeColours(ref.current)
     let cornerMarks = new Map()
     let centreMarks = new Map()
 
@@ -1097,6 +1147,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
             n++
           }
           e.elements[n].text = d
+          e.elements[n].style.fill = themeColours.digitColor
           e.elements[n].alpha = 1
         })
         cornerMarks.set(e.data.k, e)
@@ -1107,6 +1158,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       let digits = game.centreMarks.get(e.data.k)
       if (digits !== undefined) {
         e.text = [...digits].sort().join("")
+        e.style.fill = themeColours.digitColor
         e.alpha = 1
         centreMarks.set(e.data.k, e)
       } else {
@@ -1118,7 +1170,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       let digit = game.digits.get(e.data.k)
       if (digit !== undefined) {
         e.text = digit.digit
-        e.style.fill = digit.given ? foregroundColor : digitColor
+        e.style.fill = digit.given ? themeColours.foregroundColor : themeColours.digitColor
         e.alpha = 1
 
         let com = cornerMarks.get(e.data.k)
@@ -1171,7 +1223,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     app.current.render()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
-      game.errors, settings.colourPalette, foregroundColor, digitColor,
+      game.errors, settings.theme, settings.colourPalette,
       settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
       settings.fontSizeFactorCornerMarks])
 
