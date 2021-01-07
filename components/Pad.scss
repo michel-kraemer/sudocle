@@ -32,7 +32,7 @@
   grid-gap: 0.2rem;
 
   &.extended {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(1.13rem, 1fr));
   }
 }
 
