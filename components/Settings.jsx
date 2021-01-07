@@ -45,11 +45,17 @@ const Settings = () => {
 
   function fontSizeValueToDescription(value) {
     if (value === 0.75) {
+      return "Tiny"
+    } else if (value === 0.875) {
       return "Small"
     } else if (value === 1) {
       return "Normal"
-    } else if (value === 1.25) {
+    } else if (value === 1.125) {
       return "Large"
+    } else if (value === 1.25) {
+      return "X-Large"
+    } else if (value === 1.375) {
+      return "XX-Large"
     } else if (value === 1.5) {
       return "Maximum"
     }
@@ -118,19 +124,19 @@ const Settings = () => {
     <h3>Font sizes</h3>
     <div className="slider">
       <RangeSlider id="range-digits" label="Digits"
-        min="0.75" max="1.5" step="0.25" value={settings.fontSizeFactorDigits}
+        min="0.75" max="1.5" step="0.125" value={settings.fontSizeFactorDigits}
         onChange={onChangeFontSizeDigits}
         valueToDescription={fontSizeValueToDescription} />
     </div>
     <div className="slider">
       <RangeSlider id="range-corner-marks" label="Corner marks"
-        min="0.75" max="1.5" step="0.25" value={settings.fontSizeFactorCornerMarks}
+        min="0.75" max="1.5" step="0.125" value={settings.fontSizeFactorCornerMarks}
         onChange={onChangeFontSizeCornerMarks}
         valueToDescription={fontSizeValueToDescription} />
     </div>
     <div className="slider">
       <RangeSlider id="range-centre-marks" label="Centre marks"
-        min="0.75" max="1.5" step="0.25" value={settings.fontSizeFactorCentreMarks}
+        min="0.75" max="1.5" step="0.125" value={settings.fontSizeFactorCentreMarks}
         onChange={onChangeFontSizeCentreMarks}
         valueToDescription={fontSizeValueToDescription} />
     </div>
