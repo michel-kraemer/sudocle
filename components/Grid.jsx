@@ -348,11 +348,10 @@ function getThemeColours(elem) {
   }
 }
 
-function drawBackground(graphics, bounds, themeColours) {
-  graphics.hitArea = new PIXI.Rectangle(bounds.x - 5, bounds.y - 5,
-    bounds.width + 10, bounds.height + 10)
+function drawBackground(graphics, width, height, themeColours) {
+  graphics.hitArea = new PIXI.Rectangle(0, 0, width, height)
   graphics.beginFill(themeColours.backgroundColor)
-  graphics.drawRect(bounds.x - 5, bounds.y - 5, bounds.width + 10, bounds.height + 10)
+  graphics.drawRect(0, 0, width, height)
   graphics.endFill()
 }
 
@@ -1197,7 +1196,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // change background colour
     backgroundElement.current.clear()
-    drawBackground(backgroundElement.current, allElement.current.getBounds(), themeColours)
+    drawBackground(backgroundElement.current, app.current.renderer.width,
+      app.current.renderer.height, themeColours)
   }, [settings.theme, settings.fontSizeFactorDigits,
       settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
       maxWidth, maxHeight, portrait])
