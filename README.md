@@ -9,7 +9,7 @@
 
 > A modern web app for Sudoku
 
-[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Actions Status](https://github.com/michel-kraemer/sudocle/workflows/Node.js%20CI/badge.svg)](https://github.com/michel-kraemer/sudocle/actions)
 
 Sudocle offers the following features:
 
