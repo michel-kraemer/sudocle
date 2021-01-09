@@ -55,6 +55,9 @@ const Index = () => {
     }
 
     let id = window.location.pathname
+    if (process.env.basePath) {
+      id = id.substring(process.env.basePath.length)
+    }
     if (id.endsWith("/")) {
       id = id.substring(0, id.length - 1)
     }
@@ -62,7 +65,7 @@ const Index = () => {
 
     let url
     if (id === null || id === "") {
-      url = "/empty-grid.json"
+      url = `${process.env.basePath}/empty-grid.json`
     } else {
       url = DATABASE_URL.replace("{}", id)
     }

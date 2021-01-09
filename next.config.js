@@ -3,11 +3,16 @@ const version = require("./package.json").version
 
 const withPlugins = require("next-compose-plugins")
 
+const basePath = process.env.NODE_ENV === "production" ? "/sudocle" : ""
+
 const config = {
+  basePath,
+
   // create a folder for each page
   trailingSlash: true,
 
   env: {
+    basePath,
     version
   },
 

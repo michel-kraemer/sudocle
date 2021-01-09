@@ -72,7 +72,9 @@ This will create a directory called `out`, which you can upload to your web
 server or use it with [Docker](https://www.docker.com/) as follows:
 
     docker build -t sudocle .
-    docker run -it -p 80:80 -v $PWD/out:/usr/share/nginx/html sudocle
+    docker run -it -p 80:80 sudocle
+
+Then, open <http://localhost/sudocle/>.
 
 ## What does “Sudocle” mean?
 
