@@ -1,0 +1,32 @@
+name: Node.js CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js 15.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: "15"
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Build Docker image
+        run: |
+          docker build -t sudocle/sudocle .
+          docker tag sudocle/sudocle sudocle/sudocle:unstable
+
+      - name: Push Docker image
+        if: github.repository == 'michel-kraemer/sudocle' && github.event_name == 'push'
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+        run: |
+          echo $DOCKER_HUB_ACCESS_TOKEN | docker login --username $DOCKER_HUB_USERNAME --password-stdin
+          docker push sudocle/sudocle:unstable
