@@ -26,6 +26,7 @@ const Index = () => {
   const [gridMaxHeight, setGridMaxHeight] = useState(0)
   const [portrait, setPortrait] = useState(false)
   const [rendering, setRendering] = useState(true)
+  const [error, setError] = useState()
 
   function onMouseDown(e) {
     // check if we hit a target that would clear the selction
@@ -68,18 +69,23 @@ const Index = () => {
 
     async function load() {
       let response = await fetch(url)
-      let json = await response.json()
-      // TODO better error handling
-      if (json.error === undefined) {
-        updateGame({
-          type: TYPE_RESTART,
-          data: json
-        })
+      if (response.status === 404) {
+        setError(`The puzzle with the ID ‘${id}’ does not exist`)
+      } else if (response.status !== 200) {
+        setError(<>Failed to load puzzle with ID ‘{id}’.<br />
+          Received HTTP status code {response.status} from server.</>)
+      } else {
+        let json = await response.json()
+        if (json.error === undefined) {
+          updateGame({
+            type: TYPE_RESTART,
+            data: json
+          })
+        }
       }
     }
 
-    // TODO better error handling
-    load().catch(e => console.error(e))
+    load()
   }, [game.data, updateGame])
 
   // register keyboard handlers
@@ -287,8 +293,11 @@ const Index = () => {
           {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
             maxHeight={gridMaxHeight} onFinishRender={onFinishRender} />}
         </div>
-        {rendering && <div className="loading">
+        {rendering && !error && <div className="loading">
           Loading ...
+        </div>}
+        {error && <div className="error">
+          {error}
         </div>}
         <div className="pad-container" ref={padContainerRef}>
           {rendering || <Pad />}
