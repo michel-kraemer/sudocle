@@ -69,10 +69,13 @@ If you want to build Soducle in production mode, use the following command:
     npm run build
 
 This will create a directory called `out`, which you can upload to your web
-server or use it with [Docker](https://www.docker.com/) as follows:
+server.
+
+Alternatively, you can run Sudocle with [Docker](https://www.docker.com/) as
+follows:
 
     docker build -t sudocle .
-    docker run -it -p 80:80 sudocle
+    docker run -it -p 80:80 --name sudocle --rm sudocle
 
 Then, open <http://localhost/sudocle/>.
 
