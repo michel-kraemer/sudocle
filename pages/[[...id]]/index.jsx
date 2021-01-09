@@ -236,10 +236,7 @@ const Index = () => {
     window.addEventListener("resize", onResize)
     onResize()
 
-    let interval = setInterval(onResize, 1000)
-
     return () => {
-      clearInterval(interval)
       window.removeEventListener("resize", onResize)
     }
   }, [])
