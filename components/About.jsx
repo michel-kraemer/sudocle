@@ -1,22 +1,29 @@
+import SettingsContext from "./contexts/SettingsContext"
+import { useContext } from "react"
 import styles from "./About.scss"
 
 const About = () => {
+  const settings = useContext(SettingsContext.State)
+
   let currentYear = new Date().getFullYear()
 
   return (<>
-    <h2>About</h2>
-
-    <h3>Sudoku v{process.env.version}</h3>
-    <p>Copyright &copy; 2020{currentYear > 2020 && <>&ndash;{currentYear}</>} <a href="https://michelkraemer.com"
+    <a href="https://github.com/michel-kraemer/sudocle"
+      target="_blank" rel="noreferrer"><div className="logo">
+      {settings.theme !== "dark" && <img src={require("../assets/logo.svg")} />}
+      {settings.theme === "dark" && <img src={require("../assets/logo-white.svg")} />}
+      <div className="version">v{process.env.version}</div>
+    </div></a>
+    <p className="copyright">Copyright &copy; 2020&ndash;{currentYear} <a href="https://michelkraemer.com"
       target="_blank" rel="noreferrer">Michel Krämer</a></p>
     <p>This software is open source and has been released under
     the <a href="https://github.com/michel-kraemer/sudoku/blob/main/LICENSE"
       target="_blank" rel="noreferrer">MIT license</a>. The source code
-      is available on <a href="https://github.com/michel-kraemer/sudoku"
+      is available on <a href="https://github.com/michel-kraemer/sudocle"
       target="_blank" rel="noreferrer">GitHub</a>.</p>
 
-    <h3>Aknowledgements</h3>
-    <p>This software has been inspired by the official web app
+    <h3>Acknowledgements</h3>
+    <p>Sudocle has been inspired by the official web app
       of <a href="https://www.youtube.com/c/CrackingTheCryptic"
       target="_blank" rel="noreferrer">Cracking the Cryptic</a>, the world’s most
       popular YouTube channel about Sudoku and other logic puzzles.</p>

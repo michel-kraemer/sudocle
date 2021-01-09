@@ -277,7 +277,9 @@ const Index = () => {
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
       <meta name="description" content="Sudoku"/>
       <meta name="robots" content="index,follow"/>
+      <link rel="preconnect" href="https://fonts.gstatic.com"/>
       <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"/>
+      <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap" rel="stylesheet"/>
       <title>Sudoku</title>
     </Head>
     <div className="app" data-theme={settings.theme} data-colour-palette={settings.colourPalette}

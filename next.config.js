@@ -1,4 +1,7 @@
+const optimizedImages = require("next-optimized-images")
 const version = require("./package.json").version
+
+const withPlugins = require("next-compose-plugins")
 
 const config = {
   // create a folder for each page
@@ -38,4 +41,6 @@ const config = {
   }
 }
 
-module.exports = config
+module.exports = withPlugins([
+  [optimizedImages]
+], config)
