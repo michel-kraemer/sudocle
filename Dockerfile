@@ -1,8 +1,15 @@
 FROM node:15 as build
 
-COPY . /sudocle
+ARG MATOMO_URL
+ARG MATOMO_SITE_ID
+
+RUN mkdir /sudocle
+COPY package.json /sudocle
+COPY package-lock.json /sudocle
 WORKDIR /sudocle
 RUN npm ci
+
+COPY . /sudocle
 RUN npm run build
 
 FROM nginx:1.19
