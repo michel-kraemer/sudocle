@@ -340,11 +340,22 @@ function getThemeColours(elem) {
   let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
   let smallDigitColor = Color(rootStyle.getPropertyValue("--digit-small")).rgbNumber()
 
+  let selectionYellow = Color(rootStyle.getPropertyValue("--selection-yellow")).rgbNumber()
+  let selectionRed = Color(rootStyle.getPropertyValue("--selection-red")).rgbNumber()
+  let selectionBlue = Color(rootStyle.getPropertyValue("--selection-blue")).rgbNumber()
+  let selectionGreen = Color(rootStyle.getPropertyValue("--selection-green")).rgbNumber()
+
   return {
     backgroundColor,
     foregroundColor,
     digitColor,
-    smallDigitColor
+    smallDigitColor,
+    selection: {
+      yellow: selectionYellow,
+      red: selectionRed,
+      green: selectionGreen,
+      blue: selectionBlue
+    }
   }
 }
 
@@ -1189,6 +1200,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       e.style.fill = themeColours.foregroundColor
     }
 
+    // change selection colour
+    for (let e of selectionElements.current) {
+      e.geometry.graphicsData[0].fillStyle.color =
+        themeColours.selection[settings.selectionColour]
+      e.geometry.invalidate()
+    }
+
     // change line colour of cells, regions, cages
     changeLineColour(cellElements.current, themeColours.foregroundColor)
     changeLineColour(regionElements.current, themeColours.foregroundColor)
@@ -1198,7 +1216,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     backgroundElement.current.clear()
     drawBackground(backgroundElement.current, app.current.renderer.width,
       app.current.renderer.height, themeColours)
-  }, [settings.theme, settings.fontSizeFactorDigits,
+  }, [settings.theme, settings.selectionColour, settings.fontSizeFactorDigits,
       settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
       maxWidth, maxHeight, portrait])
 
@@ -1303,7 +1321,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     app.current.render()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
-      game.errors, settings.theme, settings.colourPalette,
+      game.errors, settings.theme, settings.colourPalette, settings.selectionColour,
       settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
       settings.fontSizeFactorCornerMarks, maxWidth, maxHeight, portrait])
 

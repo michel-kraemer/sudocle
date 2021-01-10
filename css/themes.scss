@@ -19,6 +19,10 @@
   --digit-small: #{lighten(#2b3f77, 10%)};
   --button-hover: var(--grey-700);
   --button-active-hover: var(--primary-highlight);
+  --selection-yellow: #ffde2a;
+  --selection-red: #ff2a4b;
+  --selection-green: #2aff6f;
+  --selection-blue: #2a7cff;
 }
 
 [data-theme="ctc"] {

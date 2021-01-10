@@ -2,6 +2,8 @@ import RadioGroup from "./RadioGroup"
 import RangeSlider from "./RangeSlider"
 import SettingsContext from "./contexts/SettingsContext"
 import { useContext, useEffect, useRef, useState } from "react"
+import classNames from "classnames"
+import { Check } from "lucide-react"
 import styles from "./Settings.scss"
 
 function Palette({ colours }) {
@@ -23,6 +25,8 @@ const Settings = () => {
   const [coloursExtended, setColoursExtended] = useState([])
   const [coloursCTC, setColoursCTC] = useState([])
   const [coloursWong, setColoursWong] = useState([])
+
+  const [selectionColours, setSelectionColours] = useState(new Map())
 
   function onChangeTheme(theme) {
     setThemeInternal(theme)
@@ -82,6 +86,18 @@ const Settings = () => {
     setColoursExtended(makeColours(refPlaceholderExtended.current))
     setColoursCTC(makeColours(refPlaceholderCTC.current))
     setColoursWong(makeColours(refPlaceholderWong.current))
+
+    let style = getComputedStyle(refPlaceholderExtended.current)
+    let selectionYellow = style.getPropertyValue("--selection-yellow")
+    let selectionRed = style.getPropertyValue("--selection-red")
+    let selectionGreen = style.getPropertyValue("--selection-green")
+    let selectionBlue = style.getPropertyValue("--selection-blue")
+    setSelectionColours(new Map([
+      ["yellow", selectionYellow],
+      ["red", selectionRed],
+      ["green", selectionGreen],
+      ["blue", selectionBlue]
+    ]))
   }, [])
 
   return (<>
@@ -120,6 +136,18 @@ const Settings = () => {
       label: <div className="palette-label"><div>Wong (optimised for colour-blindness)</div>
         <Palette colours={coloursWong} /></div>
     }]} onChange={(colourPalette) => updateSettings({ colourPalette })} />
+
+    <h3>Selection colour</h3>
+    <div className="selection-colours">
+      {[...selectionColours.entries()].map(k => (
+        <div key={k[0]} className={classNames("selection-colour", {
+          active: k[0] === settings.selectionColour
+        })} onClick={() => updateSettings({ selectionColour: k[0] })}>
+          <div className="colour" style={{ backgroundColor: k[1] }}></div>
+          {k[0] === settings.selectionColour && <div className="check"><Check size="1rem" /></div>}
+        </div>
+      ))}
+    </div>
 
     <h3>Font sizes</h3>
     <div className="slider">

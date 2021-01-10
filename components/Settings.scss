@@ -19,6 +19,33 @@
   }
 }
 
+.selection-colours {
+  display: grid;
+  grid-template-columns: repeat(4, 1rem);
+  grid-column-gap: 0.75em;
+  margin-bottom: 1rem;
+}
+
+.selection-colour {
+  display: flex;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  position: relative;
+
+  .colour {
+    display: flex;
+    flex: 1;
+    opacity: 0.6;
+  }
+
+  .check {
+    position: absolute;
+    color: var(--primary);
+  }
+}
+
 .slider {
   margin-bottom: 0.5rem;
   max-width: 7rem;
