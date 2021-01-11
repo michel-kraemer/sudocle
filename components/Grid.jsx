@@ -46,7 +46,8 @@ function unionCells(cells) {
 
 function hasCageValue(x, y, cages) {
   for (let cage of cages) {
-    if (cage.topleft[0] === y && cage.topleft[1] === x) {
+    if (cage.topleft[0] === y && cage.topleft[1] === x &&
+        cage.value !== undefined && cage.value !== "") {
       return true
     }
   }
