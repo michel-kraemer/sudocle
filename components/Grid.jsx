@@ -902,6 +902,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           fontFamily: "Tahoma, Verdana, sans-serif",
           fontSize: FONT_SIZE_DIGITS
         })
+        text.visible = false
         text.zIndex = 50
         text.anchor.set(0.5)
         text.data = {
@@ -930,6 +931,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         let cms = makeCornerMarks(x, y, cellSize, FONT_SIZE_CORNER_MARKS_HIGH_DPI,
             leaveRoom, 10)
         for (let cm of cms) {
+          cm.visible = false
           cm.zIndex = 50
           cm.style.fill = themeColours.digitColor
           all.addChild(cm)
@@ -952,6 +954,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         text.style.fill = themeColours.digitColor
         text.scale.x = 0.5
         text.scale.y = 0.5
+        text.visible = false
         text.data = {
           k: xytok(x, y),
           draw: function (cellSize) {
@@ -986,7 +989,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let rect = new PIXI.Graphics()
-        rect.alpha = 0
+        rect.visible = false
         rect.zIndex = 20
         rect.data = {
           k: xytok(x, y),
@@ -1007,7 +1010,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let rect = new PIXI.Graphics()
-        rect.alpha = 0
+        rect.visible = false
         rect.zIndex = 10
         rect.data = {
           k: xytok(x, y),
@@ -1222,7 +1225,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
   useEffect(() => {
     selectionElements.current.forEach(s => {
-      s.alpha = !game.selection.has(s.data.k) ? 0 : 1
+      s.visible = game.selection.has(s.data.k)
     })
     app.current.render()
   }, [game.selection])
@@ -1235,7 +1238,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     for (let e of cornerMarkElements.current) {
       let digits = game.cornerMarks.get(e.data.k)
       for (let ce of e.elements) {
-        ce.alpha = 0
+        ce.visible = false
       }
       if (digits !== undefined) {
         [...digits].sort().forEach((d, i) => {
@@ -1245,7 +1248,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           }
           e.elements[n].text = d
           e.elements[n].style.fill = themeColours.smallDigitColor
-          e.elements[n].alpha = 1
+          e.elements[n].visible = true
         })
         cornerMarks.set(e.data.k, e)
       }
@@ -1256,10 +1259,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       if (digits !== undefined) {
         e.text = [...digits].sort().join("")
         e.style.fill = themeColours.smallDigitColor
-        e.alpha = 1
+        e.visible = true
         centreMarks.set(e.data.k, e)
       } else {
-        e.alpha = 0
+        e.visible = false
       }
     }
 
@@ -1268,21 +1271,21 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       if (digit !== undefined) {
         e.text = digit.digit
         e.style.fill = digit.given ? themeColours.foregroundColor : themeColours.digitColor
-        e.alpha = 1
+        e.visible = true
 
         let com = cornerMarks.get(e.data.k)
         if (com !== undefined) {
           for (let ce of com.elements) {
-            ce.alpha = 0
+            ce.visible = false
           }
         }
 
         let cem = centreMarks.get(e.data.k)
         if (cem !== undefined) {
-          cem.alpha = 0
+          cem.visible = false
         }
       } else {
-        e.alpha = 0
+        e.visible = false
       }
     }
 
@@ -1316,7 +1319,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     }
 
     for (let e of errorElements.current) {
-      e.alpha = game.errors.has(e.data.k) ? 1 : 0
+      e.visible = game.errors.has(e.data.k)
     }
 
     app.current.render()
