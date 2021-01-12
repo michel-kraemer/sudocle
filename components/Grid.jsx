@@ -618,7 +618,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // good for dpi < 2
     if (window.devicePixelRatio < 2) {
       PIXI.settings.ROUND_PIXELS = true
-      PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
     }
 
     // register touch handler
