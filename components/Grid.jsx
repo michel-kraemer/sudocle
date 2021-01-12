@@ -1057,11 +1057,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       onFinishRender, onTouchMove])
 
   useEffect(() => {
-    let cs = cellSize
+    let cs = cellSize * settings.zoom
     let allBounds
     let gridBounds
 
-    cellSizeFactor.current = 1
+    cellSizeFactor.current = settings.zoom
     allElement.current.x = allElement.current.y = 0
 
     for (let i = 0; i < 10; ++i) {
@@ -1113,7 +1113,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       // leave 5 pixels of leeway for rounding errors
       let sx = (maxWidth - 5) / allBounds.width
       let sy = (maxHeight - 5) / allBounds.height
-      cellSizeFactor.current = Math.min(sx, sy)
+      cellSizeFactor.current = Math.min(sx, sy) * settings.zoom
       cs = Math.floor(cellSize * cellSizeFactor.current)
     }
 
@@ -1152,7 +1152,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       ref.current.style.marginLeft = `${additionalMarginX}px`
       ref.current.style.marginRight = "0"
     }
-  }, [cellSize, maxWidth, maxHeight, portrait])
+  }, [cellSize, maxWidth, maxHeight, portrait, settings.zoom])
 
   // register keyboard handlers
   useEffect(() => {
@@ -1216,7 +1216,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     backgroundElement.current.clear()
     drawBackground(backgroundElement.current, app.current.renderer.width,
       app.current.renderer.height, themeColours)
-  }, [settings.theme, settings.selectionColour, settings.fontSizeFactorDigits,
+  }, [settings.theme, settings.selectionColour, settings.zoom, settings.fontSizeFactorDigits,
       settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
       maxWidth, maxHeight, portrait])
 
@@ -1322,7 +1322,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     app.current.render()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
       game.errors, settings.theme, settings.colourPalette, settings.selectionColour,
-      settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
+      settings.zoom, settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
       settings.fontSizeFactorCornerMarks, maxWidth, maxHeight, portrait])
 
   return (

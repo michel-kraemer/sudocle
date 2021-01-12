@@ -6,7 +6,7 @@ const LOCAL_STORAGE_KEY = "SudokuSettings"
 const State = createContext()
 const Dispatch = createContext()
 
-const reducer = produce((draft, { colourPalette, theme, selectionColour,
+const reducer = produce((draft, { colourPalette, theme, selectionColour, zoom,
     fontSizeFactorDigits, fontSizeFactorCornerMarks, fontSizeFactorCentreMarks }) => {
   if (colourPalette !== undefined) {
     draft.colourPalette = colourPalette
@@ -16,6 +16,9 @@ const reducer = produce((draft, { colourPalette, theme, selectionColour,
   }
   if (selectionColour !== undefined) {
     draft.selectionColour = selectionColour
+  }
+  if (zoom !== undefined) {
+    draft.zoom = zoom
   }
   if (fontSizeFactorDigits !== undefined) {
     draft.fontSizeFactorDigits = fontSizeFactorDigits
@@ -33,6 +36,7 @@ const Provider = ({ children }) => {
     colourPalette: "default",
     theme: "default",
     selectionColour: "yellow",
+    zoom: 1,
     fontSizeFactorDigits: 1,
     fontSizeFactorCornerMarks: 1,
     fontSizeFactorCentreMarks: 1

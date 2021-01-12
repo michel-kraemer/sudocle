@@ -31,6 +31,23 @@ const Settings = () => {
     }, 100)
   }
 
+  const changeZoomTimeout = useRef()
+  function onChangeZoom(value) {
+    if (changeZoomTimeout.current !== undefined) {
+      clearTimeout(changeZoomTimeout.current)
+    }
+    changeZoomTimeout.current = setTimeout(() => {
+      updateSettings({ zoom: value })
+    }, 200)
+  }
+
+  function zoomValueToDescription(value) {
+    if (value === 1) {
+      return "Default"
+    }
+    return `x${value}`
+  }
+
   function onChangeFontSizeDigits(value) {
     updateSettings({ fontSizeFactorDigits: value })
   }
@@ -120,6 +137,14 @@ const Settings = () => {
       label: <div className="palette-label"><div>Wong (optimised for colour-blindness)</div>
         <Palette colours={coloursWong} /></div>
     }]} onChange={(colourPalette) => updateSettings({ colourPalette })} />
+
+    <h3>Zoom</h3>
+    <div className="slider">
+      <RangeSlider id="range-zoom"
+        min="0.9" max="1.25" step="0.05" value={settings.zoom}
+        onChange={onChangeZoom}
+        valueToDescription={zoomValueToDescription} />
+    </div>
 
     <h3>Font sizes</h3>
     <div className="slider">

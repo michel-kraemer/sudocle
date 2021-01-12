@@ -11,13 +11,12 @@
   position: absolute;
   left: 0.5em;
   right: 0.5em;
-  top: 0;
+  bottom: 1.7rem;
   white-space: nowrap;
 }
 
 .description {
   position: absolute;
-  top: -0.2em;
   background-color: var(--fg);
   color: var(--bg);
   padding: 0.15rem 0.25rem;
