@@ -380,7 +380,7 @@ function cellToScreenCoords(cell, mx, my, cellSize) {
   return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
 }
 
-function drawOverlay(overlay, mx, my, zIndex = -1) {
+function drawOverlay(overlay, mx, my, zIndex) {
   let r = new PIXI.Graphics()
   r.zIndex = zIndex
 
@@ -642,9 +642,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // all                            sortable
     //   background            -1000
+    //   underlays               -10
     //   lines and arrows         -1
     //   arrow heads              -1
-    //   underlays                -1
     //   colour                    0
     //   errors                   10
     //   selection                20
@@ -842,7 +842,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // add underlays and overlays
     game.data.underlays.forEach(underlay => {
-      let e = drawOverlay(underlay, grid.x, grid.y)
+      let e = drawOverlay(underlay, grid.x, grid.y, -10)
       all.addChild(e)
       underlayElements.current.push(e)
     })
