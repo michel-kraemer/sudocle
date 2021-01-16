@@ -218,7 +218,7 @@ function isGrey(nColour) {
 }
 
 // PIXI makes lines with round cap slightly longer. This function shortens them.
-function shortenLine(points) {
+function shortenLine(points, delta = 3) {
   if (points.length <= 2) {
     return points
   }
@@ -237,16 +237,16 @@ function shortenLine(points) {
   let l = Math.sqrt(dx * dx + dy * dy)
   dx /= l
   dy /= l
-  firstPointX = firstPointX + dx * 3
-  firstPointY = firstPointY + dy * 3
+  firstPointX = firstPointX + dx * delta
+  firstPointY = firstPointY + dy * delta
 
   dx = secondToLastX - lastPointX
   dy = secondToLastY - lastPointY
   l = Math.sqrt(dx * dx + dy * dy)
   dx /= l
   dy /= l
-  lastPointX = lastPointX + dx * 3
-  lastPointY = lastPointY + dy * 3
+  lastPointX = lastPointX + dx * delta
+  lastPointY = lastPointY + dy * delta
 
   return [firstPointX, firstPointY, ...points.slice(2, points.length - 2),
     lastPointX, lastPointY]
@@ -807,7 +807,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       poly.data = {
         draw: function (cellSize) {
           let points = shortenLine(flatten(arrow.wayPoints.map(wp =>
-              cellToScreenCoords(wp, grid.x, grid.y, cellSize))))
+              cellToScreenCoords(wp, grid.x, grid.y, cellSize))), arrow.thickness)
           let lastPointX = points[points.length - 2]
           let lastPointY = points[points.length - 1]
           let secondToLastX = points[points.length - 4]
@@ -817,7 +817,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           let l = Math.sqrt(dx * dx + dy * dy)
           dx /= l
           dy /= l
-          let f = arrow.headLength * cellSize * 0.7
+          let f = Math.min(arrow.headLength * cellSize * 0.7, l / 3)
           let ex = lastPointX - dx * f
           let ey = lastPointY - dy * f
           let ex1 = ex - dy * f
