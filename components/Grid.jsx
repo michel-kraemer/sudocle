@@ -1290,8 +1290,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     }
 
     let scaledCellSize = Math.floor(cellSize * cellSizeFactor.current)
+    let colourPalette = settings.colourPalette
+    if (colourPalette === "custom" && settings.customColours.length === 0) {
+      colourPalette = "default"
+    }
     let colours = []
-    if (settings.colourPalette !== "custom") {
+    if (colourPalette !== "custom") {
       let computedStyle = getComputedStyle(ref.current)
       let nColours = +computedStyle.getPropertyValue("--colors")
       for (let i = 0; i < nColours; ++i) {

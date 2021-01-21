@@ -40,7 +40,11 @@ const Pad = () => {
     let computedStyle = getComputedStyle(ref.current)
     let nColours = +computedStyle.getPropertyValue("--colors")
     let newColours = []
-    if (settings.colourPalette !== "custom") {
+    let colourPalette = settings.colourPalette
+    if (colourPalette === "custom" && settings.customColours.length === 0) {
+      colourPalette = "default"
+    }
+    if (colourPalette !== "custom") {
       for (let i = 0; i < nColours; ++i) {
         let pos = +computedStyle.getPropertyValue(`--color-${i + 1}-pos`)
         newColours[pos - 1] = {
