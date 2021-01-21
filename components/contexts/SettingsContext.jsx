@@ -1,7 +1,7 @@
 import { createContext, useEffect, useReducer } from "react"
 import { produce } from "immer"
 
-const LOCAL_STORAGE_KEY = "SudokuSettings"
+const LOCAL_STORAGE_KEY = "SudocleSettings"
 
 const State = createContext()
 const Dispatch = createContext()
