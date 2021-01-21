@@ -1290,18 +1290,22 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     }
 
     let scaledCellSize = Math.floor(cellSize * cellSizeFactor.current)
-    let computedStyle = getComputedStyle(ref.current)
-    let nColours = +computedStyle.getPropertyValue("--colors")
     let colours = []
-    for (let i = 0; i < nColours; ++i) {
-      colours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
+    if (settings.colourPalette !== "custom") {
+      let computedStyle = getComputedStyle(ref.current)
+      let nColours = +computedStyle.getPropertyValue("--colors")
+      for (let i = 0; i < nColours; ++i) {
+        colours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
+      }
+    } else {
+      colours = settings.customColours
     }
     for (let e of colourElements.current) {
       let colour = game.colours.get(e.data.k)
       if (colour !== undefined) {
         let palCol = colours[colour.colour - 1]
         if (palCol === undefined) {
-          palCol = colours[1]
+          palCol = colours[1] || colours[0]
         }
         let colourNumber = Color(palCol).rgbNumber()
         e.clear()
@@ -1325,8 +1329,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     app.current.render()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
       game.errors, settings.theme, settings.colourPalette, settings.selectionColour,
-      settings.zoom, settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
-      settings.fontSizeFactorCornerMarks, maxWidth, maxHeight, portrait])
+      settings.customColours, settings.zoom, settings.fontSizeFactorDigits,
+      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
+      maxWidth, maxHeight, portrait])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick} onDoubleClick={onDoubleClick}>

@@ -40,15 +40,24 @@ const Pad = () => {
     let computedStyle = getComputedStyle(ref.current)
     let nColours = +computedStyle.getPropertyValue("--colors")
     let newColours = []
-    for (let i = 0; i < nColours; ++i) {
-      let pos = +computedStyle.getPropertyValue(`--color-${i + 1}-pos`)
-      newColours[pos - 1] = {
-        colour: computedStyle.getPropertyValue(`--color-${i + 1}`),
-        digit: i + 1
+    if (settings.colourPalette !== "custom") {
+      for (let i = 0; i < nColours; ++i) {
+        let pos = +computedStyle.getPropertyValue(`--color-${i + 1}-pos`)
+        newColours[pos - 1] = {
+          colour: computedStyle.getPropertyValue(`--color-${i + 1}`),
+          digit: i + 1
+        }
+      }
+    } else {
+      for (let i = 0; i < settings.customColours.length; ++i) {
+        newColours[i] = {
+          colour: settings.customColours[i],
+          digit: i + 1
+        }
       }
     }
     setColours(newColours)
-  }, [settings.colourPalette])
+  }, [settings.colourPalette, settings.customColours])
 
   function onDigit(digit) {
     updateGame({

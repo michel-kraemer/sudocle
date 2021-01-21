@@ -1,14 +1,9 @@
+import Palette from "./Palette"
 import RadioGroup from "./RadioGroup"
 import RangeSlider from "./RangeSlider"
 import SettingsContext from "./contexts/SettingsContext"
 import { useContext, useEffect, useRef, useState } from "react"
 import styles from "./Settings.scss"
-
-function Palette({ colours }) {
-  return <div className="palette">{
-    colours.map((c, i) => <div key={i} className="colour" style={{ backgroundColor: c }}></div>)
-  }<style jsx>{styles}</style></div>
-}
 
 const Settings = () => {
   const settings = useContext(SettingsContext.State)
@@ -23,6 +18,7 @@ const Settings = () => {
   const [coloursExtended, setColoursExtended] = useState([])
   const [coloursCTC, setColoursCTC] = useState([])
   const [coloursWong, setColoursWong] = useState([])
+  const [coloursCustom, setColoursCustom] = useState(settings.customColours)
 
   function onChangeTheme(theme) {
     setThemeInternal(theme)
@@ -79,6 +75,11 @@ const Settings = () => {
     return undefined
   }
 
+  function onUpdateCustomColours(colours) {
+    setColoursCustom(colours)
+    updateSettings({ customColours: colours })
+  }
+
   useEffect(() => {
     setThemeInternal(settings.theme)
   }, [settings.theme])
@@ -95,10 +96,12 @@ const Settings = () => {
       return result
     }
 
-    setColoursDefault(makeColours(document.body))
+    let defaultColours = makeColours(document.body)
+    setColoursDefault(defaultColours)
     setColoursExtended(makeColours(refPlaceholderExtended.current))
     setColoursCTC(makeColours(refPlaceholderCTC.current))
     setColoursWong(makeColours(refPlaceholderWong.current))
+    setColoursCustom(old => old.length === 0 ? defaultColours : old)
   }, [])
 
   return (<>
@@ -136,6 +139,11 @@ const Settings = () => {
       id: "wong",
       label: <div className="palette-label"><div>Wong (optimised for colour-blindness)</div>
         <Palette colours={coloursWong} /></div>
+    }, {
+      id: "custom",
+      label: <div className="palette-label"><div>Custom</div>
+        <Palette colours={coloursCustom} customisable={true}
+        updatePalette={onUpdateCustomColours} /></div>
     }]} onChange={(colourPalette) => updateSettings({ colourPalette })} />
 
     <h3>Zoom</h3>

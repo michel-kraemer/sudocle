@@ -6,8 +6,9 @@ const LOCAL_STORAGE_KEY = "SudocleSettings"
 const State = createContext()
 const Dispatch = createContext()
 
-const reducer = produce((draft, { colourPalette, theme, selectionColour, zoom,
-    fontSizeFactorDigits, fontSizeFactorCornerMarks, fontSizeFactorCentreMarks }) => {
+const reducer = produce((draft, { colourPalette, theme, selectionColour,
+    customColours, zoom, fontSizeFactorDigits, fontSizeFactorCornerMarks,
+    fontSizeFactorCentreMarks }) => {
   if (colourPalette !== undefined) {
     draft.colourPalette = colourPalette
   }
@@ -16,6 +17,9 @@ const reducer = produce((draft, { colourPalette, theme, selectionColour, zoom,
   }
   if (selectionColour !== undefined) {
     draft.selectionColour = selectionColour
+  }
+  if (customColours !== undefined) {
+    draft.customColours = customColours
   }
   if (zoom !== undefined) {
     draft.zoom = zoom
@@ -36,6 +40,7 @@ const Provider = ({ children }) => {
     colourPalette: "default",
     theme: "default",
     selectionColour: "yellow",
+    customColours: [],
     zoom: 1,
     fontSizeFactorDigits: 1,
     fontSizeFactorCornerMarks: 1,
