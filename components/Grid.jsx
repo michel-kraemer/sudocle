@@ -41,7 +41,7 @@ function unionCells(cells) {
       }
     }
   }
-  return flatten(flatten(flatten(unions)))
+  return unions.map(u => flatten(flatten(u)))
 }
 
 function hasCageValue(x, y, cages) {
@@ -483,31 +483,32 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const cellSize = game.data.cellSize * SCALE_FACTOR
   const cellSizeFactor = useRef(1)
 
-  const regions = useMemo(() => game.data.regions.map(region => {
+  const regions = useMemo(() => flatten(game.data.regions.map(region => {
     return unionCells(region)
-  }), [game.data])
+  })), [game.data])
 
-  const cages = useMemo(() => game.data.cages
+  const cages = useMemo(() => flatten(game.data.cages
     .filter(cage => cage.cells?.length)
     .map(cage => {
-      let union = unionCells(cage.cells)
-
-      // find top-left cell
-      let topleft = cage.cells[0]
-      for (let cell of cage.cells) {
-        if (cell[0] < topleft[0]) {
-          topleft = cell
-        } else if (cell[0] === topleft[0] && cell[1] < topleft[1]) {
-          topleft = cell
+      let unions = unionCells(cage.cells)
+      return unions.map(union => {
+        // find top-left cell
+        let topleft = cage.cells[0]
+        for (let cell of cage.cells) {
+          if (cell[0] < topleft[0]) {
+            topleft = cell
+          } else if (cell[0] === topleft[0] && cell[1] < topleft[1]) {
+            topleft = cell
+          }
         }
-      }
 
-      return {
-        outline: union,
-        value: cage.value,
-        topleft
-      }
-    }), [game.data])
+        return {
+          outline: union,
+          value: cage.value,
+          topleft
+        }
+      })
+    })), [game.data])
 
   const selectCell = useCallback((cell, evt, append = false) => {
     let action = append ? ACTION_PUSH : ACTION_SET
