@@ -724,7 +724,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       poly.zIndex = 1
       poly.data = {
         draw: function (cellSize) {
-          let disposedOutline = disposePolygon(cage.outline.map(v => v * cellSize), regions, 1)
+          let disposedOutline = disposePolygon(cage.outline.map(v => v * cellSize),
+            regions.map(rarr => rarr.map(v => v * cellSize)), 1)
           let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
           poly.lineStyle({ width: 1, color: themeColours.foregroundColor })
           drawDashedPolygon(shrunkenOutline, 3, 2, poly)
