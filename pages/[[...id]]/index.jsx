@@ -281,7 +281,7 @@ const Index = () => {
     <Head>
       <meta httpEquiv="X-UA-Compatible" content="IE=edge"/>
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-      <meta name="description" content="Sudoku"/>
+      <meta name="description" content="A modern web app for Sudoku inspired by Cracking the Cryptic"/>
       <meta name="robots" content="index,follow"/>
       <link rel="preconnect" href="https://fonts.gstatic.com"/>
       <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"/>
