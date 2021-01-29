@@ -616,6 +616,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     ref.current.appendChild(newApp.view)
     app.current = newApp
 
+    // it seems we don't need the system ticker, so stop it
+    PIXI.Ticker.system.stop()
+
     // good for dpi < 2
     if (window.devicePixelRatio < 2) {
       PIXI.settings.ROUND_PIXELS = true
