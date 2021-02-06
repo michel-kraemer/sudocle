@@ -1,8 +1,8 @@
 import Button from "./Button"
 import SettingsContext from "./contexts/SettingsContext"
 import GameContext from "./contexts/GameContext"
-import { TYPE_MODE, TYPE_DIGITS, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
-  ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
+import { TYPE_MODE, TYPE_DIGITS, TYPE_COLOURS, TYPE_UNDO, TYPE_REDO,
+  TYPE_RESTART, TYPE_CHECK, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "./lib/Modes"
 import { useContext, useEffect, useRef, useReducer, useState } from "react"
 import classNames from "classnames"
@@ -66,6 +66,14 @@ const Pad = () => {
   function onDigit(digit) {
     updateGame({
       type: TYPE_DIGITS,
+      action: ACTION_SET,
+      digit
+    })
+  }
+
+  function onColour(digit) {
+    updateGame({
+      type: TYPE_COLOURS,
       action: ACTION_SET,
       digit
     })
@@ -171,7 +179,7 @@ const Pad = () => {
         </Button>
       )))}
       {game.mode === MODE_COLOUR && (colours.map((c, i) => (
-        <Button key={i} noPadding active onClick={() => onDigit(c.digit)}>
+        <Button key={i} noPadding active onClick={() => onColour(c.digit)}>
           <div className="digit-container">
             <div className={classNames("colour", { extended })}>
               <div className="colour" style={{ backgroundColor: c.colour }}></div>

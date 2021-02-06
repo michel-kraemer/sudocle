@@ -322,18 +322,17 @@ function gameReducerNoUndo(state, mode, action) {
             centreMarks: marksReducer(state.centreMarks, action,
               filterGivens(state.digits, state.selection))
           }
-        // the following lines are commented out because it should be possible
-        // to enter normal digits in colour mode
-        // case MODE_COLOUR:
-        //   return {
-        //     ...state,
-        //     colours: digitsReducer(state.colours, action, state.selection, "colour")
-        //   }
       }
       return {
         ...state,
         digits: digitsReducer(state.digits, action,
           filterGivens(state.digits, state.selection))
+      }
+
+    case TYPE_COLOURS:
+      return {
+        ...state,
+        colours: digitsReducer(state.colours, action, state.selection, "colour")
       }
 
     case TYPE_SELECTION:
@@ -428,7 +427,11 @@ function gameReducer(state, action) {
         newState = gameReducerNoUndo(newState, MODE_CORNER, action)
       }
     }
-    newState = gameReducerNoUndo(newState, highest, action)
+    if (highest === MODE_COLOUR) {
+      newState = gameReducerNoUndo(newState, highest, { ...action, type: TYPE_COLOURS })
+    } else {
+      newState = gameReducerNoUndo(newState, highest, action)
+    }
   } else {
     newState = gameReducerNoUndo(newState, newState.mode, action)
   }
