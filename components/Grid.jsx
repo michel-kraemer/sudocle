@@ -6,7 +6,7 @@ import Color from "color"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
 import { useCallback, useContext, useEffect, useMemo, useRef } from "react"
-import { flatten } from "lodash"
+import { flatten, forEachRight } from "lodash"
 
 const SCALE_FACTOR = 1.2
 const FONT_SIZE_DIGITS = 40
@@ -779,7 +779,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     all.addChild(grid)
 
     // add lines and arrows
-    game.data.lines.concat(game.data.arrows).forEach(line => {
+    forEachRight(game.data.lines.concat(game.data.arrows), line => {
       let poly = new PIXI.Graphics()
       poly.zIndex = -1
       poly.data = {
