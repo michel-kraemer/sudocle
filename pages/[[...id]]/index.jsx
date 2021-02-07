@@ -197,11 +197,27 @@ const Index = () => {
     }
 
     function onKeyUp(e) {
-      if (e.key === "Meta" || e.key === "Control" || e.key === "Shift" || e.key === "Alt") {
+      if (e.key === "Meta" || e.key === "Control") {
         updateGame({
           type: TYPE_MODE,
-          action: ACTION_REMOVE
+          action: ACTION_REMOVE,
+          mode: MODE_CENTRE
         })
+        e.preventDefault()
+      } else if (e.key === "Shift") {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_REMOVE,
+          mode: MODE_CORNER
+        })
+        e.preventDefault()
+      } else if (e.key === "Alt") {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_REMOVE,
+          mode: MODE_COLOUR
+        })
+        e.preventDefault()
       }
     }
 

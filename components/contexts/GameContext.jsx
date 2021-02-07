@@ -35,7 +35,7 @@ function makeEmptyState(data) {
   return {
     data,
     mode: MODE_NORMAL,
-    previousModes: [],
+    enabledModes: [MODE_NORMAL],
     digits: makeGivenDigits(data),
     cornerMarks: new Map(),
     centreMarks: new Map(),
@@ -59,48 +59,55 @@ function filterGivens(digits, selection) {
   return r
 }
 
-function modeReducer(mode, previousModes, action) {
+function modeReducer(mode, enabledModes, action) {
+  let newEnabledModes = [...enabledModes]
   switch (action.action) {
     case ACTION_SET:
-      return {
-        mode: action.mode,
-        previousModes: []
-      }
+      newEnabledModes = [action.mode]
+      break
 
     case ACTION_PUSH:
-      return {
-        mode: action.mode,
-        previousModes: [...previousModes, mode]
+      if (newEnabledModes.indexOf(action.mode) === -1) {
+        newEnabledModes.push(action.mode)
       }
+      break
 
-    case ACTION_REMOVE:
-      return {
-        mode: previousModes[previousModes.length - 1],
-        previousModes: previousModes.slice(0, previousModes.length - 1)
+    case ACTION_REMOVE: {
+      let i = newEnabledModes.indexOf(action.mode)
+      // Never remove the mode at position 0! It represents the previous one
+      if (i >= 1) {
+        newEnabledModes.splice(i, 1)
       }
-
-    case ACTION_ROTATE: {
-      let newMode = MODE_NORMAL
-      switch (mode) {
-        case MODE_NORMAL:
-          newMode = MODE_CORNER
-          break
-        case MODE_CORNER:
-          newMode = MODE_CENTRE
-          break
-        case MODE_CENTRE:
-          newMode = MODE_COLOUR
-          break
-      }
-      return {
-        mode: newMode,
-        previousModes
-      }
+      break
     }
   }
+
+  let newMode = MODE_NORMAL
+  if (newEnabledModes.length > 0) {
+    newMode = newEnabledModes[newEnabledModes.length - 1]
+  }
+
+  if (action.action === ACTION_ROTATE) {
+    switch (newMode) {
+      case MODE_NORMAL:
+        newMode = MODE_CORNER
+        break
+      case MODE_CORNER:
+        newMode = MODE_CENTRE
+        break
+      case MODE_CENTRE:
+        newMode = MODE_COLOUR
+        break
+      case MODE_COLOUR:
+        newMode = MODE_NORMAL
+        break
+    }
+    newEnabledModes = [newMode]
+  }
+
   return {
-    mode,
-    previousModes
+    mode: newMode,
+    enabledModes: newEnabledModes
   }
 }
 
@@ -305,7 +312,7 @@ function gameReducerNoUndo(state, mode, action) {
     case TYPE_MODE:
       return {
         ...state,
-        ...modeReducer(mode, state.previousModes, action)
+        ...modeReducer(mode, state.enabledModes, action)
       }
 
     case TYPE_DIGITS:
