@@ -252,7 +252,7 @@ function shortenLine(points, delta = 3) {
     lastPointX, lastPointY]
 }
 
-function makeCornerMarks(x, y, cellSize, fontSize, leaveRoom, n = 10, fontWeight = "normal") {
+function makeCornerMarks(x, y, cellSize, fontSize, leaveRoom, n = 11, fontWeight = "normal") {
   let result = []
 
   for (let i = 0; i < n; ++i) {
@@ -528,24 +528,30 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   }, [updateGame])
 
   const onKeyDown = useCallback(e => {
-    let digit = e.code.match("Digit([1-9])")
+    let digit = e.code.match("Digit([0-9])")
     if (digit) {
-      updateGame({
-        type: TYPE_DIGITS,
-        action: ACTION_SET,
-        digit: +digit[1]
-      })
-      e.preventDefault()
+      let nd = +digit[1]
+      if (nd > 0 || settings.enableZero) {
+        updateGame({
+          type: TYPE_DIGITS,
+          action: ACTION_SET,
+          digit: nd
+        })
+        e.preventDefault()
+      }
     }
 
-    let numpad = e.code.match("Numpad([1-9])")
+    let numpad = e.code.match("Numpad([0-9])")
     if (numpad && +e.key === +numpad[1]) {
-      updateGame({
-        type: TYPE_DIGITS,
-        action: ACTION_SET,
-        digit: +numpad[1]
-      })
-      e.preventDefault()
+      let nd = +numpad[1]
+      if (nd > 0 || settings.enableZero) {
+        updateGame({
+          type: TYPE_DIGITS,
+          action: ACTION_SET,
+          digit: nd
+        })
+        e.preventDefault()
+      }
     }
 
     if (e.key === "Backspace" || e.key === "Delete" || e.key === "Clear") {
@@ -554,7 +560,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         action: ACTION_REMOVE
       })
     }
-  }, [updateGame])
+  }, [updateGame, settings.enableZero])
 
   function onBackgroundClick(e) {
     e.stopPropagation()
@@ -934,7 +940,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
         let leaveRoom = hasCageValue(x, y, cages) || hasGivenCornerMarks(col)
         let cms = makeCornerMarks(x, y, cellSize, FONT_SIZE_CORNER_MARKS_HIGH_DPI,
-            leaveRoom, 10)
+            leaveRoom, 11)
         for (let cm of cms) {
           cm.visible = false
           cm.zIndex = 50

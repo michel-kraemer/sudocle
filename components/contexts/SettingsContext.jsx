@@ -8,7 +8,7 @@ const Dispatch = createContext()
 
 const reducer = produce((draft, { colourPalette, theme, selectionColour,
     customColours, zoom, fontSizeFactorDigits, fontSizeFactorCornerMarks,
-    fontSizeFactorCentreMarks }) => {
+    fontSizeFactorCentreMarks, enableZero }) => {
   if (colourPalette !== undefined) {
     draft.colourPalette = colourPalette
   }
@@ -33,6 +33,9 @@ const reducer = produce((draft, { colourPalette, theme, selectionColour,
   if (fontSizeFactorCentreMarks !== undefined) {
     draft.fontSizeFactorCentreMarks = fontSizeFactorCentreMarks
   }
+  if (enableZero !== undefined) {
+    draft.enableZero = enableZero
+  }
 })
 
 const Provider = ({ children }) => {
@@ -44,7 +47,8 @@ const Provider = ({ children }) => {
     zoom: 1,
     fontSizeFactorDigits: 1,
     fontSizeFactorCornerMarks: 1,
-    fontSizeFactorCentreMarks: 1
+    fontSizeFactorCentreMarks: 1,
+    enableZero: false
   })
 
   useEffect(() => {

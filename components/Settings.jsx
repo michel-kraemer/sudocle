@@ -1,3 +1,4 @@
+import Checkbox from "./Checkbox"
 import Palette from "./Palette"
 import RadioGroup from "./RadioGroup"
 import RangeSlider from "./RangeSlider"
@@ -54,6 +55,10 @@ const Settings = () => {
 
   function onChangeFontSizeCentreMarks(value) {
     updateSettings({ fontSizeFactorCentreMarks: value })
+  }
+
+  function onChangeEnableZero(enabled) {
+    updateSettings({ enableZero: enabled })
   }
 
   function fontSizeValueToDescription(value) {
@@ -173,6 +178,10 @@ const Settings = () => {
         onChange={onChangeFontSizeCentreMarks}
         valueToDescription={fontSizeValueToDescription} />
     </div>
+
+    <h3>Pad</h3>
+    <Checkbox name="enableZero" value={settings.enableZero}
+      onChange={onChangeEnableZero} label="Allow zero to be entered" />
 
     <style jsx>{styles}</style>
   </>)
