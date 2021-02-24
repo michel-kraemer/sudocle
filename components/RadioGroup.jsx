@@ -13,7 +13,7 @@ const RadioGroup = ({ name, value, options, onChange }) => {
         <input className="input" type="radio" name={name} id={`${name}-${o.id}`}
           checked={o.id === value} onChange={() => onChangeInternal(o.id)} />
       </div>
-      <label className="label" htmlFor={o.id}>
+      <label className="label" htmlFor={`${name}-${o.id}`}>
         {o.label}
       </label>
     </div>)}
