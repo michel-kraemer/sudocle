@@ -59,8 +59,8 @@ function filterGivens(digits, selection) {
   return r
 }
 
-function modeReducer(mode, enabledModes, action) {
-  let newEnabledModes = [...enabledModes]
+function modeReducer(draft, action) {
+  let newEnabledModes = [...draft.enabledModes]
   switch (action.action) {
     case ACTION_SET:
       newEnabledModes = [action.mode]
@@ -105,148 +105,140 @@ function modeReducer(mode, enabledModes, action) {
     newEnabledModes = [newMode]
   }
 
-  return {
-    mode: newMode,
-    enabledModes: newEnabledModes
-  }
+  draft.mode = newMode
+  draft.enabledModes = newEnabledModes
 }
 
 function marksReducer(marks, action, selection) {
-  return produce(marks, draft => {
-    switch (action.action) {
-      case ACTION_SET: {
-        for (let sc of selection) {
-          let digits = draft.get(sc)
-          if (digits === undefined) {
-            digits = new Set()
-            draft.set(sc, digits)
-          }
-          if (digits.has(action.digit)) {
-            digits.delete(action.digit)
-          } else {
-            digits.add(action.digit)
-          }
-          if (digits.size === 0) {
-            draft.delete(sc)
-          }
+  switch (action.action) {
+    case ACTION_SET: {
+      for (let sc of selection) {
+        let digits = marks.get(sc)
+        if (digits === undefined) {
+          digits = new Set()
+          marks.set(sc, digits)
         }
-        break
-      }
-
-      case ACTION_REMOVE: {
-        for (let sc of selection) {
-          draft.delete(sc)
+        if (digits.has(action.digit)) {
+          digits.delete(action.digit)
+        } else {
+          digits.add(action.digit)
         }
-        break
+        if (digits.size === 0) {
+          marks.delete(sc)
+        }
       }
+      break
     }
-  })
+
+    case ACTION_REMOVE: {
+      for (let sc of selection) {
+        marks.delete(sc)
+      }
+      break
+    }
+  }
 }
 
 function digitsReducer(digits, action, selection, attrName = "digit") {
-  return produce(digits, draft => {
-    switch (action.action) {
-      case ACTION_SET: {
-        for (let sc of selection) {
-          draft.set(sc, {
-            [attrName]: action.digit
-          })
-        }
-        break
+  switch (action.action) {
+    case ACTION_SET: {
+      for (let sc of selection) {
+        digits.set(sc, {
+          [attrName]: action.digit
+        })
       }
-
-      case ACTION_REMOVE: {
-        for (let sc of selection) {
-          draft.delete(sc)
-        }
-        break
-      }
+      break
     }
-  })
+
+    case ACTION_REMOVE: {
+      for (let sc of selection) {
+        digits.delete(sc)
+      }
+      break
+    }
+  }
 }
 
 function selectionReducer(selection, action, cells = []) {
-  return produce(selection, draft => {
-    switch (action.action) {
-      case ACTION_ALL:
-        draft.clear()
-        cells.forEach((row, y) => {
-          row.forEach((col, x) => {
-            draft.add(xytok(x, y))
-          })
+  switch (action.action) {
+    case ACTION_ALL:
+      selection.clear()
+      cells.forEach((row, y) => {
+        row.forEach((col, x) => {
+          selection.add(xytok(x, y))
         })
-        return
-      case ACTION_CLEAR:
-        draft.clear()
-        return
-      case ACTION_SET: {
-        draft.clear()
-        if (Array.isArray(action.k)) {
-          for (let k of action.k) {
-            draft.add(k)
-          }
-        } else {
-          draft.add(action.k)
+      })
+      return
+    case ACTION_CLEAR:
+      selection.clear()
+      return
+    case ACTION_SET: {
+      selection.clear()
+      if (Array.isArray(action.k)) {
+        for (let k of action.k) {
+          selection.add(k)
         }
-        return
+      } else {
+        selection.add(action.k)
       }
-      case ACTION_PUSH: {
-        if (Array.isArray(action.k)) {
-          for (let k of action.k) {
-            draft.add(k)
-          }
-        } else {
-          draft.add(action.k)
+      return
+    }
+    case ACTION_PUSH: {
+      if (Array.isArray(action.k)) {
+        for (let k of action.k) {
+          selection.add(k)
         }
-        return
+      } else {
+        selection.add(action.k)
       }
-      case ACTION_REMOVE: {
-        if (Array.isArray(action.k)) {
-          for (let k of action.k) {
-            draft.delete(k)
-          }
-        } else {
-          draft.delete(action.k)
+      return
+    }
+    case ACTION_REMOVE: {
+      if (Array.isArray(action.k)) {
+        for (let k of action.k) {
+          selection.delete(k)
         }
-        return
+      } else {
+        selection.delete(action.k)
       }
+      return
+    }
+  }
+
+  if (selection.size > 0 && (action.action === ACTION_RIGHT ||
+      action.action === ACTION_LEFT || action.action === ACTION_UP ||
+      action.action === ACTION_DOWN)) {
+    let last = [...selection].pop()
+    if (!action.append) {
+      selection.clear()
     }
 
-    if (draft.size > 0 && (action.action === ACTION_RIGHT ||
-        action.action === ACTION_LEFT || action.action === ACTION_UP ||
-        action.action === ACTION_DOWN)) {
-      let last = [...draft].pop()
-      if (!action.append) {
-        draft.clear()
-      }
+    let [lastX, lastY] = ktoxy(last)
+    let rowLength = cells[lastY]?.length || 1
+    let colLength = cells.length
 
-      let [lastX, lastY] = ktoxy(last)
-      let rowLength = cells[lastY]?.length || 1
-      let colLength = cells.length
-
-      let newK
-      switch (action.action) {
-        case ACTION_RIGHT:
-          newK = xytok((lastX + 1) % rowLength, lastY)
-          break
-        case ACTION_LEFT:
-          newK = xytok((lastX - 1 + rowLength) % rowLength, lastY)
-          break
-        case ACTION_UP:
-          newK = xytok(lastX, (lastY - 1 + colLength) % colLength)
-          break
-        case ACTION_DOWN:
-          newK = xytok(lastX, (lastY + 1) % colLength)
-          break
-      }
-
-      if (newK !== undefined) {
-        // re-add key so element becomes last in set
-        draft.delete(newK)
-        draft.add(newK)
-      }
+    let newK
+    switch (action.action) {
+      case ACTION_RIGHT:
+        newK = xytok((lastX + 1) % rowLength, lastY)
+        break
+      case ACTION_LEFT:
+        newK = xytok((lastX - 1 + rowLength) % rowLength, lastY)
+        break
+      case ACTION_UP:
+        newK = xytok(lastX, (lastY - 1 + colLength) % colLength)
+        break
+      case ACTION_DOWN:
+        newK = xytok(lastX, (lastY + 1) % colLength)
+        break
     }
-  })
+
+    if (newK !== undefined) {
+      // re-add key so element becomes last in set
+      selection.delete(newK)
+      selection.add(newK)
+    }
+  }
 }
 
 function checkDuplicates(grid, errors, flip = false) {
@@ -310,45 +302,32 @@ function checkReducer(digits, cells = []) {
 function gameReducerNoUndo(state, mode, action) {
   switch (action.type) {
     case TYPE_MODE:
-      return {
-        ...state,
-        ...modeReducer(mode, state.enabledModes, action)
-      }
+      modeReducer(state, action)
+      return
 
     case TYPE_DIGITS:
       switch (mode) {
         case MODE_CORNER:
-          return {
-            ...state,
-            cornerMarks: marksReducer(state.cornerMarks, action,
-              filterGivens(state.digits, state.selection))
-          }
+          marksReducer(state.cornerMarks, action,
+            filterGivens(state.digits, state.selection))
+          return
         case MODE_CENTRE:
-          return {
-            ...state,
-            centreMarks: marksReducer(state.centreMarks, action,
-              filterGivens(state.digits, state.selection))
-          }
+          marksReducer(state.centreMarks, action,
+            filterGivens(state.digits, state.selection))
+          return
       }
-      return {
-        ...state,
-        digits: digitsReducer(state.digits, action,
-          filterGivens(state.digits, state.selection))
-      }
+      digitsReducer(state.digits, action,
+        filterGivens(state.digits, state.selection))
+      return
 
     case TYPE_COLOURS:
-      return {
-        ...state,
-        colours: digitsReducer(state.colours, action, state.selection, "colour")
-      }
+      digitsReducer(state.colours, action, state.selection, "colour")
+      return
 
     case TYPE_SELECTION:
-      return {
-        ...state,
-        selection: selectionReducer(state.selection, action, state.data?.cells)
-      }
+      selectionReducer(state.selection, action, state.data?.cells)
+      return
   }
-  return state
 }
 
 function makeUndoState(state) {
@@ -361,104 +340,91 @@ function makeUndoState(state) {
 }
 
 function gameReducer(state, action) {
-  if (action.type === TYPE_INIT) {
-    return makeEmptyState(action.data)
-  }
+  return produce(state, draft => {
+    if (action.type === TYPE_INIT) {
+      return makeEmptyState(action.data)
+    }
 
-  if (action.type === TYPE_UNDO) {
-    if (state.nextUndoState === 0) {
-      return state
+    if (action.type === TYPE_UNDO) {
+      if (draft.nextUndoState === 0) {
+        return
+      }
+      let oldState = draft.undoStates[draft.nextUndoState - 1]
+      if (draft.nextUndoState === draft.undoStates.length) {
+        draft.undoStates.push(makeUndoState(draft))
+      }
+      Object.assign(draft, makeUndoState(oldState))
+      draft.nextUndoState = draft.nextUndoState - 1
+      return
     }
-    let oldState = state.undoStates[state.nextUndoState - 1]
-    let newUndoStates = state.undoStates
-    if (state.nextUndoState === newUndoStates.length) {
-      newUndoStates = [...newUndoStates, makeUndoState(state)]
-    }
-    return {
-      ...state,
-      ...makeUndoState(oldState),
-      undoStates: newUndoStates,
-      nextUndoState: state.nextUndoState - 1
-    }
-  }
 
-  if (action.type === TYPE_REDO) {
-    if (state.nextUndoState >= state.undoStates.length - 1) {
-      return state
+    if (action.type === TYPE_REDO) {
+      if (draft.nextUndoState >= draft.undoStates.length - 1) {
+        return
+      }
+      let oldState = draft.undoStates[draft.nextUndoState + 1]
+      Object.assign(draft, makeUndoState(oldState))
+      draft.nextUndoState = draft.nextUndoState + 1
+      return
     }
-    let oldState = state.undoStates[state.nextUndoState + 1]
-    return {
-      ...state,
-      ...makeUndoState(oldState),
-      nextUndoState: state.nextUndoState + 1
-    }
-  }
 
-  if (action.type === TYPE_CHECK) {
-    let errors = checkReducer(state.digits, state.data?.cells)
-    return {
-      ...state,
-      errors,
-      solved: state.solved || errors.size === 0
+    if (action.type === TYPE_CHECK) {
+      draft.errors = checkReducer(draft.digits, draft.data?.cells)
+      if (!draft.solved) {
+        draft.solved = draft.errors.size === 0
+      }
+      return
     }
-  }
 
-  let newState = state
-  if ((action.type === TYPE_DIGITS || action.type === TYPE_CORNER_MARKS ||
-      action.type === TYPE_CENTRE_MARKS || action.type === TYPE_COLOURS) &&
-      action.action === ACTION_REMOVE) {
-    let deleteColour = false
-    if (newState.mode === MODE_COLOUR) {
-      for (let sc of state.selection) {
-        deleteColour = newState.colours.has(sc)
-        if (deleteColour) {
-          break
+    if ((action.type === TYPE_DIGITS || action.type === TYPE_CORNER_MARKS ||
+        action.type === TYPE_CENTRE_MARKS || action.type === TYPE_COLOURS) &&
+        action.action === ACTION_REMOVE) {
+      let deleteColour = false
+      if (draft.mode === MODE_COLOUR) {
+        for (let sc of draft.selection) {
+          deleteColour = draft.colours.has(sc)
+          if (deleteColour) {
+            break
+          }
         }
       }
-    }
-    let highest = MODE_COLOUR
-    if (!deleteColour) {
-      for (let sc of state.selection) {
-        let digit = newState.digits.get(sc)
-        if (digit !== undefined && !digit.given) {
-          highest = MODE_NORMAL
-          break
+      let highest = MODE_COLOUR
+      if (!deleteColour) {
+        for (let sc of draft.selection) {
+          let digit = draft.digits.get(sc)
+          if (digit !== undefined && !digit.given) {
+            highest = MODE_NORMAL
+            break
+          }
+          if (highest === MODE_COLOUR && draft.centreMarks.has(sc)) {
+            highest = MODE_CENTRE
+          } else if (highest === MODE_COLOUR && draft.cornerMarks.has(sc)) {
+            highest = MODE_CENTRE
+          }
         }
-        if (highest === MODE_COLOUR && newState.centreMarks.has(sc)) {
-          highest = MODE_CENTRE
-        } else if (highest === MODE_COLOUR && newState.cornerMarks.has(sc)) {
-          highest = MODE_CENTRE
+        if (highest === MODE_CENTRE) {
+          gameReducerNoUndo(draft, MODE_CORNER, action)
         }
       }
-      if (highest === MODE_CENTRE) {
-        newState = gameReducerNoUndo(newState, MODE_CORNER, action)
+      if (highest === MODE_COLOUR) {
+        gameReducerNoUndo(draft, highest, { ...action, type: TYPE_COLOURS })
+      } else {
+        gameReducerNoUndo(draft, highest, action)
       }
-    }
-    if (highest === MODE_COLOUR) {
-      newState = gameReducerNoUndo(newState, highest, { ...action, type: TYPE_COLOURS })
     } else {
-      newState = gameReducerNoUndo(newState, highest, action)
+      gameReducerNoUndo(draft, draft.mode, action)
     }
-  } else {
-    newState = gameReducerNoUndo(newState, newState.mode, action)
-  }
 
-  if (newState !== state) {
     let us = makeUndoState(state)
-    let nus = makeUndoState(newState)
-    if (!isEqual(us, nus) && (state.nextUndoState === 0 ||
-        !isEqual(state.undoStates[state.nextUndoState - 1], us))) {
-      let newUndoStates = state.undoStates.slice(0, state.nextUndoState)
-      newUndoStates[state.nextUndoState] = us
-      newState = {
-        ...newState,
-        undoStates: newUndoStates,
-        nextUndoState: state.nextUndoState + 1
-      }
+    let nus = makeUndoState(draft)
+    if (!isEqual(us, nus) && (draft.nextUndoState === 0 ||
+        !isEqual(draft.undoStates[draft.nextUndoState - 1], us))) {
+      let newUndoStates = draft.undoStates.slice(0, draft.nextUndoState)
+      newUndoStates[draft.nextUndoState] = us
+      draft.undoStates = newUndoStates
+      draft.nextUndoState = draft.nextUndoState + 1
     }
-  }
-
-  return newState
+  })
 }
 
 const Provider = ({ children }) => {
