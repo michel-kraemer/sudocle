@@ -9,6 +9,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef } from "react"
 import { flatten, forEachRight } from "lodash"
 
 const SCALE_FACTOR = 1.2
+const ZOOM_DELTA = 0.05
 const FONT_SIZE_DIGITS = 40
 const FONT_SIZE_CORNER_MARKS_HIGH_DPI = 27
 const FONT_SIZE_CORNER_MARKS_LOW_DPI = 28
@@ -1067,11 +1068,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       onFinishRender, onTouchMove])
 
   useEffect(() => {
-    let cs = cellSize * settings.zoom
+    let cs = cellSize * (settings.zoom + ZOOM_DELTA)
     let allBounds
     let gridBounds
 
-    cellSizeFactor.current = settings.zoom
+    cellSizeFactor.current = settings.zoom + ZOOM_DELTA
     allElement.current.x = allElement.current.y = 0
 
     for (let i = 0; i < 10; ++i) {
@@ -1123,7 +1124,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       // leave 5 pixels of leeway for rounding errors
       let sx = (maxWidth - 5) / allBounds.width
       let sy = (maxHeight - 5) / allBounds.height
-      cellSizeFactor.current = Math.min(sx, sy) * settings.zoom
+      cellSizeFactor.current = Math.min(sx, sy) * (settings.zoom + ZOOM_DELTA)
       cs = Math.floor(cellSize * cellSizeFactor.current)
     }
 
