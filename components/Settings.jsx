@@ -10,12 +10,10 @@ const Settings = () => {
   const updateSettings = useContext(SettingsContext.Dispatch)
   const [themeInternal, setThemeInternal] = useState(settings.theme)
 
-  const refPlaceholderExtended = useRef()
   const refPlaceholderCTC = useRef()
   const refPlaceholderWong = useRef()
 
   const [coloursDefault, setColoursDefault] = useState([])
-  const [coloursExtended, setColoursExtended] = useState([])
   const [coloursCTC, setColoursCTC] = useState([])
   const [coloursWong, setColoursWong] = useState([])
   const [coloursCustom, setColoursCustom] = useState(settings.customColours)
@@ -98,7 +96,6 @@ const Settings = () => {
 
     let defaultColours = makeColours(document.body)
     setColoursDefault(defaultColours)
-    setColoursExtended(makeColours(refPlaceholderExtended.current))
     setColoursCTC(makeColours(refPlaceholderCTC.current))
     setColoursWong(makeColours(refPlaceholderWong.current))
     setColoursCustom(old => old.length === 0 ? defaultColours : old)
@@ -117,17 +114,12 @@ const Settings = () => {
     }]} onChange={onChangeTheme} />
 
     <h3>Colour Palette</h3>
-    <div className="palette-placeholder" data-colour-palette="extended" ref={refPlaceholderExtended} />
     <div className="palette-placeholder" data-colour-palette="ctc" ref={refPlaceholderCTC} />
     <div className="palette-placeholder" data-colour-palette="wong" ref={refPlaceholderWong} />
     <RadioGroup name="colourPalette" value={settings.colourPalette} options={[{
       id: "default",
-      label: <div className="palette-label"><div>Modern</div>
+      label: <div className="palette-label"><div>Sudocle</div>
         <Palette colours={coloursDefault} /></div>
-    }, {
-      id: "extended",
-      label: <div className="palette-label"><div>Modern (extended)</div>
-        <Palette colours={coloursExtended} /></div>
     }, {
       id: "ctc",
       label: <div className="palette-label"><div>Cracking the Cryptic</div>
