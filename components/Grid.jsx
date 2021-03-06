@@ -531,27 +531,23 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     let digit = e.code.match("Digit([0-9])")
     if (digit) {
       let nd = +digit[1]
-      if (nd > 0 || settings.enableZero) {
-        updateGame({
-          type: TYPE_DIGITS,
-          action: ACTION_SET,
-          digit: nd
-        })
-        e.preventDefault()
-      }
+      updateGame({
+        type: TYPE_DIGITS,
+        action: ACTION_SET,
+        digit: nd
+      })
+      e.preventDefault()
     }
 
     let numpad = e.code.match("Numpad([0-9])")
     if (numpad && +e.key === +numpad[1]) {
       let nd = +numpad[1]
-      if (nd > 0 || settings.enableZero) {
-        updateGame({
-          type: TYPE_DIGITS,
-          action: ACTION_SET,
-          digit: nd
-        })
-        e.preventDefault()
-      }
+      updateGame({
+        type: TYPE_DIGITS,
+        action: ACTION_SET,
+        digit: nd
+      })
+      e.preventDefault()
     }
 
     if (e.key === "Backspace" || e.key === "Delete" || e.key === "Clear") {
@@ -560,7 +556,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         action: ACTION_REMOVE
       })
     }
-  }, [updateGame, settings.enableZero])
+  }, [updateGame])
 
   function onBackgroundClick(e) {
     e.stopPropagation()
