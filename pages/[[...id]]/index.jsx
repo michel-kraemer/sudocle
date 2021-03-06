@@ -4,7 +4,7 @@ import Grid from "../../components/Grid"
 import Pad from "../../components/Pad"
 import Sidebar from "../../components/Sidebar"
 import StatusBar from "../../components/StatusBar"
-import { TYPE_MODE, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART,
+import { TYPE_MODE, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT,
   ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../../components/lib/Modes"
@@ -81,7 +81,7 @@ const Index = () => {
         let json = await response.json()
         if (json.error === undefined) {
           updateGame({
-            type: TYPE_RESTART,
+            type: TYPE_INIT,
             data: json
           })
         }

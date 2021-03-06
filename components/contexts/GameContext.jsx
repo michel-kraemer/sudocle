@@ -1,6 +1,6 @@
 import { xytok, ktoxy } from "../lib/utils"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLOURS,
-  TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_RESTART, TYPE_CHECK,
+  TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT, TYPE_CHECK,
   ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
   import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../lib/Modes"
@@ -361,8 +361,8 @@ function makeUndoState(state) {
 }
 
 function gameReducer(state, action) {
-  if (action.type === TYPE_RESTART) {
-    return makeEmptyState(action.data || state.data)
+  if (action.type === TYPE_INIT) {
+    return makeEmptyState(action.data)
   }
 
   if (action.type === TYPE_UNDO) {

@@ -7,7 +7,7 @@ module.exports = {
   TYPE_SELECTION: "selection",
   TYPE_UNDO: "undo",
   TYPE_REDO: "redo",
-  TYPE_RESTART: "restart",
+  TYPE_INIT: "init",
   TYPE_CHECK: "check",
 
   ACTION_ALL: "all",
