@@ -44,7 +44,8 @@ function makeEmptyState(data) {
     errors: new Set(),
     undoStates: [],
     nextUndoState: 0,
-    solved: (data || {}).solved || false
+    solved: (data || {}).solved || false,
+    checkCounter: 0
   }
 }
 
@@ -290,12 +291,6 @@ function checkReducer(digits, cells = []) {
   // check for duplicate digits in cols
   checkDuplicates(gridByCol, errors, true)
 
-  if (errors.size > 0) {
-    alert("That doesn't look right!")
-  } else {
-    alert("Looks good to me!")
-  }
-
   return errors
 }
 
@@ -378,6 +373,7 @@ function gameReducer(state, action) {
       if (!draft.solved) {
         draft.solved = draft.errors.size === 0
       }
+      draft.checkCounter++
       return
     }
 

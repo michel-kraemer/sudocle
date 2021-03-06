@@ -11,6 +11,11 @@
   line-height: 1rem;
   transition: all 100ms linear;
   position: relative;
+  padding: 0.25rem;
+
+  &.no-padding {
+    padding: 0;
+  }
 
   &:focus {
     outline: none;

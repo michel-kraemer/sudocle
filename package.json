@@ -28,6 +28,7 @@
     "polygon-clipping": "^0.15.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-modal": "^3.12.1",
     "styled-jsx-plugin-sass": "^1.0.0"
   },
   "devDependencies": {

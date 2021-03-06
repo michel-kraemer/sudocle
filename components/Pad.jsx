@@ -103,7 +103,7 @@ const Pad = () => {
     for (let i = 1; i <= 10; ++i) {
       let digit = i % 10
       digitButtons.push(
-        <Button key={i} onClick={() => onDigit(digit)}>
+        <Button key={i} noPadding onClick={() => onDigit(digit)}>
           <div className={classNames("digit-container", `digit-${digit}`)}>
             <div>
               {digit}
@@ -116,7 +116,7 @@ const Pad = () => {
   } else {
     for (let c of colours) {
       digitButtons.push(
-        <Button key={c.digit} onClick={() => onColour(c.digit)}>
+        <Button key={c.digit} noPadding onClick={() => onColour(c.digit)}>
           <div className={classNames("colour-container", { light: c.light })}
             style={{ backgroundColor: c.colour }}>
           </div>
@@ -131,18 +131,18 @@ const Pad = () => {
 
   return (
     <div className={classNames("pad", `mode-${game.mode}`)} ref={ref}>
-      <Button onClick={onDelete}>
+      <Button noPadding onClick={onDelete}>
         <div className="delete-container">
           <Delete size="1.05rem" />
         </div>
       </Button>
-      <Button onClick={onUndo}>
+      <Button noPadding onClick={onUndo}>
         <Undo size="1.05rem" />
       </Button>
-      <Button onClick={onRedo}>
+      <Button noPadding onClick={onRedo}>
         <Redo size="1.05rem" />
       </Button>
-      <Button active={game.mode === MODE_NORMAL} onClick={() => onMode(MODE_NORMAL)}>
+      <Button active={game.mode === MODE_NORMAL} noPadding onClick={() => onMode(MODE_NORMAL)}>
         <div className="label-container">
           Normal
         </div>
@@ -150,7 +150,7 @@ const Pad = () => {
       {digitButtons[0]}
       {digitButtons[1]}
       {digitButtons[2]}
-      <Button active={game.mode === MODE_CORNER} onClick={() => onMode(MODE_CORNER)}>
+      <Button active={game.mode === MODE_CORNER} noPadding onClick={() => onMode(MODE_CORNER)}>
         <div className="label-container">
           Corner
         </div>
@@ -158,7 +158,7 @@ const Pad = () => {
       {digitButtons[3]}
       {digitButtons[4]}
       {digitButtons[5]}
-      <Button active={game.mode === MODE_CENTRE} onClick={() => onMode(MODE_CENTRE)}>
+      <Button active={game.mode === MODE_CENTRE} noPadding onClick={() => onMode(MODE_CENTRE)}>
         <div className="label-container">
           Centre
         </div>
@@ -166,7 +166,7 @@ const Pad = () => {
       {digitButtons[6]}
       {digitButtons[7]}
       {digitButtons[8]}
-      <Button active={game.mode === MODE_COLOUR} onClick={() => onMode(MODE_COLOUR)}>
+      <Button active={game.mode === MODE_COLOUR} noPadding onClick={() => onMode(MODE_COLOUR)}>
         <div className="label-container">
           Colour
         </div>
@@ -183,7 +183,7 @@ const Pad = () => {
         {digitButtons[10]}
         {digitButtons[11]}
       </>)}
-      <Button onClick={onCheck}>
+      <Button noPadding onClick={onCheck}>
         <Check size="1.05rem" />
       </Button>
       <style jsx>{styles}</style>

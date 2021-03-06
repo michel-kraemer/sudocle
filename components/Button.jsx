@@ -2,7 +2,7 @@ import { useState } from "react"
 import classNames from "classnames"
 import styles from "./Button.scss"
 
-const Button = ({ active = false, onClick, children }) => {
+const Button = ({ active = false, onClick, noPadding = false, children }) => {
   const [pressed, setPressed] = useState(false)
 
   function onClickInternal(e) {
@@ -20,7 +20,7 @@ const Button = ({ active = false, onClick, children }) => {
     setPressed(false)
   }
 
-  return <div tabIndex="0" className={classNames("button", { active, pressed })}
+  return <div tabIndex="0" className={classNames("button", { active, pressed, "no-padding": noPadding })}
       onClick={onClickInternal} onMouseDown={onMouseDown} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}>
     {children}
     <style jsx>{styles}</style>

@@ -1,6 +1,7 @@
 import GameContext from "../../components/contexts/GameContext"
 import SettingsContext from "../../components/contexts/SettingsContext"
 import Grid from "../../components/Grid"
+import Modal from "../../components/Modal"
 import Pad from "../../components/Pad"
 import Sidebar from "../../components/Sidebar"
 import StatusBar from "../../components/StatusBar"
@@ -9,6 +10,7 @@ import { TYPE_MODE, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../../components/lib/Modes"
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import { Frown, ThumbsUp } from "lucide-react"
 import Head from "next/head"
 import styles from "./index.scss"
 
@@ -27,6 +29,8 @@ const Index = () => {
   const [portrait, setPortrait] = useState(false)
   const [rendering, setRendering] = useState(true)
   const [error, setError] = useState()
+  const [solvedModalOpen, setSolvedModalOpen] = useState()
+  const [errorModalOpen, setErrorModalOpen] = useState()
 
   function onMouseDown(e) {
     // check if we hit a target that would clear the selction
@@ -293,6 +297,14 @@ const Index = () => {
     }
   }, [game.nextUndoState, game.solved])
 
+  useEffect(() => {
+    if (game.errors.size > 0) {
+      setErrorModalOpen(true)
+    } else if (game.solved) {
+      setSolvedModalOpen(true)
+    }
+  }, [game.errors.size, game.solved, game.checkCounter])
+
   return (<>
     <Head>
       <meta httpEquiv="X-UA-Compatible" content="IE=edge"/>
@@ -344,6 +356,16 @@ const Index = () => {
         </div>
         <Sidebar />
       </div>
+
+      <Modal isOpen={solvedModalOpen} title="Congratulations!"
+          icon={<ThumbsUp size="3.25em" />} onOK={() => setSolvedModalOpen(false)}>
+        You have solved the puzzle
+      </Modal>
+      <Modal isOpen={errorModalOpen} title="Sorry" alert
+          icon={<Frown size="3.25em" />} onOK={() => setErrorModalOpen(false)}>
+        Something seems to be wrong
+      </Modal>
+
       <style jsx>{styles}</style>
     </div>
   </>)
