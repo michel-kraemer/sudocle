@@ -345,6 +345,11 @@ function gameReducer(state, action) {
       return makeEmptyState(action.data)
     }
 
+    // clear errors on every interaction
+    if (draft.errors.size > 0) {
+      draft.errors.clear()
+    }
+
     if (action.type === TYPE_UNDO) {
       if (draft.nextUndoState === 0) {
         return
