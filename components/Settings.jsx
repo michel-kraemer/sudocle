@@ -115,10 +115,7 @@ const Settings = () => {
     <h3>Theme</h3>
     <RadioGroup name="theme" value={themeInternal} options={[{
       id: "default",
-      label: "Modern"
-    }, {
-      id: "ctc",
-      label: "Cracking the Cryptic"
+      label: "Sudocle"
     }, {
       id: "dark",
       label: "Dark"
