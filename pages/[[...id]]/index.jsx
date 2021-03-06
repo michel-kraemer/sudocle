@@ -301,6 +301,7 @@ const Index = () => {
       <meta name="robots" content="index,follow"/>
       <link rel="preconnect" href="https://fonts.gstatic.com"/>
       <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"/>
+      <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:300,400,500" rel="stylesheet"/>
       <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700&display=swap" rel="stylesheet"/>
 
       <link rel="shortcut icon" href={`${process.env.basePath}/favicons/favicon.ico`}/>

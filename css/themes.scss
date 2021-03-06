@@ -17,8 +17,8 @@
   --border-radius-mini: 4px;
   --digit: #{lighten(#2b3f77, 20%)};
   --digit-small: #{lighten(#2b3f77, 10%)};
-  --button-hover: var(--grey-700);
-  --button-active-hover: var(--primary-highlight);
+  --button-hover: var(--grey-500);
+  --button-active: var(--grey-500);
   --selection-yellow: #ffde2a;
   --selection-red: #ff2a4b;
   --selection-green: #2aff6f;
@@ -66,6 +66,6 @@
   --alert: #bf616a;
   --digit: var(--primary);
   --digit-small: var(--primary-highlight);
-  --button-hover: var(--grey-600);
-  --button-active-hover: var(--primary-highlight);
+  --button-hover: #{lighten(#434c5e, 20%)};
+  --button-active: #{lighten(#434c5e, 20%)};
 }
