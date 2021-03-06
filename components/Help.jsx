@@ -73,17 +73,14 @@ const Help = () => {
 
     <h3>Keyboard shortcuts</h3>
     <div className="shortcuts">
-      <div className="key"><kbd>1</kbd> &ndash; <kbd>9</kbd></div>
+      <div className="key"><kbd>0</kbd> &ndash; <kbd>9</kbd></div>
       <div className="desc">Enter digit</div>
 
-      <div className="key"><kbd>{shift}</kbd> + ( <kbd>1</kbd> &ndash; <kbd>9</kbd> )</div>
+      <div className="key"><kbd>{shift}</kbd> + ( <kbd>0</kbd> &ndash; <kbd>9</kbd> )</div>
       <div className="desc">Enter corner mark</div>
 
-      <div className="key"><kbd>{meta}</kbd> + ( <kbd>1</kbd> &ndash; <kbd>9</kbd> )</div>
+      <div className="key"><kbd>{meta}</kbd> + ( <kbd>0</kbd> &ndash; <kbd>9</kbd> )</div>
       <div className="desc">Enter centre mark</div>
-
-      <div className="key"><kbd>{alt}</kbd> + ( <kbd>1</kbd> &ndash; <kbd>9</kbd> )</div>
-      <div className="desc">Colour selected cell(s)</div>
 
       <div className="key"><kbd>{del}</kbd></div>
       <div className="desc">Delete digit/mark/colour</div>
