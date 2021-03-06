@@ -257,7 +257,7 @@ function makeCornerMarks(x, y, cellSize, fontSize, leaveRoom, n = 11, fontWeight
 
   for (let i = 0; i < n; ++i) {
     let text = new PIXI.Text("", {
-      fontFamily: "Tahoma, Verdana, sans-serif",
+      fontFamily: "Roboto, sans-serif",
       fontSize,
       fontWeight
     })
@@ -392,7 +392,7 @@ function drawOverlay(overlay, mx, my, zIndex) {
       fontSize *= (1 / 0.75)
     }
     text = new PIXI.Text(overlay.text, {
-      fontFamily: "Tahoma, Verdana, sans-serif",
+      fontFamily: "Roboto, sans-serif",
       fontSize
     })
     text.anchor.set(0.5)
@@ -748,7 +748,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         // create cage label
         // use larger font and scale down afterwards to improve text rendering
         let topleftText = new PIXI.Text(cage.value, {
-          fontFamily: "Tahoma, Verdana, sans-serif",
+          fontFamily: "Roboto, sans-serif",
           fontSize: fontSizeCageLabels
         })
         topleftText.zIndex = 3
@@ -910,7 +910,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
-          fontFamily: "Tahoma, Verdana, sans-serif",
+          fontFamily: "Roboto, sans-serif",
           fontSize: FONT_SIZE_DIGITS
         })
         text.visible = false
@@ -957,7 +957,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
-          fontFamily: "Tahoma, Verdana, sans-serif",
+          fontFamily: "Roboto, sans-serif",
           fontSize: FONT_SIZE_CENTRE_MARKS_HIGH_DPI
         })
         text.zIndex = 50
