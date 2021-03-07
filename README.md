@@ -17,10 +17,13 @@ Sudocle offers the following features:
 * Optimised for various devices (mobile and desktop) as well as screens (any
   size and resolution)
 * Configurable interface:
-  * Multiple themes (including dark mode)
-  * Multiple colour palettes (including one optimised for colour blindness)
+  * Themes (including dark mode)
+  * Colour palettes (including one optimised for colour blindness)
+  * Custom colour palette
+  * Zoom
+  * Font sizes
   * and other options
-* Fully compatible to puzzles published by [Cracking the Cryptic](https://www.youtube.com/c/CrackingTheCryptic)
+* Fully compatible with puzzles published by [Cracking the Cryptic](https://www.youtube.com/c/CrackingTheCryptic)
   (see [usage instructions](#using-the-online-version) below)
 * High performance graphics renderer using WebGL or HTML Canvas
 
@@ -36,7 +39,7 @@ https://michelkraemer.com/sudocle
 
 If you want to play one of the puzzles featured on
 [Cracking the Cryptic](https://www.youtube.com/c/CrackingTheCryptic) in
-Sudocle, just copy the puzzle's ID from the CTC webapp and append it to the
+Sudocle, just copy the puzzle’s ID from the CTC webapp and append it to the
 URL shown above.
 
 For example, the “Miracle Sudoku” by Mitchell Lee, one of the most popular
@@ -47,6 +50,41 @@ https://app.crackingthecryptic.com/sudoku/tjN9LtrrTL
 This URL becomes:
 
 https://michelkraemer.com/sudocle/tjN9LtrrTL
+
+## Screenshots
+
+Here are some random screenshots (no spoilers!):
+
+<table>
+  <tr>
+    <td>
+      <img src="screenshots/rb7G2grJmN.png" width="100%" /><br />
+      <strong>The Gordian Knot</strong> by Joseph Nehme<br />
+      <a href="https://michelkraemer.com/sudocle/rb7G2grJmN">https://michelkraemer.com/sudocle/rb7G2grJmN</a>
+      <a href="https://www.youtube.com/watch?v=xNYwB8GEerE">https://www.youtube.com/watch?v=xNYwB8GEerE</a>
+    </td>
+    <td>
+      <img src="screenshots/QM8RdBLBb9.png" width="100%" />
+      <strong>German Whispers</strong> by Philipp Blume<br />
+      <a href="https://michelkraemer.com/sudocle/QM8RdBLBb9">https://michelkraemer.com/sudocle/QM8RdBLBb9</a>
+      <a href="https://www.youtube.com/watch?v=nH3vat8z9uM">https://www.youtube.com/watch?v=nH3vat8z9uM</a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="screenshots/Qm88j7J2dt.png" width="100%" />
+      <strong>Blackjack</strong> by apiyo<br />
+      <a href="https://michelkraemer.com/sudocle/Qm88j7J2dt">https://michelkraemer.com/sudocle/Qm88j7J2dt</a>
+      <a href="https://www.youtube.com/watch?v=eWZQcPWiroc">https://www.youtube.com/watch?v=eWZQcPWiroc</a>
+    </td>
+    <td>
+      <img src="screenshots/6dP4FN27HB.png" width="100%" />
+      <strong>Chaotic Wrogn</strong> by Undar Beyond<br />
+      <a href="https://michelkraemer.com/sudocle/6dP4FN27HB">https://michelkraemer.com/sudocle/6dP4FN27HB</a>
+      <a href="https://www.youtube.com/watch?v=zfIomUELg6c">https://www.youtube.com/watch?v=zfIomUELg6c</a>
+    </td>
+  </tr>
+</table>
 
 ## Building and running Sudocle locally
 
