@@ -45,11 +45,13 @@ URL shown above.
 For example, the “Miracle Sudoku” by Mitchell Lee, one of the most popular
 puzzles ever featured on the channel, has the following URL:
 
-https://app.crackingthecryptic.com/sudoku/tjN9LtrrTL
+<a href="https://app.crackingthecryptic.com/sudoku/tjN9LtrrTL">https:
+//app.crackingthecryptic.com/sudoku/<strong>tjN9LtrrTL</strong></a>
 
 This URL becomes:
 
-https://michelkraemer.com/sudocle/tjN9LtrrTL
+<a href="https://michelkraemer.com/sudocle/tjN9LtrrTL">https:
+//michelkraemer.com/sudocle/<strong>tjN9LtrrTL</strong></a>
 
 ## Screenshots
 
