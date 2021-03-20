@@ -15,6 +15,7 @@ const FONT_SIZE_CORNER_MARKS_HIGH_DPI = 27
 const FONT_SIZE_CORNER_MARKS_LOW_DPI = 28
 const FONT_SIZE_CENTRE_MARKS_HIGH_DPI = 29
 const FONT_SIZE_CENTRE_MARKS_LOW_DPI = 29
+const MAX_RENDER_LOOP_TIME = 500
 
 let PIXI
 if (typeof window !== "undefined") {
@@ -477,6 +478,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const selectionElements = useRef([])
   const errorElements = useRef([])
 
+  const renderLoopStarted = useRef(0)
+  const rendering = useRef(false)
+
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
   const settings = useContext(SettingsContext.State)
@@ -602,6 +606,29 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       selectCell(hit, e, true)
     }
   }, [selectCell])
+
+  // Custom render loop. Render on demand and then repeat rendering for
+  // MAX_RENDER_LOOP_TIME milliseconds. Then pause rendering again. This has
+  // two benefits: (1) it forces the browser to refresh the screen as quickly
+  // as possible (without this, there might be lags of 500ms - 1s every now
+  // and then!), (2) it saves CPU cycles and therefore battery.
+  const renderNow = useCallback(() => {
+    function doRender() {
+      let elapsed = new Date() - renderLoopStarted.current
+      if (app.current !== undefined && elapsed < MAX_RENDER_LOOP_TIME) {
+        rendering.current = true
+        app.current.render()
+        requestAnimationFrame(doRender)
+      } else {
+        rendering.current = false
+      }
+    }
+
+    renderLoopStarted.current = +new Date()
+    if (!rendering.current) {
+      doRender()
+    }
+  }, [])
 
   useEffect(() => {
     // optimised resolution for different screens
@@ -1235,8 +1262,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     selectionElements.current.forEach(s => {
       s.visible = game.selection.has(s.data.k)
     })
-    app.current.render()
-  }, [game.selection])
+    renderNow()
+  }, [game.selection, renderNow])
 
   useEffect(() => {
     let themeColours = getThemeColours(ref.current)
@@ -1338,12 +1365,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       e.visible = game.errors.has(e.data.k)
     }
 
-    app.current.render()
+    renderNow()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
       game.errors, settings.theme, settings.colourPalette, settings.selectionColour,
       settings.customColours, settings.zoom, settings.fontSizeFactorDigits,
       settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
-      maxWidth, maxHeight, portrait])
+      maxWidth, maxHeight, portrait, renderNow])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick} onDoubleClick={onDoubleClick}>
