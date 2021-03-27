@@ -16,6 +16,7 @@ const Pad = () => {
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
   const [colours, setColours] = useState([])
+  const [checkReady, setCheckReady] = useState(false)
 
   useEffect(() => {
     let computedStyle = getComputedStyle(ref.current)
@@ -47,6 +48,12 @@ const Pad = () => {
     }
     setColours(newColours)
   }, [settings.colourPalette, settings.customColours])
+
+  useEffect(() => {
+    // check if all cells are filled
+    let nCells = game.data.cells.reduce((acc, v) => acc + v.length, 0)
+    setCheckReady(nCells === game.digits.size)
+  }, [game.data, game.digits])
 
   function onDigit(digit) {
     updateGame({
@@ -183,7 +190,7 @@ const Pad = () => {
         {digitButtons[10]}
         {digitButtons[11]}
       </>)}
-      <Button noPadding onClick={onCheck}>
+      <Button noPadding onClick={onCheck} pulsating={!game.solved && checkReady}>
         <Check size="1.05rem" />
       </Button>
       <style jsx>{styles}</style>

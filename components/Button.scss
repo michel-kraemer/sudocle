@@ -1,3 +1,13 @@
+@keyframes pulsating {
+  0% {
+    background-color: var(--grey-700);
+  }
+
+  50% {
+    background-color: var(--button-active);
+  }
+}
+
 .button {
   display: flex;
   flex: 1;
@@ -33,5 +43,11 @@
     background-color: var(--primary);
     color: var(--bg);
     transition: none;
+  }
+
+  &.pulsating {
+    animation-name: pulsating;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
   }
 }
