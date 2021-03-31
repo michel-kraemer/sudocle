@@ -846,7 +846,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       poly.data = {
         draw: function (cellSize) {
           let points = shortenLine(flatten(arrow.wayPoints.map(wp =>
-              cellToScreenCoords(wp, grid.x, grid.y, cellSize))), arrow.thickness)
+              cellToScreenCoords(wp, grid.x, grid.y, cellSize))))
           let lastPointX = points[points.length - 2]
           let lastPointY = points[points.length - 1]
           let secondToLastX = points[points.length - 4]
