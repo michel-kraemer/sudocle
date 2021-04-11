@@ -43,7 +43,7 @@ function unionCells(cells) {
       }
     }
   }
-  return unions.map(u => flatten(flatten(u)))
+  return flatten(unions.map(u => u.map(u2 => flatten(u2))))
 }
 
 function hasCageValue(x, y, cages) {
