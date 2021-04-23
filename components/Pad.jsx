@@ -122,6 +122,9 @@ const Pad = () => {
     }
   } else {
     for (let c of colours) {
+      if (c === undefined) {
+        continue
+      }
       digitButtons.push(
         <Button key={c.digit} noPadding onClick={() => onColour(c.digit)}>
           <div className={classNames("colour-container", { light: c.light })}
