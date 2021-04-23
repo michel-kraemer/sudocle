@@ -33,7 +33,7 @@ const Pad = () => {
         newColours[pos - 1] = {
           colour: col,
           digit: i + 1,
-          light: Color(col).luminosity() > 0.9
+          light: Color(col.trim()).luminosity() > 0.9
         }
       }
     } else {
@@ -42,7 +42,7 @@ const Pad = () => {
         newColours[i] = {
           colour: col,
           digit: i + 1,
-          light: Color(col).luminosity() > 0.9
+          light: Color(col.trim()).luminosity() > 0.9
         }
       }
     }

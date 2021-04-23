@@ -36,7 +36,7 @@ const Palette = ({ colours, customisable = false, updatePalette }) => {
     {colours.map((c, i) => {
       if (customisable) {
         return <label key={i} className="colour customisable" style={{ backgroundColor: c }}>
-          <input type="color" className="colour" defaultValue={Color(c).hex()}
+          <input type="color" className="colour" defaultValue={Color(c.trim()).hex()}
             onInput={(e) => onChangeColour(i, e)} />
         </label>
       } else {

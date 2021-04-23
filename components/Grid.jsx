@@ -336,17 +336,25 @@ function makeCornerMarks(x, y, cellSize, fontSize, leaveRoom, n = 11, fontWeight
   return result
 }
 
+function getRGBColor(colorString) {
+  return Color(colorString.trim()).rgbNumber()
+}
+
+function getThemeColour(style, color) {
+  return getRGBColor(style.getPropertyValue(color))
+}
+
 function getThemeColours(elem) {
   let rootStyle = window.getComputedStyle(elem)
-  let backgroundColor = Color(rootStyle.getPropertyValue("--bg")).rgbNumber()
-  let foregroundColor = Color(rootStyle.getPropertyValue("--fg")).rgbNumber()
-  let digitColor = Color(rootStyle.getPropertyValue("--digit")).rgbNumber()
-  let smallDigitColor = Color(rootStyle.getPropertyValue("--digit-small")).rgbNumber()
+  let backgroundColor = getThemeColour(rootStyle, "--bg")
+  let foregroundColor = getThemeColour(rootStyle, "--fg")
+  let digitColor = getThemeColour(rootStyle, "--digit")
+  let smallDigitColor = getThemeColour(rootStyle, "--digit-small")
 
-  let selectionYellow = Color(rootStyle.getPropertyValue("--selection-yellow")).rgbNumber()
-  let selectionRed = Color(rootStyle.getPropertyValue("--selection-red")).rgbNumber()
-  let selectionBlue = Color(rootStyle.getPropertyValue("--selection-blue")).rgbNumber()
-  let selectionGreen = Color(rootStyle.getPropertyValue("--selection-green")).rgbNumber()
+  let selectionYellow = getThemeColour(rootStyle, "--selection-yellow")
+  let selectionRed = getThemeColour(rootStyle, "--selection-red")
+  let selectionBlue = getThemeColour(rootStyle, "--selection-blue")
+  let selectionGreen = getThemeColour(rootStyle, "--selection-green")
 
   return {
     backgroundColor,
@@ -418,11 +426,11 @@ function drawOverlay(overlay, mx, my, zIndex) {
       if (overlay.backgroundColor !== undefined || overlay.borderColor !== undefined) {
         let nBackgroundColour
         if (overlay.backgroundColor !== undefined) {
-          nBackgroundColour = Color(overlay.backgroundColor).rgbNumber()
+          nBackgroundColour = getRGBColor(overlay.backgroundColor)
           r.beginFill(nBackgroundColour, isGrey(nBackgroundColour) ? 1 : 0.5)
         }
         if (overlay.borderColor !== undefined) {
-          let nBorderColour = Color(overlay.borderColor).rgbNumber()
+          let nBorderColour = getRGBColor(overlay.borderColor)
           if (nBorderColour !== nBackgroundColour &&
               !(overlay.width === 1 && overlay.height === 1 && isGrey(nBorderColour))) {
             r.lineStyle({
@@ -822,7 +830,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
               cellToScreenCoords(wp, grid.x, grid.y, cellSize))))
           poly.lineStyle({
             width: line.thickness * SCALE_FACTOR,
-            color: Color(line.color).rgbNumber(),
+            color: getRGBColor(line.color),
             cap: PIXI.LINE_CAP.ROUND,
             join: PIXI.LINE_JOIN.ROUND
           })
@@ -865,7 +873,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           let ey2 = ey - dx * f
           poly.lineStyle({
             width: arrow.thickness * SCALE_FACTOR,
-            color: Color(arrow.color).rgbNumber(),
+            color: getRGBColor(arrow.color),
             cap: PIXI.LINE_CAP.ROUND,
             join: PIXI.LINE_JOIN.ROUND
           })
@@ -1350,7 +1358,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         if (palCol === undefined) {
           palCol = colours[1] || colours[0]
         }
-        let colourNumber = Color(palCol).rgbNumber()
+        let colourNumber = getRGBColor(palCol)
         e.clear()
         e.beginFill(colourNumber)
         e.drawRect(0.5, 0.5, scaledCellSize - 1, scaledCellSize - 1)
