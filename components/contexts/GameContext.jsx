@@ -337,7 +337,15 @@ function makeUndoState(state) {
 function gameReducer(state, action) {
   return produce(state, draft => {
     if (action.type === TYPE_INIT) {
-      return makeEmptyState(action.data)
+      let canonicalData = { ...action.data }
+      canonicalData.cells = canonicalData.cells || []
+      canonicalData.regions = canonicalData.regions || []
+      canonicalData.cages = canonicalData.cages || []
+      canonicalData.lines = canonicalData.lines || []
+      canonicalData.arrows = canonicalData.arrows || []
+      canonicalData.underlays = canonicalData.underlays || []
+      canonicalData.overlays = canonicalData.overlays || []
+      return makeEmptyState(canonicalData)
     }
 
     // clear errors on every interaction
