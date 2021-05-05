@@ -15,6 +15,7 @@ import Head from "next/head"
 import styles from "./index.scss"
 
 const DATABASE_URL = "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
+const FALLBACK_URL = "/puzzles/{}.json"
 
 const Index = () => {
   const game = useContext(GameContext.State)
@@ -68,14 +69,19 @@ const Index = () => {
     id = id.substring(id.lastIndexOf("/") + 1)
 
     let url
+    let fallbackUrl
     if (id === null || id === "") {
       url = `${process.env.basePath}/empty-grid.json`
     } else {
       url = DATABASE_URL.replace("{}", id)
+      fallbackUrl = FALLBACK_URL.replace("{}", id)
     }
 
     async function load() {
       let response = await fetch(url)
+      if (response.status !== 200) {
+        response = await fetch(fallbackUrl)
+      }
       if (response.status === 404) {
         setError(`The puzzle with the ID ‘${id}’ does not exist`)
       } else if (response.status !== 200) {
