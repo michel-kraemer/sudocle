@@ -15,7 +15,7 @@ import Head from "next/head"
 import styles from "./index.scss"
 
 const DATABASE_URL = "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
-const FALLBACK_URL = "/puzzles/{}.json"
+const FALLBACK_URL = `${process.env.basePath}/puzzles/{}.json`
 
 const Index = () => {
   const game = useContext(GameContext.State)
