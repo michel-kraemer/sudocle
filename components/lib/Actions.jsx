@@ -9,6 +9,7 @@ module.exports = {
   TYPE_REDO: "redo",
   TYPE_INIT: "init",
   TYPE_CHECK: "check",
+  TYPE_PAUSE: "pause",
 
   ACTION_ALL: "all",
   ACTION_SET: "set",

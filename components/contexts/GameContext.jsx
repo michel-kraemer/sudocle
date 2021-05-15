@@ -1,6 +1,6 @@
 import { xytok, ktoxy } from "../lib/utils"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLOURS,
-  TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT, TYPE_CHECK,
+  TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT, TYPE_CHECK, TYPE_PAUSE,
   ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
   import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../lib/Modes"
@@ -45,6 +45,7 @@ function makeEmptyState(data) {
     undoStates: [],
     nextUndoState: 0,
     solved: (data || {}).solved || false,
+    paused: false,
     checkCounter: 0
   }
 }
@@ -348,6 +349,11 @@ function gameReducer(state, action) {
       return makeEmptyState(canonicalData)
     }
 
+    if (action.type !== TYPE_PAUSE && state.paused) {
+      // ignore any interaction when paused
+      return
+    }
+
     // clear errors on every interaction
     if (draft.errors.size > 0) {
       draft.errors.clear()
@@ -382,6 +388,11 @@ function gameReducer(state, action) {
         draft.solved = draft.errors.size === 0
       }
       draft.checkCounter++
+      return
+    }
+
+    if (action.type === TYPE_PAUSE) {
+      draft.paused = !draft.paused
       return
     }
 

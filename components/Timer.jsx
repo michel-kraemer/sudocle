@@ -1,20 +1,62 @@
-import { useEffect, useState } from "react"
+import Button from "./Button"
+import GameContext from "./contexts/GameContext"
+import { TYPE_PAUSE } from "./lib/Actions"
+import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import { Pause } from "lucide-react"
+import styles from "./Timer.scss"
 
 const Timer = ({ solved }) => {
+  const game = useContext(GameContext.State)
+  const updateGame = useContext(GameContext.Dispatch)
+
   const [start] = useState(+new Date())
   const [end, setEnd] = useState()
   const [next, setNext] = useState(+new Date())
   const [s, setSeconds] = useState(0)
   const [m, setMinutes] = useState(0)
   const [h, setHours] = useState(0)
+  const [continueVisible, setContinueVisible] = useState(false)
+  const [pauseStart, setPauseStart] = useState(undefined)
+  const [pausedElapsed, setPausedElapsed] = useState(0)
+  const nextTimer = useRef()
 
   if (solved && end === undefined) {
     setEnd(+new Date())
   }
 
+  const onPause = useCallback(() => {
+    if (game.paused) {
+      let nextRemaining = next - pauseStart
+      setNext(+new Date() - (1000 - nextRemaining))
+      let elapsed = +new Date() - pauseStart
+      setPausedElapsed(oldElapsed => oldElapsed + elapsed)
+      setNext(+new Date())
+      updateGame({
+        type: TYPE_PAUSE
+      })
+    } else {
+      updateGame({
+        type: TYPE_PAUSE
+      })
+      setContinueVisible(true)
+      setPauseStart(+new Date())
+    }
+  }, [game.paused, next, pauseStart, updateGame])
+
+  function onContinue() {
+    setContinueVisible(false)
+    onPause()
+  }
+
   useEffect(() => {
+    clearTimeout(nextTimer.current)
+    if (game.paused) {
+      return
+    }
+
     let now = end || +new Date()
-    let elapsedSeconds = Math.floor((now - start) / 1000)
+    let elapsed = now - start - pausedElapsed
+    let elapsedSeconds = Math.floor(elapsed / 1000)
     let news = elapsedSeconds % 60
     if (news !== s) {
       setSeconds(news)
@@ -28,12 +70,26 @@ const Timer = ({ solved }) => {
       setHours(newh)
     }
 
-    setTimeout(() => {
+    nextTimer.current = setTimeout(() => {
       setNext(next + 1000)
     }, next - now)
-  }, [s, m, h, start, end, next])
+  }, [s, m, h, start, end, next, game.paused, pausedElapsed])
 
-  return <div className="timer">{h > 0 && <>{("" + h).padStart(2, "0")}:</>}{("" + m).padStart(2, "0")}:{("" + s).padStart(2, "0")}</div>
+  return <>
+    <div className="timer">
+      {h > 0 && <>{("" + h).padStart(2, "0")}:</>}{("" + m).padStart(2, "0")}:{("" + s).padStart(2, "0")}
+      <div className="pause-button" onClick={onPause}><Pause /></div>
+    </div>
+    {continueVisible && <div className="timer-pause-overlay">
+      <div className="continue-area">
+        <div className="title"><Pause size="1.5em" /> Game paused</div>
+        <div className="button-area">
+          <Button onClick={onContinue}>Continue</Button>
+        </div>
+      </div>
+    </div>}
+    <style jsx>{styles}</style>
+  </>
 }
 
 export default Timer

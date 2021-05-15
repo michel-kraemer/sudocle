@@ -9,6 +9,7 @@
   display: flex;
   transform: translateX(calc(100% - 2.5rem));
   transition: transform 0.2s ease-in;
+  z-index: 30000;
 
   &.visible {
     transform: translateX(0);
