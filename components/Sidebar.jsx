@@ -1,16 +1,19 @@
 import About from "./About"
 import Help from "./Help"
+import Rules from "./Rules"
 import Settings from "./Settings"
+import GameContext from "./contexts/GameContext"
 import SidebarContext from "./contexts/SidebarContext"
 import classNames from "classnames"
-import { HelpCircle, Info, Sliders, X } from "lucide-react"
+import { BookOpen, HelpCircle, Info, Sliders, X } from "lucide-react"
 import { useContext } from "react"
-import { ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
+import { ID_RULES, ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
 import styles from "./Sidebar.scss"
 
 const Sidebar = () => {
   const sidebarState = useContext(SidebarContext.State)
   const onTabClick = useContext(SidebarContext.OnTabClick)
+  const game = useContext(GameContext.State)
 
   let tabs = [{
     id: ID_SETTINGS,
@@ -22,6 +25,14 @@ const Sidebar = () => {
     id: ID_ABOUT,
     icon: <Info />
   }]
+
+  if (game.data !== undefined && game.data.title !== undefined && game.data.rules !== undefined) {
+    // add rules tab if game data contains rules
+    tabs.unshift({
+      id: ID_RULES,
+      icon: <BookOpen />
+    })
+  }
 
   // reverse tabs so last element becomes lowest in z-order
   tabs.reverse()
@@ -59,6 +70,7 @@ const Sidebar = () => {
       </svg>
     </div>
     <div className="sidebar-container">
+      {sidebarState.expanded && sidebarState.activeTabId === ID_RULES && <Rules />}
       {sidebarState.expanded && sidebarState.activeTabId === ID_SETTINGS && <Settings />}
       {sidebarState.expanded && sidebarState.activeTabId === ID_HELP && <Help />}
       {sidebarState.expanded && sidebarState.activeTabId === ID_ABOUT && <About />}

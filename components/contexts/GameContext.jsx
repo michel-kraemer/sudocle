@@ -346,6 +346,23 @@ function gameReducer(state, action) {
       canonicalData.arrows = canonicalData.arrows || []
       canonicalData.underlays = canonicalData.underlays || []
       canonicalData.overlays = canonicalData.overlays || []
+
+      // look for title, author, and rules
+      for (let cage of canonicalData.cages) {
+        if (cage.cells === undefined || !Array.isArray(cage.cells) ||
+            cage.cells.length === 0) {
+          if (typeof cage.value === "string") {
+            if (cage.value.startsWith("title:")) {
+              canonicalData.title = canonicalData.title || cage.value.substring(6).trim()
+            } else if (cage.value.startsWith("author:")) {
+              canonicalData.author = canonicalData.author || cage.value.substring(7).trim()
+            } else if (cage.value.startsWith("rules:")) {
+              canonicalData.rules = canonicalData.rules || cage.value.substring(6).trim()
+            }
+          }
+        }
+      }
+
       return makeEmptyState(canonicalData)
     }
 

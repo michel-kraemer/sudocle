@@ -1,8 +1,8 @@
 import GameContext from "./contexts/GameContext"
 import SidebarContext from "./contexts/SidebarContext"
-import { ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
+import { ID_RULES, ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
 import Timer from "./Timer"
-import { HelpCircle, Info, Sliders } from "lucide-react"
+import { BookOpen, HelpCircle, Info, Sliders } from "lucide-react"
 import { useContext } from "react"
 import styles from "./StatusBar.scss"
 
@@ -13,6 +13,11 @@ const StatusBar = () => {
   return <div className="status-bar">
     <Timer solved={game.solved} />
     <div className="menu">
+      {game.data !== undefined && game.data.title !== undefined && game.data.rules !== undefined && (
+        <div className="menu-item" onClick={() => onTabClick(ID_RULES)}>
+          <BookOpen />
+        </div>
+      )}
       <div className="menu-item" onClick={() => onTabClick(ID_SETTINGS)}>
         <Sliders />
       </div>
