@@ -3,10 +3,6 @@ import styles from "./Help.scss"
 
 const Help = () => {
   const [isApple, setIsApple] = useState(false)
-  const [keyW, setKeyW] = useState("w")
-  const [keyA, setKeyA] = useState("a")
-  const [keyS, setKeyS] = useState("s")
-  const [keyD, setKeyD] = useState("d")
   const [keyZ, setKeyZ] = useState("z")
   const [keyX, setKeyX] = useState("x")
   const [keyC, setKeyC] = useState("c")
@@ -32,10 +28,6 @@ const Help = () => {
     }
 
     async function getInternationalKeyboardKeys() {
-      setKeyW(await getKeyboardKey("KeyW", "w"))
-      setKeyA(await getKeyboardKey("KeyA", "a"))
-      setKeyS(await getKeyboardKey("KeyS", "s"))
-      setKeyD(await getKeyboardKey("KeyD", "d"))
       setKeyZ(await getKeyboardKey("KeyZ", "z"))
       setKeyX(await getKeyboardKey("KeyX", "x"))
       setKeyC(await getKeyboardKey("KeyC", "c"))
@@ -116,15 +108,10 @@ const Help = () => {
       <div className="key"><kbd>{meta}</kbd> + <kbd>A</kbd></div>
       <div className="desc">Select all cells</div>
 
-      <div className="key"><kbd>&#x2190;</kbd>, <kbd>&#x2191;</kbd>, <kbd>&#x2192;</kbd>, <kbd>&#x2193;</kbd><br />
-        <div className="alt-key"><kbd>{keyW.toUpperCase()}</kbd>, <kbd>
-          {keyA.toUpperCase()}</kbd>, <kbd>{keyS.toUpperCase()}</kbd>, <kbd>
-          {keyD.toUpperCase()}</kbd></div></div>
+      <div className="key"><kbd>&#x2190;</kbd>, <kbd>&#x2191;</kbd>, <kbd>&#x2192;</kbd>, <kbd>&#x2193;</kbd></div>
       <div className="desc">Move selection</div>
 
-      <div className="key"><kbd>{meta}</kbd> + ( <kbd>&#x2190;</kbd> &ndash; <kbd>&#x2193;</kbd> )<br />
-        <div className="alt-key"><kbd>{meta}</kbd> + ( <kbd>
-          {keyW.toUpperCase()}</kbd> &ndash; <kbd>{keyD.toUpperCase()}</kbd> )</div></div>
+      <div className="key"><kbd>{meta}</kbd> + ( <kbd>&#x2190;</kbd> &ndash; <kbd>&#x2193;</kbd> )</div>
       <div className="desc">Add to selection</div>
     </div>
     <style jsx>{styles}</style>

@@ -182,28 +182,28 @@ const Index = () => {
           mode: MODE_COLOUR
         })
         e.preventDefault()
-      } else if (e.key === "ArrowRight" || e.code === "KeyD") {
+      } else if (e.key === "ArrowRight") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_RIGHT,
           append: (e.metaKey || e.ctrlKey)
         })
         e.preventDefault()
-      } else if (e.key === "ArrowLeft" || e.code === "KeyA") {
+      } else if (e.key === "ArrowLeft") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_LEFT,
           append: (e.metaKey || e.ctrlKey)
         })
         e.preventDefault()
-      } else if (e.key === "ArrowUp" || e.code === "KeyW") {
+      } else if (e.key === "ArrowUp") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_UP,
           append: (e.metaKey || e.ctrlKey)
         })
         e.preventDefault()
-      } else if (e.key === "ArrowDown" || e.code === "KeyS") {
+      } else if (e.key === "ArrowDown") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_DOWN,
