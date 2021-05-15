@@ -103,6 +103,10 @@ const Index = () => {
 
   // register keyboard handlers
   useEffect(() => {
+    let metaPressed = false
+    let shiftPressed = false
+    let altPressed = false
+
     function onKeyDown(e) {
       if (e.key === " ") {
         updateGame({
@@ -116,6 +120,7 @@ const Index = () => {
           action: ACTION_PUSH,
           mode: MODE_CENTRE
         })
+        metaPressed = true
         e.preventDefault()
       } else if (e.key === "Shift") {
         updateGame({
@@ -123,6 +128,7 @@ const Index = () => {
           action: ACTION_PUSH,
           mode: MODE_CORNER
         })
+        shiftPressed = true
         e.preventDefault()
       } else if (e.key === "Alt") {
         updateGame({
@@ -130,6 +136,7 @@ const Index = () => {
           action: ACTION_PUSH,
           mode: MODE_COLOUR
         })
+        altPressed = true
         e.preventDefault()
       } else if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey)) {
         updateGame({
@@ -213,6 +220,7 @@ const Index = () => {
           action: ACTION_REMOVE,
           mode: MODE_CENTRE
         })
+        metaPressed = false
         e.preventDefault()
       } else if (e.key === "Shift") {
         updateGame({
@@ -220,6 +228,7 @@ const Index = () => {
           action: ACTION_REMOVE,
           mode: MODE_CORNER
         })
+        shiftPressed = false
         e.preventDefault()
       } else if (e.key === "Alt") {
         updateGame({
@@ -227,14 +236,39 @@ const Index = () => {
           action: ACTION_REMOVE,
           mode: MODE_COLOUR
         })
+        altPressed = false
         e.preventDefault()
+      }
+    }
+
+    function onBlur() {
+      if (metaPressed) {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_REMOVE,
+          mode: MODE_CENTRE
+        })
+      } else if (shiftPressed) {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_REMOVE,
+          mode: MODE_CORNER
+        })
+      } else if (altPressed) {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_REMOVE,
+          mode: MODE_COLOUR
+        })
       }
     }
 
     window.addEventListener("keydown", onKeyDown)
     window.addEventListener("keyup", onKeyUp)
+    window.addEventListener("blur", onBlur)
 
     return () => {
+      window.removeEventListener("blur", onBlur)
       window.removeEventListener("keyup", onKeyUp)
       window.removeEventListener("keydown", onKeyDown)
     }
