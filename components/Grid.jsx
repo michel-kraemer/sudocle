@@ -410,9 +410,6 @@ function drawOverlay(overlay, mx, my, zIndex) {
       text.scale.x = 0.75
       text.scale.y = 0.75
     }
-    if (overlay.backgroundColor === undefined) {
-      text.alpha = 0.25
-    }
     r.addChild(text)
   }
 
