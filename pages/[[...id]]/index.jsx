@@ -9,6 +9,7 @@ import { TYPE_MODE, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT,
   ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../../components/lib/Modes"
+import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter.js"
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Frown, ThumbsUp } from "lucide-react"
 import Head from "next/head"
@@ -68,16 +69,7 @@ const Index = () => {
     }
     id = id.substring(id.lastIndexOf("/") + 1)
 
-    let url
-    let fallbackUrl
-    if (id === null || id === "") {
-      url = `${process.env.basePath}/empty-grid.json`
-    } else {
-      url = DATABASE_URL.replace("{}", id)
-      fallbackUrl = FALLBACK_URL.replace("{}", id)
-    }
-
-    async function load() {
+    async function load(url, fallbackUrl) {
       let response = await fetch(url)
       if (response.status !== 200) {
         response = await fetch(fallbackUrl)
@@ -98,7 +90,58 @@ const Index = () => {
       }
     }
 
-    load()
+    async function loadFPuzzles() {
+      let iframe = document.createElement("iframe")
+      iframe.style.width = 0
+      iframe.style.height = 0
+      iframe.style.border = 0
+      iframe.style.position = "absolute"
+      iframe.sandbox = "allow-scripts"
+      iframe.srcdoc = `<head>
+        <script src="https://www.f-puzzles.com/Compression.js?v=1.11.2"
+          referrerpolicy="no-referrer"></script>
+        <script>
+          window.addEventListener("message", function (e) {
+            let puzzle = JSON.parse(compressor.decompressFromBase64(e.data))
+            e.source.postMessage(puzzle, e.origin)
+          })
+        </script>
+      </head>`
+
+      function responseListener(e) {
+        if (e.origin === "null" && e.source === iframe.contentWindow) {
+          window.removeEventListener("message", responseListener)
+          iframe.remove()
+          updateGame({
+            type: TYPE_INIT,
+            data: convertFPuzzle(e.data)
+          })
+        }
+      }
+
+      window.addEventListener("message", responseListener)
+
+      iframe.onload = function () {
+        let puzzle = decodeURIComponent(id.substring(8))
+        iframe.contentWindow.postMessage(puzzle, "*")
+      }
+
+      document.body.appendChild(iframe)
+    }
+
+    if (id.startsWith("fpuzzles")) {
+      loadFPuzzles()
+    } else {
+      let url
+      let fallbackUrl
+      if (id === null || id === "") {
+        url = `${process.env.basePath}/empty-grid.json`
+      } else {
+        url = DATABASE_URL.replace("{}", id)
+        fallbackUrl = FALLBACK_URL.replace("{}", id)
+      }
+      load(url, fallbackUrl)
+    }
   }, [game.data, updateGame])
 
   // register keyboard handlers
