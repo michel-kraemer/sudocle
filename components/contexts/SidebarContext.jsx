@@ -43,8 +43,10 @@ const Provider = ({ children }) => {
   )
 }
 
-export default {
+const SidebarContext = {
   State,
   OnTabClick,
   Provider
 }
+
+export default SidebarContext

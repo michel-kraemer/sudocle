@@ -474,8 +474,10 @@ const Provider = ({ children }) => {
   )
 }
 
-export default {
+const GameContext = {
   State,
   Dispatch,
   Provider
 }
+
+export default GameContext

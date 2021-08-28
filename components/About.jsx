@@ -10,8 +10,8 @@ const About = () => {
   return (<>
     <a href="https://github.com/michel-kraemer/sudocle"
       target="_blank" rel="noreferrer"><div className="logo">
-      {settings.theme !== "dark" && <img src={require("../assets/logo.svg")} />}
-      {settings.theme === "dark" && <img src={require("../assets/logo-white.svg")} />}
+      {settings.theme !== "dark" && <img src={require("../assets/logo.svg")} alt="Sudocle logo" />}
+      {settings.theme === "dark" && <img src={require("../assets/logo-white.svg")} alt="Sudocle logo" />}
       <div className="version">v{process.env.version}</div>
     </div></a>
     <p className="copyright">Copyright &copy; 2020&ndash;{currentYear} <a href="https://michelkraemer.com"
