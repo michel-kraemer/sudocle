@@ -125,9 +125,9 @@ export function convertFPuzzle(puzzle) {
               newArrow.wayPoints[0][0] += 0.21 * dx
               newArrow.wayPoints[0][1] += 0.21 * dy
             } else if (dx === 0 && dy !== 0) {
-              newArrow.wayPoints[0][0] += 0.31 * dy
+              newArrow.wayPoints[0][1] += 0.31 * dy
             } else if (dy === 0 && dx !== 0) {
-              newArrow.wayPoints[0][1] += 0.31 * dx
+              newArrow.wayPoints[0][0] += 0.31 * dx
             }
           }
           arrows.push(newArrow)
