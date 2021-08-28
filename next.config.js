@@ -18,6 +18,10 @@ const config = {
     version
   },
 
+  eslint: {
+    dirs: ["components", "pages"]
+  },
+
   webpack: (config, { dev, defaultLoaders }) => {
     config.module.rules.push({
       test: /\.scss$/,

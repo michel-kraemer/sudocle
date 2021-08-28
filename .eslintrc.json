@@ -1,0 +1,23 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "@next/next/google-font-display": "off",
+    "@next/next/no-img-element": "off",
+    "comma-dangle": ["error", "never"],
+    "comma-spacing": ["error", { "before": false, "after": true }],
+    "comma-style": ["error", "last"],
+    "eol-last": "error",
+    "eqeqeq": ["error", "always"],
+    "no-multiple-empty-lines": ["error", { "max": 1 }],
+    "no-tabs": "error",
+    "no-trailing-spaces": "error",
+    "no-var": "error",
+    "object-curly-spacing": ["error", "always"],
+    "quotes": ["error", "double"],
+    "react/display-name": "off",
+    "react/jsx-curly-spacing": ["error", "never"],
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off",
+    "semi": ["error", "never"]
+  }
+}
