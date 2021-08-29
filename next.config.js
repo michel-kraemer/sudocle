@@ -19,7 +19,7 @@ const config = {
   },
 
   eslint: {
-    dirs: ["components", "pages"]
+    dirs: ["components", "cypress", "pages"]
   },
 
   webpack: (config, { dev, defaultLoaders }) => {
