@@ -1,4 +1,4 @@
-FROM node:15 as build
+FROM node:16 as build
 
 ARG MATOMO_URL
 ARG MATOMO_SITE_ID
