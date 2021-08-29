@@ -151,6 +151,18 @@ export function convertFPuzzle(puzzle) {
     })
   }
 
+  if (puzzle.line !== undefined && puzzle.line !== null) {
+    for (let l of puzzle.line) {
+      for (let m of l.lines) {
+        lines.push({
+          wayPoints: m.map(c => cellToCell(c)),
+          color: l.outlineC || "#000000",
+          thickness: (l.width || 0.05) * 20
+        })
+      }
+    }
+  }
+
   let underlays = []
 
   if (puzzle.odd !== undefined && puzzle.odd !== null) {
