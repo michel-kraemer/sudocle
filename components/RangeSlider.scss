@@ -1,3 +1,5 @@
+@use "sass:math";
+
 .form-label {
   display: block;
   margin-bottom: 0.25rem;
@@ -43,7 +45,7 @@
   $form-range-track-height: 0.5em;
   $form-range-track-cursor: pointer;
   $form-range-track-bg: var(--grey-600);
-  $form-range-track-border-radius: $form-range-track-height / 2;
+  $form-range-track-border-radius: math.div($form-range-track-height, 2);
 
   $form-range-thumb-width: 1em;
   $form-range-thumb-height: $form-range-thumb-width;
@@ -69,7 +71,7 @@
   &::-webkit-slider-thumb {
     width: $form-range-thumb-width;
     height: $form-range-thumb-height;
-    margin-top: ($form-range-track-height - $form-range-thumb-height) / 2; // Webkit specific
+    margin-top: math.div($form-range-track-height - $form-range-thumb-height, 2); // Webkit specific
     background-color: $form-range-thumb-bg;
     border: $form-range-thumb-border;
     border-radius: $form-range-thumb-border-radius;
