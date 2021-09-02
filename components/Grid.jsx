@@ -237,18 +237,22 @@ function shortenLine(points, delta = 3) {
   let dx = secondPointX - firstPointX
   let dy = secondPointY - firstPointY
   let l = Math.sqrt(dx * dx + dy * dy)
-  dx /= l
-  dy /= l
-  firstPointX = firstPointX + dx * delta
-  firstPointY = firstPointY + dy * delta
+  if (l > delta * 2.5) {
+    dx /= l
+    dy /= l
+    firstPointX = firstPointX + dx * delta
+    firstPointY = firstPointY + dy * delta
+  }
 
   dx = secondToLastX - lastPointX
   dy = secondToLastY - lastPointY
   l = Math.sqrt(dx * dx + dy * dy)
-  dx /= l
-  dy /= l
-  lastPointX = lastPointX + dx * delta
-  lastPointY = lastPointY + dy * delta
+  if (l > delta * 2.5) {
+    dx /= l
+    dy /= l
+    lastPointX = lastPointX + dx * delta
+    lastPointY = lastPointY + dy * delta
+  }
 
   return [firstPointX, firstPointY, ...points.slice(2, points.length - 2),
     lastPointX, lastPointY]
