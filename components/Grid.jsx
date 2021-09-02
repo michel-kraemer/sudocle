@@ -258,6 +258,22 @@ function shortenLine(points, delta = 3) {
     lastPointX, lastPointY]
 }
 
+function filterDuplicatePoints(points) {
+  let i = 3
+  while (i < points.length) {
+    let prevx = points[i - 3]
+    let prevy = points[i - 2]
+    let currx = points[i - 1]
+    let curry = points[i - 0]
+    if (prevx === currx && prevy === curry) {
+      points = [...points.slice(0, i - 1), ...points.slice(i + 1)]
+    } else {
+      i += 2
+    }
+  }
+  return points
+}
+
 function makeCornerMarks(x, y, cellSize, fontSize, leaveRoom, n = 11, fontWeight = "normal") {
   let result = []
 
@@ -831,8 +847,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       poly.zIndex = -1
       poly.data = {
         draw: function (cellSize) {
-          let points = shortenLine(flatten(line.wayPoints.map(wp =>
-              cellToScreenCoords(wp, grid.x, grid.y, cellSize))))
+          let points = shortenLine(filterDuplicatePoints(flatten(line.wayPoints.map(wp =>
+              cellToScreenCoords(wp, grid.x, grid.y, cellSize)))))
           poly.lineStyle({
             width: line.thickness * SCALE_FACTOR,
             color: getRGBColor(line.color),
@@ -858,8 +874,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       poly.zIndex = -1
       poly.data = {
         draw: function (cellSize) {
-          let points = shortenLine(flatten(arrow.wayPoints.map(wp =>
-              cellToScreenCoords(wp, grid.x, grid.y, cellSize))))
+          let points = shortenLine(filterDuplicatePoints(flatten(arrow.wayPoints.map(wp =>
+              cellToScreenCoords(wp, grid.x, grid.y, cellSize)))))
           let lastPointX = points[points.length - 2]
           let lastPointY = points[points.length - 1]
           let secondToLastX = points[points.length - 4]
