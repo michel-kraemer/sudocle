@@ -424,13 +424,29 @@ export function convertFPuzzle(puzzle) {
     for (let s of puzzle.sandwichsum) {
       let center = cellToCell(s.cell)
       overlays.push({
-          center,
-          width: 0.85,
-          height: 0.85,
-          backgroundColor: "#FFFFFF",
-          rounded: true,
-          fontSize: 20,
-          text: s.value
+        center,
+        width: 0.85,
+        height: 0.85,
+        backgroundColor: "#FFFFFF",
+        rounded: true,
+        fontSize: 20,
+        text: s.value
+      })
+    }
+  }
+
+  if (puzzle.circle !== undefined && puzzle.circle !== null) {
+    for (let circ of puzzle.circle) {
+      let cells = circ.cells.map(c => cellToCell(c))
+      let center = [mean(cells.map(c => c[0])), mean(cells.map(c => c[1]))]
+      overlays.push({
+        center,
+        width: circ.width,
+        height: circ.height,
+        borderColor: circ.outlineC,
+        backgroundColor: circ.baseC,
+        rounded: true,
+        fontSize: 20
       })
     }
   }
