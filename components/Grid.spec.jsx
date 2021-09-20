@@ -2,6 +2,7 @@ import GameContext from "./contexts/GameContext"
 import SettingsContext from "./contexts/SettingsContext"
 import Grid from "./Grid"
 import { TYPE_INIT } from "./lib/Actions"
+import { convertFPuzzle } from "./lib/fpuzzlesconverter"
 import { mount } from "@cypress/react"
 import { useContext, useEffect } from "react"
 import { enableAllPlugins } from "immer"
@@ -44,6 +45,10 @@ describe("Grid", () => {
       cy.viewport(width, height)
 
       cy.fixture(`grids/${fixture}`).then(data => {
+        if (data.fpuzzles) {
+          data = convertFPuzzle(data.fpuzzles)
+        }
+
         mount(<>
           <GameContext.Provider>
             <SettingsContext.Provider>
