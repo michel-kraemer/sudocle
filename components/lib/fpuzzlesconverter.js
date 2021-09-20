@@ -239,14 +239,14 @@ export function convertFPuzzle(puzzle) {
         }
       } else if (l.direction === "DR") {
         arrow = {
-          wayPoints: [[center[0] - 0.05, center[1] - 0.05], [center[0] - 0.5, center[1] - 0.5]],
+          wayPoints: [[center[0] + 0.05, center[1] + 0.05], [center[0] + 0.5, center[1] + 0.5]],
           color: "#CFCFCF",
           thickness: 5,
           headLength: 0.3
         }
       } else if (l.direction === "UL") {
         arrow = {
-          wayPoints: [[center[0] + 0.05, center[1] + 0.05], [center[0] + 0.5, center[1] + 0.5]],
+          wayPoints: [[center[0] - 0.05, center[1] - 0.05], [center[0] - 0.5, center[1] - 0.5]],
           color: "#CFCFCF",
           thickness: 5,
           headLength: 0.3
