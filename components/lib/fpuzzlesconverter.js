@@ -97,13 +97,12 @@ export function convertFPuzzle(puzzle) {
   }
 
   let cages = []
-  if (puzzle.killercage !== undefined && puzzle.killercage !== null) {
-    for (let cage of puzzle.killercage) {
-      cages.push({
-        cells: cage.cells.map(c => cellToCell(c, 0, 0)),
-        value: cage.value
-      })
-    }
+  let killercages = [...(puzzle.killercage || []), ...(puzzle.cage || [])]
+  for (let cage of killercages) {
+    cages.push({
+      cells: cage.cells.map(c => cellToCell(c, 0, 0)),
+      value: cage.value
+    })
   }
 
   if (puzzle.title) {
