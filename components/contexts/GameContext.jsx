@@ -11,7 +11,7 @@ import { isEqual } from "lodash"
 const State = createContext()
 const Dispatch = createContext()
 
-function makeGivenDigits(data) {
+function makeGiven(data, srcAttr, generator) {
   if (data === undefined || data.cells === undefined) {
     return new Map()
   }
@@ -19,16 +19,33 @@ function makeGivenDigits(data) {
   let r = new Map()
   data.cells.forEach((row, y) => {
     row.forEach((col, x) => {
-      if (col.value !== undefined) {
-        let n = /^\d+$/.test(col.value) ? +col.value : col.value
-        r.set(xytok(x, y), {
-          digit: n,
-          given: true
-        })
+      if (col[srcAttr] !== undefined && (!Array.isArray(col[srcAttr]) || col[srcAttr].length > 0)) {
+        r.set(xytok(x, y), generator(col[srcAttr]))
       }
     })
   })
   return r
+}
+
+function makeGivenDigits(data) {
+  return makeGiven(data, "value", n => {
+    n = /^\d+$/.test(n) ? +n : n
+    return {
+      digit: n,
+      given: true
+    }
+  })
+}
+
+function makeGivenMarks(data, srcAttr) {
+  return makeGiven(data, srcAttr, cms => {
+    let digits = new Set()
+    for (let cm of cms) {
+      let n = /^\d+$/.test(cm) ? +cm : cm
+      digits.add(n)
+    }
+    return digits
+  })
 }
 
 function makeEmptyState(data) {
@@ -37,8 +54,8 @@ function makeEmptyState(data) {
     mode: MODE_NORMAL,
     enabledModes: [MODE_NORMAL],
     digits: makeGivenDigits(data),
-    cornerMarks: new Map(),
-    centreMarks: new Map(),
+    cornerMarks: makeGivenMarks(data, "cornermarks"),
+    centreMarks: makeGivenMarks(data, "centremarks"),
     colours: new Map(),
     selection: new Set(),
     errors: new Set(),
