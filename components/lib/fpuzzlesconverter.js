@@ -80,7 +80,7 @@ function convertMinMax(m, isMax, arrows, underlays) {
 }
 
 export function convertFPuzzle(puzzle) {
-  let cells = puzzle.grid.map(row => row.map(col => ({ value: col.value })))
+  let cells = puzzle.grid.map(row => row.map(col => ({ value: col.given && col.value })))
 
   // default regions
   let regions = []
