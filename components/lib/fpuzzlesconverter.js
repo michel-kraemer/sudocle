@@ -164,6 +164,21 @@ export function convertFPuzzle(puzzle) {
 
   let underlays = []
 
+  // coloured cells
+  for (let r = 0; r < puzzle.grid.length; ++r) {
+    let row = puzzle.grid[r]
+    for (let c = 0; c < row.length; ++c) {
+      if (row[c].c !== undefined && row[c].c !== null) {
+        underlays.push({
+          center: [r + 0.5, c + 0.5],
+          width: 1,
+          height: 1,
+          backgroundColor: row[c].c
+        })
+      }
+    }
+  }
+
   if (puzzle.odd !== undefined && puzzle.odd !== null) {
     for (let e of puzzle.odd) {
       underlays.push({
