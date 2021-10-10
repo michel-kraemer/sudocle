@@ -9,7 +9,7 @@
     "lint": "next lint && npm run stylelint",
     "stylelint": "stylelint \"**/*.scss\"",
     "cypress:open-ct": "cypress open-ct -b chrome",
-    "cypress:run-ct": "cypress run-ct -b chrome"
+    "cypress:run-ct": "concurrently \"cypress run-ct -b chrome --env parallelTotal=4,parallelCurrent=0\" \"cypress run-ct -b chrome --env parallelTotal=4,parallelCurrent=1\" \"cypress run-ct -b chrome --env parallelTotal=4,parallelCurrent=2\" \"cypress run-ct -b chrome --env parallelTotal=4,parallelCurrent=3\""
   },
   "author": "Michel Kraemer",
   "license": "MIT",
@@ -39,6 +39,7 @@
   "devDependencies": {
     "@cypress/react": "^5.9.4",
     "@cypress/webpack-dev-server": "^1.4.0",
+    "concurrently": "^6.3.0",
     "cypress": "^8.3.1",
     "cypress-image-snapshot": "^4.0.1",
     "eslint": "^7.32.0",

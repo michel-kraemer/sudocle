@@ -6,6 +6,7 @@ import { convertFPuzzle } from "./lib/fpuzzlesconverter"
 import { mount } from "@cypress/react"
 import { useContext, useEffect } from "react"
 import { enableAllPlugins } from "immer"
+import { chunk } from "lodash"
 import styles from "../pages/_app.scss?type=global"
 
 enableAllPlugins()
@@ -40,8 +41,15 @@ describe("Grid", () => {
   let width = 750
   let height = 750
 
-  for (let fixture of gridFixtures) {
-    it(fixture, () => {
+  let parallelTotal = +(Cypress.env("parallelTotal") || 1)
+  let parallelCurrent = +(Cypress.env("parallelCurrent") || 0)
+  let parallelChunkSize = Math.ceil(gridFixtures.length / parallelTotal)
+
+  let fixtureChunk = chunk(gridFixtures, parallelChunkSize)[parallelCurrent]
+  for (let fi = 0; fi < fixtureChunk.length; ++fi) {
+    let fixture = fixtureChunk[fi]
+    let start = parallelChunkSize * parallelCurrent
+    it(`${fixture} (${fi}/${fixtureChunk.length}; ${start}-${start + fixtureChunk.length}/${gridFixtures.length})`, () => {
       cy.viewport(width, height)
 
       cy.fixture(`grids/${fixture}`).then(data => {
