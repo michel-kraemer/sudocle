@@ -69,6 +69,17 @@ const Index = () => {
     }
     id = id.substring(id.lastIndexOf("/") + 1)
 
+    if (id === null || id === "") {
+      let s = new URLSearchParams(window.location.search)
+      let fpuzzlesId = s.get("fpuzzles")
+      if (fpuzzlesId !== null) {
+        id = fpuzzlesId
+        if (!id.startsWith("fpuzzles")) {
+          id = "fpuzzles" + id
+        }
+      }
+    }
+
     async function load(url, fallbackUrl) {
       let response = await fetch(url)
       if (response.status !== 200) {
