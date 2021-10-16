@@ -234,6 +234,11 @@ function shortenLine(points, delta = 3) {
   let secondToLastX = points[points.length - 4]
   let secondToLastY = points[points.length - 3]
 
+  if (firstPointX === lastPointX && firstPointY === lastPointY) {
+    // do not shorten closed loops
+    return points
+  }
+
   let dx = secondPointX - firstPointX
   let dy = secondPointY - firstPointY
   let l = Math.sqrt(dx * dx + dy * dy)
