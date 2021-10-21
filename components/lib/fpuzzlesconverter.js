@@ -179,6 +179,21 @@ export function convertFPuzzle(puzzle) {
     }
   }
 
+  if (puzzle.rectangle !== undefined && puzzle.rectangle !== null) {
+    for (let r of puzzle.rectangle) {
+      for (let c of r.cells) {
+        underlays.push({
+          center: cellToCell(c),
+          width: r.width || 0.5,
+          height: r.height || 0.5,
+          borderColor: r.outlineC || "#000000",
+          backgroundColor: r.baseC || "#FFFFFF",
+          rounded: false
+        })
+      }
+    }
+  }
+
   if (puzzle.odd !== undefined && puzzle.odd !== null) {
     for (let e of puzzle.odd) {
       underlays.push({
