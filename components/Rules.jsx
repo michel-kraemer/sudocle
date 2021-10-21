@@ -8,7 +8,7 @@ const Rules = () => {
   return (<>
     <h2>{game.data.title}</h2>
     {game.data.author && <div className="author">by {game.data.author}</div>}
-    <p>{game.data.rules}</p>
+    <p className="rules">{game.data.rules}</p>
     <style jsx>{styles}</style>
   </>)
 }
