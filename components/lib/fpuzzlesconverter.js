@@ -5,6 +5,11 @@ function cellToCell(cell, offsetX = 0.5, offsetY = 0.5) {
   return [+m[1] - 1 + offsetX, +m[2] - 1 + offsetY]
 }
 
+function cellsToCenter(cells) {
+  cells = cells.map(c => cellToCell(c))
+  return [mean(cells.map(c => c[0])), mean(cells.map(c => c[1]))]
+}
+
 function fixLineConnector(l0, l1, wp) {
   l0 = cellToCell(l0, 0, 0)
   l1 = cellToCell(l1, 0, 0)
@@ -400,8 +405,7 @@ export function convertFPuzzle(puzzle) {
 
   if (puzzle.difference !== undefined && puzzle.difference !== null) {
     for (let r of puzzle.difference) {
-      let cells = r.cells.map(c => cellToCell(c))
-      let center = [mean(cells.map(c => c[0])), mean(cells.map(c => c[1]))]
+      let center = cellsToCenter(r.cells)
       overlays.push({
         center,
         width: 0.3,
@@ -417,8 +421,7 @@ export function convertFPuzzle(puzzle) {
 
   if (puzzle.ratio !== undefined && puzzle.ratio !== null) {
     for (let r of puzzle.ratio) {
-      let cells = r.cells.map(c => cellToCell(c))
-      let center = [mean(cells.map(c => c[0])), mean(cells.map(c => c[1]))]
+      let center = cellsToCenter(r.cells)
       overlays.push({
         center,
         width: 0.3,
@@ -434,8 +437,7 @@ export function convertFPuzzle(puzzle) {
 
   if (puzzle.xv !== undefined && puzzle.xv !== null) {
     for (let xv of puzzle.xv) {
-      let cells = xv.cells.map(c => cellToCell(c))
-      let center = [mean(cells.map(c => c[0])), mean(cells.map(c => c[1]))]
+      let center = cellsToCenter(xv.cells)
       overlays.push({
         center,
         width: 0.25,
@@ -466,8 +468,7 @@ export function convertFPuzzle(puzzle) {
 
   if (puzzle.circle !== undefined && puzzle.circle !== null) {
     for (let circ of puzzle.circle) {
-      let cells = circ.cells.map(c => cellToCell(c))
-      let center = [mean(cells.map(c => c[0])), mean(cells.map(c => c[1]))]
+      let center = cellsToCenter(circ.cells)
       overlays.push({
         center,
         width: circ.width,
@@ -499,6 +500,19 @@ export function convertFPuzzle(puzzle) {
           })
         }
       }
+    }
+  }
+
+  if (puzzle.text !== undefined && puzzle.text !== null) {
+    for (let t of puzzle.text) {
+      let center = cellsToCenter(t.cells)
+      overlays.push({
+        center,
+        width: 1,
+        height: 1,
+        fontSize: 28 * (t.size || 1),
+        text: t.value
+      })
     }
   }
 
