@@ -1,9 +1,11 @@
+const ESLintPlugin = require("eslint-webpack-plugin")
 const optimizedImages = require("next-optimized-images")
 const version = require("./package.json").version
 
 const withPlugins = require("next-compose-plugins")
 
 const basePath = process.env.NODE_ENV === "production" ? "/sudocle" : ""
+const eslintDirs = ["components", "cypress/plugins", "cypress/support", "pages"]
 
 const config = {
   basePath,
@@ -19,7 +21,7 @@ const config = {
   },
 
   eslint: {
-    dirs: ["components", "cypress/plugins", "cypress/support", "pages"]
+    dirs: eslintDirs
   },
 
   webpack: (config, { dev, defaultLoaders }) => {
@@ -38,15 +40,9 @@ const config = {
     })
 
     if (dev) {
-      config.module.rules.push({
-        test: /\.jsx?$/,
-        loader: "eslint-loader",
-        exclude: [/node_modules/, /\.next/, /out/],
-        enforce: "pre",
-        options: {
-          emitWarning: true
-        }
-      })
+      config.plugins.push(new ESLintPlugin({
+        extensions: ["js", "jsx"]
+      }))
     }
 
     return config
