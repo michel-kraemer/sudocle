@@ -430,6 +430,9 @@ function drawOverlay(overlay, mx, my, zIndex) {
       fontFamily: "Roboto, sans-serif",
       fontSize
     })
+    if (overlay.fontColor) {
+      text.style.fill = overlay.fontColor
+    }
     text.anchor.set(0.5)
     if (overlay.fontSize < 14) {
       text.scale.x = 0.75

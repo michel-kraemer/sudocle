@@ -413,8 +413,8 @@ export function convertFPuzzle(puzzle) {
         borderColor: "#000000",
         backgroundColor: "#FFFFFF",
         rounded: true,
-        fontSize: 16,
-        text: ""
+        fontSize: 10,
+        text: r.value
       })
     }
   }
@@ -429,8 +429,9 @@ export function convertFPuzzle(puzzle) {
         borderColor: "#000000",
         backgroundColor: "#000000",
         rounded: true,
-        fontSize: 16,
-        text: ""
+        fontSize: 10,
+        fontColor: "#FFFFFF",
+        text: r.value
       })
     }
   }
