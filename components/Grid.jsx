@@ -33,6 +33,7 @@ function unionCells(cells) {
       [x + 0, y + 1]
     ]]
   })
+
   let unions = polygonClipping.union(polys)
   for (let u of unions) {
     for (let p of u) {
@@ -43,6 +44,33 @@ function unionCells(cells) {
       }
     }
   }
+
+  // merge holes into outer polygon if there is a shared point
+  for (let u of unions) {
+    let hi = 1
+    while (hi < u.length) {
+      let hole = u[hi]
+      for (let spi = 0; spi < hole.length; ++spi) {
+        let ph = hole[spi]
+        let sharedPoint = u[0].findIndex(pu => pu[0] === ph[0] && pu[1] === ph[1])
+        if (sharedPoint >= 0) {
+          // we found a shared point - merge hole into outer polygon
+          u[0] = [
+            ...u[0].slice(0, sharedPoint),
+            ...hole.slice(spi), ...hole.slice(0, spi),
+            ...u[0].slice(sharedPoint)
+          ]
+
+          // delete merged hole
+          u.splice(hi, 1)
+          --hi
+          break
+        }
+      }
+      ++hi
+    }
+  }
+
   return flatten(unions.map(u => u.map(u2 => flatten(u2))))
 }
 
