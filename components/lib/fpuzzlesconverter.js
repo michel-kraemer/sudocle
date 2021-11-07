@@ -1,5 +1,24 @@
 import { chunk, mean } from "lodash"
 
+const MIN_GRID_SIZE = 3
+const MAX_GRID_SIZE = 16
+const GRID_SIZES = [{}, {}, {},
+  { width: 3, height: 1 },
+  { width: 2, height: 2 },
+  { width: 5, height: 1 },
+  { width: 3, height: 2 },
+  { width: 7, height: 1 },
+  { width: 4, height: 2 },
+  { width: 3, height: 3 },
+  { width: 5, height: 2 },
+  { width: 11, height: 1 },
+  { width: 4, height: 3 },
+  { width: 13, height: 1 },
+  { width: 7, height: 2 },
+  { width: 5, height: 3 },
+  { width: 4, height: 4 }
+]
+
 function cellToCell(cell, offsetX = 0.5, offsetY = 0.5) {
   let m = cell.match(/R([0-9]+)C([0-9]+)/)
   return [+m[1] - 1 + offsetX, +m[2] - 1 + offsetY]
@@ -88,13 +107,21 @@ export function convertFPuzzle(puzzle) {
   let cells = puzzle.grid.map(row => row.map(col => ({ value: col.given && col.value })))
 
   // default regions
+  let puzzleSize = puzzle.size || 9
+  if (puzzleSize < MIN_GRID_SIZE) {
+    puzzleSize = MIN_GRID_SIZE
+  }
+  if (puzzleSize > MAX_GRID_SIZE) {
+    puzzleSize = MAX_GRID_SIZE
+  }
+  let { width: regionWidth, height: regionHeight } = GRID_SIZES[puzzleSize]
   let regions = []
-  for (let c = 0; c < 3; ++c) {
-    for (let r = 0; r < 3; ++r) {
+  for (let c = 0; c < regionHeight; ++c) {
+    for (let r = 0; r < regionWidth; ++r) {
       let box = []
-      for (let x = 0; x < 3; ++x) {
-        for (let y = 0; y < 3; ++y) {
-          box.push([x + r * 3, y + c * 3])
+      for (let x = 0; x < regionHeight; ++x) {
+        for (let y = 0; y < regionWidth; ++y) {
+          box.push([x + r * regionHeight, y + c * regionWidth])
         }
       }
       regions.push(box)
