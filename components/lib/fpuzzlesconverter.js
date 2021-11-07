@@ -225,6 +225,18 @@ export function convertFPuzzle(puzzle) {
     }
   }
 
+  // extra regions
+  let extraRegions = undefined
+  if (puzzle.extraregion !== undefined && puzzle.extraregion !== null) {
+    extraRegions = []
+    for (let e of puzzle.extraregion) {
+      extraRegions.push({
+        cells: e.cells.map(c => cellToCell(c, 0, 0)),
+        backgroundColor: "#CFCFCF"
+      })
+    }
+  }
+
   let arrows = []
 
   if (puzzle.arrow !== undefined && puzzle.arrow !== null) {
@@ -523,6 +535,7 @@ export function convertFPuzzle(puzzle) {
     regions,
     cages,
     lines,
+    extraRegions,
     overlays,
     underlays,
     arrows

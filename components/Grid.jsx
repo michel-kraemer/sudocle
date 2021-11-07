@@ -531,6 +531,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const cageLabelBackgroundElements = useRef([])
   const lineElements = useRef([])
   const arrowHeadElements = useRef([])
+  const extraRegionElements = useRef([])
   const underlayElements = useRef([])
   const overlayElements = useRef([])
   const backgroundElement = useRef()
@@ -578,6 +579,25 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         }
       })
     })), [game.data])
+
+  const extraRegions = useMemo(() => {
+    if (Array.isArray(game.data.extraRegions)) {
+      return flatten(game.data.extraRegions
+        .filter(r => r.cells?.length)
+        .map(r => {
+          let unions = unionCells(r.cells)
+          return unions.map(union => {
+            return {
+              outline: union,
+              backgroundColor: r.backgroundColor
+            }
+          })
+        })
+      )
+    } else {
+      return []
+    }
+  }, [game.data])
 
   const selectCell = useCallback((cell, evt, append = false) => {
     let action = append ? ACTION_PUSH : ACTION_SET
@@ -740,6 +760,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // all                            sortable
     //   background            -1000
+    //   extra regions           -20
     //   underlays               -10
     //   lines and arrows         -1
     //   arrow heads              -1
@@ -872,6 +893,24 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     grid.addChild(cells)
     grid.zIndex = 30
     all.addChild(grid)
+
+    // render extra regions
+    for (let r of extraRegions) {
+      let poly = new PIXI.Graphics()
+      poly.zIndex = -20
+      poly.data = {
+        draw: function (cellSize) {
+          let disposedOutline = disposePolygon(r.outline.map(v => v * cellSize),
+          regions.map(rarr => rarr.map(v => v * cellSize)), 1)
+          let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
+          poly.beginFill(getRGBColor(r.backgroundColor))
+          poly.drawPolygon(shrunkenOutline)
+          poly.endFill()
+        }
+      }
+      all.addChild(poly)
+      extraRegionElements.current.push(poly)
+    }
 
     // sort lines by thickness
     let lines = [...game.data.lines]
@@ -1146,6 +1185,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       cageLabelBackgroundElements.current = []
       lineElements.current = []
       arrowHeadElements.current = []
+      extraRegionElements.current = []
       underlayElements.current = []
       overlayElements.current = []
       givenCornerMarkElements.current = []
@@ -1160,7 +1200,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       newApp.destroy(true, true)
       app.current = undefined
     }
-  }, [game.data, cellSize, regions, cages, selectCell, updateGame,
+  }, [game.data, cellSize, regions, cages, extraRegions, selectCell, updateGame,
       onFinishRender, onTouchMove])
 
   useEffect(() => {
@@ -1173,9 +1213,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     for (let i = 0; i < 10; ++i) {
       let elementsToRedraw = [cellElements, regionElements, cageElements,
-        cageLabelTextElements, cageLabelBackgroundElements, lineElements, arrowHeadElements,
-        underlayElements, overlayElements, givenCornerMarkElements, digitElements,
-        centreMarkElements, colourElements, selectionElements, errorElements]
+        cageLabelTextElements, cageLabelBackgroundElements, lineElements,
+        arrowHeadElements, extraRegionElements, underlayElements, overlayElements,
+        givenCornerMarkElements, digitElements, centreMarkElements, colourElements,
+        selectionElements, errorElements]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
           if (e.clear !== undefined) {
