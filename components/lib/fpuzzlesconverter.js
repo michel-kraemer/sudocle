@@ -211,6 +211,23 @@ export function convertFPuzzle(puzzle) {
     }
   }
 
+  // clones
+  if (puzzle.clone !== undefined && puzzle.clone !== null) {
+    for (let cl of puzzle.clone) {
+      let cells = cl.cells || []
+      let cloneCells = cl.cloneCells || []
+      for (let c of [...cells, ...cloneCells]) {
+        underlays.push({
+          center: cellToCell(c),
+          width: 1,
+          height: 1,
+          backgroundColor: "#CFCFCF",
+          rounded: false
+        })
+      }
+    }
+  }
+
   if (puzzle.rectangle !== undefined && puzzle.rectangle !== null) {
     for (let r of puzzle.rectangle) {
       for (let c of r.cells) {
