@@ -568,6 +568,7 @@ export function convertFPuzzle(puzzle) {
         width: 1,
         height: 1,
         fontSize: 28 * (t.size || 1),
+        fontColor: t.fontC,
         text: t.value
       })
     }
