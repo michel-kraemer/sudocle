@@ -286,16 +286,36 @@ export function convertFPuzzle(puzzle) {
   if (puzzle.arrow !== undefined && puzzle.arrow !== null) {
     for (let a of puzzle.arrow) {
       if (a.cells !== undefined && a.cells !== null) {
+        let minX = Number.MAX_VALUE
+        let minY = Number.MAX_VALUE
+        let maxX = 0
+        let maxY = 0
         for (let c of a.cells) {
-          underlays.push({
-            center: cellToCell(c),
-            width: 0.7,
-            height: 0.7,
-            borderColor: "#CFCFCF",
-            backgroundColor: "#FFFFFF",
-            rounded: true
-          })
+          let cc = cellToCell(c)
+          if (cc[1] > maxX) {
+            maxX = cc[1]
+          }
+          if (cc[1] < minX) {
+            minX = cc[1]
+          }
+          if (cc[0] > maxY) {
+            maxY = cc[0]
+          }
+          if (cc[0] < minY) {
+            minY = cc[0]
+          }
         }
+        let width = maxX - minX
+        let height = maxY - minY
+
+        underlays.push({
+          center: cellsToCenter(a.cells),
+          width: width + 0.7,
+          height: height + 0.7,
+          borderColor: "#CFCFCF",
+          backgroundColor: "#FFFFFF",
+          rounded: true
+        })
       }
       if (a.lines !== undefined && a.lines !== null) {
         for (let l of a.lines) {
