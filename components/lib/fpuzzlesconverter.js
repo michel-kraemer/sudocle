@@ -104,7 +104,10 @@ function convertMinMax(m, isMax, arrows, underlays) {
 }
 
 export function convertFPuzzle(puzzle) {
-  let cells = puzzle.grid.map(row => row.map(col => ({ value: col.given && col.value })))
+  let cells = puzzle.grid.map(row => row.map(col => ({
+    value: col.given && col.value,
+    centremarks: col.centerPencilMarks
+  })))
 
   // default regions
   let puzzleSize = puzzle.size || 9
