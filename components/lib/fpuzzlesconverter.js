@@ -103,13 +103,7 @@ function convertMinMax(m, isMax, arrows, underlays) {
   })
 }
 
-export function convertFPuzzle(puzzle) {
-  let cells = puzzle.grid.map(row => row.map(col => ({
-    value: col.given && col.value,
-    centremarks: col.centerPencilMarks
-  })))
-
-  // default regions
+function makeDefaultRegions(puzzle) {
   let puzzleSize = puzzle.size || 9
   if (puzzleSize < MIN_GRID_SIZE) {
     puzzleSize = MIN_GRID_SIZE
@@ -117,19 +111,36 @@ export function convertFPuzzle(puzzle) {
   if (puzzleSize > MAX_GRID_SIZE) {
     puzzleSize = MAX_GRID_SIZE
   }
-  let { width: regionWidth, height: regionHeight } = GRID_SIZES[puzzleSize]
+  let { width, height } = GRID_SIZES[puzzleSize]
   let regions = []
-  for (let c = 0; c < regionHeight; ++c) {
-    for (let r = 0; r < regionWidth; ++r) {
-      let box = []
-      for (let x = 0; x < regionHeight; ++x) {
-        for (let y = 0; y < regionWidth; ++y) {
-          box.push([x + r * regionHeight, y + c * regionWidth])
+  let box = 0
+  for (let r = 0; r < width; ++r) {
+    for (let c = 0; c < height; ++c) {
+      for (let y = 0; y < width; ++y) {
+        for (let x = 0; x < height; ++x) {
+          regions[x + r * height] ||= []
+          regions[x + r * height][y + c * width] = box
         }
       }
-      regions.push(box)
+      box++
     }
   }
+  return regions
+}
+
+export function convertFPuzzle(puzzle) {
+  let defaultRegions = makeDefaultRegions(puzzle)
+  let regions = []
+  let cells = puzzle.grid.map((row, y) => row.map((col, x) => {
+    let r = isNaN(col.region) ? defaultRegions[y][x] : col.region
+    regions[r] ||= []
+    regions[r].push([y, x])
+
+    return {
+      value: col.given && col.value,
+      centremarks: col.centerPencilMarks
+    }
+  }))
 
   let cages = []
   let killercages = [...(puzzle.killercage || []), ...(puzzle.cage || [])]
