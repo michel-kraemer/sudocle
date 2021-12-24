@@ -556,7 +556,8 @@ export function convertFPuzzle(puzzle) {
         borderColor: circ.outlineC,
         backgroundColor: circ.baseC,
         rounded: true,
-        fontSize: 20
+        fontSize: 20,
+        text: circ.value
       })
     }
   }
