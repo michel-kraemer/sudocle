@@ -9,14 +9,14 @@
 .colour {
   width: 1em;
   height: 1em;
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 1px rgba(0 0 0 / 20%);
 
   &.customisable {
     cursor: pointer;
   }
 }
 
-input[type=color] {
+input[type="color"] {
   visibility: hidden;
 }
 

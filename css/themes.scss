@@ -1,8 +1,10 @@
+@use "sass:color";
+
 :root {
-  --bg: rgb(255, 255, 255);
-  --bg-alpha: rgba(255, 255, 255, 0.75);
-  --fg: rgb(51, 51, 51);
-  --fg-alpha: rgba(51, 51, 51, 0.5);
+  --bg: rgb(255 255 255);
+  --bg-alpha: rgba(255 255 255 / 75%);
+  --fg: rgb(51 51 51);
+  --fg-alpha: rgba(51 51 51 / 50%);
   --grey-500: #ccc;
   --grey-600: #ddd;
   --grey-700: #eee;
@@ -10,13 +12,13 @@
   --fg-600: var(--grey-600);
   --fg-700: var(--grey-700);
   --primary: #2b3f77;
-  --primary-highlight: #{lighten(#2b3f77, 10%)};
+  --primary-highlight: #{color.adjust(#2b3f77, $lightness: 10%)};
   --alert: #b81e1e;
   --border-radius: 10px;
   --border-radius-inner: 8px;
   --border-radius-mini: 4px;
-  --digit: #{lighten(#2b3f77, 20%)};
-  --digit-small: #{lighten(#2b3f77, 10%)};
+  --digit: #{color.adjust(#2b3f77, $lightness: 20%)};
+  --digit-small: #{color.adjust(#2b3f77, $lightness: 10%)};
   --button-hover: var(--grey-500);
   --button-active: var(--grey-500);
   --selection-yellow: #ffde2a;
@@ -26,10 +28,10 @@
 }
 
 [data-theme="dark"] {
-  --bg: rgb(46, 52, 64);
-  --bg-alpha: rgba(46, 52, 64, 0.75);
-  --fg: rgb(236, 239, 244);
-  --fg-alpha: rgba(236, 239, 244, 0.5);
+  --bg: rgb(46 52 64);
+  --bg-alpha: rgba(46 52 64 / 75%);
+  --fg: rgb(236 239 244);
+  --fg-alpha: rgba(236 239 244 / 50%);
   --grey-500: #2e3440;
   --grey-600: #3b4252;
   --grey-700: #434c5e;
@@ -37,10 +39,10 @@
   --fg-600: var(--grey-600);
   --fg-700: var(--grey-500);
   --primary: #81a1c1;
-  --primary-highlight: #{lighten(#81a1c1, 10%)};
+  --primary-highlight: #{color.adjust(#81a1c1, $lightness: 10%)};
   --alert: #bf616a;
   --digit: var(--primary);
   --digit-small: var(--primary-highlight);
-  --button-hover: #{lighten(#434c5e, 20%)};
-  --button-active: #{lighten(#434c5e, 20%)};
+  --button-hover: #{color.adjust(#434c5e, $lightness: 20%)};
+  --button-active: #{color.adjust(#434c5e, $lightness: 20%)};
 }
