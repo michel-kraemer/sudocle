@@ -32,7 +32,7 @@
     "react-dom": "^17.0.2",
     "react-modal": "^3.14.3",
     "sass": "^1.38.2",
-    "sass-loader": "^12.3.0"
+    "sass-loader": "^12.4.0"
   },
   "devDependencies": {
     "@cypress/react": "^5.9.4",
