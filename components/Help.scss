@@ -1,8 +1,7 @@
 .shortcuts {
   display: grid;
   grid-template-columns: auto 1fr;
-  grid-column-gap: 1rem;
-  grid-row-gap: 0.5rem;
+  grid-gap: 0.5rem 1rem;
   align-items: center;
   margin-bottom: 1.25rem;
 }

@@ -1,8 +1,5 @@
 {
-  "extends": "stylelint-config-standard",
-  "plugins": [
-    "stylelint-scss"
-  ],
+  "extends": "stylelint-config-standard-scss",
   "rules": {
     "at-rule-no-unknown": null,
     "scss/at-rule-no-unknown": true,
@@ -10,6 +7,8 @@
     "no-descending-specificity": null,
     "selector-pseudo-class-no-unknown": [true, {
       "ignorePseudoClasses": ["global"]
-    }]
+    }],
+    "shorthand-property-no-redundant-values": null,
+    "scss/dollar-variable-empty-line-before": null
   }
 }

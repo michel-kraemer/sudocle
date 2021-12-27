@@ -16,7 +16,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: rgba(0 0 0 / 5%);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -28,7 +28,7 @@
   display: block;
   background-color: #fff;
   outline: none;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
+  box-shadow: 0 0 10px rgba(0 0 0 / 75%);
   border-radius: var(--border-radius);
   font-size: 0.6rem;
 }
@@ -54,7 +54,7 @@
 
 .modal-button-area {
   max-width: 4rem;
-  margin: 0.5rem auto 0.5rem auto;
+  margin: 0.5rem auto;
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
