@@ -21,7 +21,7 @@
     "imagemin-svgo": "^8.0.0",
     "immer": "^9.0.5",
     "lodash": "^4.17.20",
-    "lucide-react": "^0.15.31",
+    "lucide-react": "^0.16.23",
     "next": "^11.1.0",
     "next-compose-plugins": "^2.2.1",
     "next-optimized-images": "^2.6.2",
