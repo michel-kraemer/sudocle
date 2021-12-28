@@ -598,13 +598,18 @@ export function convertFPuzzle(puzzle) {
   if (puzzle.text !== undefined && puzzle.text !== null) {
     for (let t of puzzle.text) {
       let center = cellsToCenter(t.cells)
+      let rotation
+      if (t.angle !== undefined) {
+        rotation = t.angle * (2 * Math.PI) / 360
+      }
       overlays.push({
         center,
         width: 1,
         height: 1,
         fontSize: 28 * (t.size || 1),
         fontColor: t.fontC,
-        text: t.value
+        text: t.value,
+        rotation
       })
     }
   }

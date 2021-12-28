@@ -447,6 +447,10 @@ function drawOverlay(overlay, mx, my, zIndex) {
   let r = new PIXI.Graphics()
   r.zIndex = zIndex
 
+  if (overlay.rotation !== undefined) {
+    r.rotation = overlay.rotation
+  }
+
   let text
   let fontSize = overlay.fontSize || 20
   if (overlay.text !== undefined) {
