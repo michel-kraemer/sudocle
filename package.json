@@ -35,8 +35,8 @@
     "sass-loader": "^12.4.0"
   },
   "devDependencies": {
-    "@cypress/react": "^5.9.4",
-    "@cypress/webpack-dev-server": "^1.4.0",
+    "@cypress/react": "^5.12.0",
+    "@cypress/webpack-dev-server": "^1.8.0",
     "@jsdevtools/readdir-enhanced": "^6.0.4",
     "concurrently": "^6.3.0",
     "cypress": "^9.2.0",
