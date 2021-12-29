@@ -19,7 +19,7 @@
     "color": "^4.1.0",
     "favicons": "^6.2.2",
     "imagemin-svgo": "^8.0.0",
-    "immer": "^9.0.5",
+    "immer": "^9.0.7",
     "lodash": "^4.17.20",
     "lucide-react": "^0.16.23",
     "next": "^11.1.0",
