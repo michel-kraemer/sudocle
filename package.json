@@ -18,7 +18,7 @@
     "classnames": "^2.3.1",
     "color": "^4.1.0",
     "favicons": "^6.2.2",
-    "imagemin-svgo": "^8.0.0",
+    "imagemin-svgo": "^10.0.1",
     "immer": "^9.0.7",
     "lodash": "^4.17.20",
     "lucide-react": "^0.16.23",
