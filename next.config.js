@@ -29,7 +29,7 @@ const config = {
 
   webpack: (config, { dev, defaultLoaders }) => {
     config.module.rules.push({
-      test: /\.scss$/,
+      test: /\.s?css$/,
       use: [
         defaultLoaders.babel,
         {

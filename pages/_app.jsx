@@ -5,6 +5,9 @@ import styles from "./_app.scss?type=global"
 import MatomoTracker from "@datapunt/matomo-tracker-js"
 import { enableAllPlugins } from "immer"
 import { useEffect } from "react"
+import "@fontsource/roboto/300.css"
+import "@fontsource/roboto/400.css"
+import "@fontsource/roboto/500.css"
 
 enableAllPlugins()
 
