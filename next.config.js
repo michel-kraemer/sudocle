@@ -1,8 +1,6 @@
 const ESLintPlugin = require("eslint-webpack-plugin")
-const optimizedImages = require("next-optimized-images")
+const svgToMiniDataURI = require("mini-svg-data-uri")
 const version = require("./package.json").version
-
-const withPlugins = require("next-compose-plugins")
 
 const basePath = process.env.NODE_ENV === "production" ? "/sudocle" : ""
 const eslintDirs = ["components", "cypress/plugins", "cypress/support", "pages"]
@@ -24,6 +22,11 @@ const config = {
     dirs: eslintDirs
   },
 
+  images: {
+    // disable built-in image support
+    disableStaticImages: true
+  },
+
   webpack: (config, { dev, defaultLoaders }) => {
     config.module.rules.push({
       test: /\.scss$/,
@@ -39,6 +42,24 @@ const config = {
       ]
     })
 
+    config.module.rules.push({
+      test: /\.(gif|png|jpe?g)$/i,
+      type: "asset",
+      use: "image-webpack-loader"
+    })
+
+    config.module.rules.push({
+      test: /\.svg$/i,
+      type: "asset",
+      use: "image-webpack-loader",
+      generator: {
+        dataUrl: content => {
+          content = content.toString()
+          return svgToMiniDataURI(content)
+        }
+      }
+    })
+
     if (dev) {
       config.plugins.push(new ESLintPlugin({
         extensions: ["js", "jsx"]
@@ -49,6 +70,4 @@ const config = {
   }
 }
 
-module.exports = withPlugins([
-  [optimizedImages]
-], config)
+module.exports = config
