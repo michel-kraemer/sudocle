@@ -78,6 +78,11 @@ const Index = () => {
           id = "fpuzzles" + id
         }
       }
+
+      let testId = s.get("test")
+      if (testId !== null) {
+        id = "test"
+      }
     }
 
     async function load(url, fallbackUrl) {
@@ -140,8 +145,22 @@ const Index = () => {
       document.body.appendChild(iframe)
     }
 
+    async function loadTest() {
+      window.initTestGrid = function(json) {
+        if (json.fpuzzles !== undefined) {
+          json = convertFPuzzle(json.fpuzzles)
+        }
+        updateGame({
+          type: TYPE_INIT,
+          data: json
+        })
+      }
+    }
+
     if (id.startsWith("fpuzzles")) {
       loadFPuzzles()
+    } else if (id === "test") {
+      loadTest()
     } else {
       let url
       let fallbackUrl
