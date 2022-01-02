@@ -7,6 +7,13 @@ const fixtures = fs.readdirSync(fixturesDir).filter(f => f.endsWith(".json"))
 
 let pages = []
 
+// Check if hardware acceleration is enabled. Without it, our tests will be much slower.
+test("GPU hardware acceleration", async ({ page }) => {
+  await page.goto("chrome://gpu")
+  let featureStatusList = page.locator(".feature-status-list")
+  await expect(featureStatusList).toContainText("Hardware accelerated")
+})
+
 test.describe.parallel("Grid", () => {
   test.beforeAll(async ({ browser }, testInfo) => {
     if (pages[testInfo.workerIndex] === undefined) {
