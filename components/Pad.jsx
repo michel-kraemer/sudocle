@@ -51,8 +51,12 @@ const Pad = () => {
 
   useEffect(() => {
     // check if all cells are filled
-    let nCells = game.data.cells.reduce((acc, v) => acc + v.length, 0)
-    setCheckReady(nCells === game.digits.size)
+    if (game.data === undefined) {
+      setCheckReady(false)
+    } else {
+      let nCells = game.data.cells.reduce((acc, v) => acc + v.length, 0)
+      setCheckReady(nCells === game.digits.size)
+    }
   }, [game.data, game.digits])
 
   function onDigit(digit) {

@@ -355,26 +355,29 @@ function makeUndoState(state) {
 function gameReducer(state, action) {
   return produce(state, draft => {
     if (action.type === TYPE_INIT) {
-      let canonicalData = { ...action.data }
-      canonicalData.cells = canonicalData.cells || []
-      canonicalData.regions = canonicalData.regions || []
-      canonicalData.cages = canonicalData.cages || []
-      canonicalData.lines = canonicalData.lines || []
-      canonicalData.arrows = canonicalData.arrows || []
-      canonicalData.underlays = canonicalData.underlays || []
-      canonicalData.overlays = canonicalData.overlays || []
+      let canonicalData = undefined
+      if (action.data !== undefined) {
+        canonicalData = { ...action.data }
+        canonicalData.cells = canonicalData.cells || []
+        canonicalData.regions = canonicalData.regions || []
+        canonicalData.cages = canonicalData.cages || []
+        canonicalData.lines = canonicalData.lines || []
+        canonicalData.arrows = canonicalData.arrows || []
+        canonicalData.underlays = canonicalData.underlays || []
+        canonicalData.overlays = canonicalData.overlays || []
 
-      // look for title, author, and rules
-      for (let cage of canonicalData.cages) {
-        if (cage.cells === undefined || !Array.isArray(cage.cells) ||
-            cage.cells.length === 0) {
-          if (typeof cage.value === "string") {
-            if (cage.value.startsWith("title:")) {
-              canonicalData.title = canonicalData.title || cage.value.substring(6).trim()
-            } else if (cage.value.startsWith("author:")) {
-              canonicalData.author = canonicalData.author || cage.value.substring(7).trim()
-            } else if (cage.value.startsWith("rules:")) {
-              canonicalData.rules = canonicalData.rules || cage.value.substring(6).trim()
+        // look for title, author, and rules
+        for (let cage of canonicalData.cages) {
+          if (cage.cells === undefined || !Array.isArray(cage.cells) ||
+              cage.cells.length === 0) {
+            if (typeof cage.value === "string") {
+              if (cage.value.startsWith("title:")) {
+                canonicalData.title = canonicalData.title || cage.value.substring(6).trim()
+              } else if (cage.value.startsWith("author:")) {
+                canonicalData.author = canonicalData.author || cage.value.substring(7).trim()
+              } else if (cage.value.startsWith("rules:")) {
+                canonicalData.rules = canonicalData.rules || cage.value.substring(6).trim()
+              }
             }
           }
         }

@@ -1,5 +1,3 @@
-const os = require("os")
-
 const config = {
   use: {
     channel: "chrome",

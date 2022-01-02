@@ -155,6 +155,12 @@ const Index = () => {
           data: json
         })
       }
+      window.resetTestGrid = function() {
+        updateGame({
+          type: TYPE_INIT,
+          data: undefined
+        })
+      }
     }
 
     if (id.startsWith("fpuzzles")) {
