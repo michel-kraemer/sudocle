@@ -33,6 +33,7 @@ const Index = () => {
   const [error, setError] = useState()
   const [solvedModalOpen, setSolvedModalOpen] = useState()
   const [errorModalOpen, setErrorModalOpen] = useState()
+  const [isTest, setIsTest] = useState(false)
 
   function onMouseDown(e) {
     // check if we hit a target that would clear the selction
@@ -150,6 +151,7 @@ const Index = () => {
         if (json.fpuzzles !== undefined) {
           json = convertFPuzzle(json.fpuzzles)
         }
+        setIsTest(true)
         updateGame({
           type: TYPE_INIT,
           data: json
@@ -160,6 +162,7 @@ const Index = () => {
           type: TYPE_INIT,
           data: undefined
         })
+        setIsTest(false)
       }
     }
 
@@ -455,7 +458,7 @@ const Index = () => {
     </Head>
     <div className="app" data-theme={settings.theme} data-colour-palette={settings.colourPalette}
         onMouseDown={onMouseDown} ref={appRef}>
-      <StatusBar />
+      {!isTest && <StatusBar />}
       <div className="game-container" ref={gameContainerRef}>
         <div className="grid-container" ref={gridContainerRef}>
           {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
