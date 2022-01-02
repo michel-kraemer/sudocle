@@ -1,9 +1,18 @@
 const { test, expect } = require("@playwright/test")
-const fs = require("fs")
+const fs = require("fs/promises")
+const fsSync = require("fs")
+const { compare } = require("odiff-bin")
 const path = require("path")
 
 const fixturesDir = path.join(__dirname, "fixtures/grids")
-const fixtures = fs.readdirSync(fixturesDir).filter(f => f.endsWith(".json"))
+const fixtures = fsSync.readdirSync(fixturesDir).filter(f => f.endsWith(".json"))
+
+const testResultsDir = path.join(__dirname, "..", "test-results", path.basename(__filename))
+const tempScreenshotsDir = path.join(testResultsDir, "temp")
+fsSync.mkdirSync(tempScreenshotsDir, { recursive: true })
+
+const expectedScreenshotsDir = path.join(__dirname, `${path.basename(__filename)}-snapshots`)
+fsSync.mkdirSync(expectedScreenshotsDir, { recursive: true })
 
 let pages = []
 
@@ -29,11 +38,45 @@ test.describe.parallel("Grid", () => {
     test(`${f} (${i}/${fixtures.length})`, async ({}, testInfo) => {
       let page = pages[testInfo.workerIndex]
 
+      // load puzzle
       await page.evaluate(json => window.initTestGrid(json), data)
 
-      const grid = page.locator(".grid")
-      await expect(await grid.screenshot()).toMatchSnapshot(`${f}.png`)
+      // take screenshot
+      let grid = page.locator(".grid")
+      let screenshot = await grid.screenshot()
 
+      // write screenshot to temporary file
+      let actualImage = path.join(tempScreenshotsDir, `${f}.png`)
+      await fs.writeFile(actualImage, screenshot)
+
+      // check if expected screenshot exists
+      let expectedImage = path.join(expectedScreenshotsDir, `${f}.png`)
+      if (!fsSync.existsSync(expectedImage)) {
+        console.warn(`     Screenshot of ${f} does not exist yet. Creating it now ...`)
+        await fs.writeFile(expectedImage, screenshot)
+      }
+
+      // compare images
+      let diffImage = path.join(testResultsDir, `${f}.diff.png`)
+      let result = await compare(expectedImage, actualImage, diffImage, {
+        antialiasing: true,
+        threshold: 0.2,
+        outputDiffMask: true
+      })
+
+      // evaluate result
+      if (!result.match) {
+        // save actual screenshot and expected screenshot next to diff image
+        await fs.writeFile(path.join(testResultsDir, `${f}.actual.png`), screenshot)
+        await fs.copyFile(expectedImage, path.join(testResultsDir, `${f}.expected.png`))
+      }
+
+      // remove temporary screenshot
+      fs.unlink(actualImage)
+
+      expect(result.match).toEqual(true)
+
+      // reset Grid for the next test
       await page.evaluate(() => window.resetTestGrid())
     })
   }
