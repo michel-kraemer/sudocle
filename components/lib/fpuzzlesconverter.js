@@ -24,6 +24,29 @@ function cellToCell(cell, offsetX = 0.5, offsetY = 0.5) {
   return [+m[1] - 1 + offsetX, +m[2] - 1 + offsetY]
 }
 
+function cellsToBoundingBox(cells) {
+  let minX = Number.MAX_VALUE
+  let minY = Number.MAX_VALUE
+  let maxX = 0
+  let maxY = 0
+  for (let c of cells) {
+    let cc = cellToCell(c)
+    if (cc[1] > maxX) {
+      maxX = cc[1]
+    }
+    if (cc[1] < minX) {
+      minX = cc[1]
+    }
+    if (cc[0] > maxY) {
+      maxY = cc[0]
+    }
+    if (cc[0] < minY) {
+      minY = cc[0]
+    }
+  }
+  return [minX, minY, maxX, maxY]
+}
+
 function cellsToCenter(cells) {
   cells = cells.map(c => cellToCell(c))
   return [mean(cells.map(c => c[0])), mean(cells.map(c => c[1]))]
@@ -229,7 +252,7 @@ export function convertFPuzzle(puzzle) {
   if (puzzle.clone !== undefined && puzzle.clone !== null) {
     for (let cl of puzzle.clone) {
       let cells = cl.cells || []
-      let cloneCells = cl.cloneCells || []
+      let cloneCells = cl.cloneCells || []
       for (let c of [...cells, ...cloneCells]) {
         underlays.push({
           center: cellToCell(c),
@@ -244,16 +267,17 @@ export function convertFPuzzle(puzzle) {
 
   if (puzzle.rectangle !== undefined && puzzle.rectangle !== null) {
     for (let r of puzzle.rectangle) {
-      for (let c of r.cells) {
-        underlays.push({
-          center: cellToCell(c),
-          width: r.width || 0.5,
-          height: r.height || 0.5,
-          borderColor: r.outlineC || "#000000",
-          backgroundColor: r.baseC || "#FFFFFF",
-          rounded: false
-        })
-      }
+      let [minX, minY, maxX, maxY] = cellsToBoundingBox(r.cells)
+      let width = 1 + (maxX - minX)
+      let height = 1 + (maxY - minY)
+      underlays.push({
+        center: cellsToCenter(r.cells),
+        width: width * (r.width || 0.5),
+        height: height * (r.height || 0.5),
+        borderColor: r.outlineC || "#000000",
+        backgroundColor: r.baseC || "#FFFFFF",
+        rounded: false
+      })
     }
   }
 
@@ -300,25 +324,7 @@ export function convertFPuzzle(puzzle) {
   if (puzzle.arrow !== undefined && puzzle.arrow !== null) {
     for (let a of puzzle.arrow) {
       if (a.cells !== undefined && a.cells !== null) {
-        let minX = Number.MAX_VALUE
-        let minY = Number.MAX_VALUE
-        let maxX = 0
-        let maxY = 0
-        for (let c of a.cells) {
-          let cc = cellToCell(c)
-          if (cc[1] > maxX) {
-            maxX = cc[1]
-          }
-          if (cc[1] < minX) {
-            minX = cc[1]
-          }
-          if (cc[0] > maxY) {
-            maxY = cc[0]
-          }
-          if (cc[0] < minY) {
-            minY = cc[0]
-          }
-        }
+        let [minX, minY, maxX, maxY] = cellsToBoundingBox(a.cells)
         let width = maxX - minX
         let height = maxY - minY
 
