@@ -20,7 +20,7 @@
     "classnames": "^2.3.1",
     "color": "^4.2.0",
     "favicons": "^6.2.2",
-    "image-webpack-loader": "^8.0.1",
+    "image-webpack-loader": "^8.1.0",
     "immer": "^9.0.12",
     "lodash": "^4.17.20",
     "lucide-react": "^0.16.24",
