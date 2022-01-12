@@ -21,7 +21,7 @@
     "color": "^4.2.0",
     "favicons": "^6.2.2",
     "image-webpack-loader": "^8.0.1",
-    "immer": "^9.0.7",
+    "immer": "^9.0.12",
     "lodash": "^4.17.20",
     "lucide-react": "^0.16.24",
     "mini-svg-data-uri": "^1.4.3",
