@@ -12,7 +12,7 @@ html {
   --font-family: "Roboto", sans-serif;
 
   font-size: 30px;
-  text-rendering: geometricPrecision;
+  text-rendering: geometricprecision;
 
   @media (max-width: $lg) {
     font-size: 26px;
