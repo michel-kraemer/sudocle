@@ -737,6 +737,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // it seems we don't need the system ticker, so stop it
     PIXI.Ticker.system.stop()
 
+    // Disable accessibility manager. We don't need it. Also, if it is enabled,
+    // it creates an invisible div on top of our grid when the user presses the
+    // tab key, which resets the cursor. We don't want the cursor to be reset!
+    newApp.renderer.plugins.accessibility.destroy()
+
     // good for dpi < 2
     if (window.devicePixelRatio < 2) {
       PIXI.settings.ROUND_PIXELS = true
