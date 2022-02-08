@@ -1,9 +1,9 @@
 import { xytok, ktoxy } from "../lib/utils"
-import { TYPE_MODE, TYPE_DIGITS, TYPE_CORNER_MARKS, TYPE_CENTRE_MARKS, TYPE_COLOURS,
-  TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT, TYPE_CHECK, TYPE_PAUSE,
-  ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
-  ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
-  import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../lib/Modes"
+import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_DIGITS, TYPE_CORNER_MARKS,
+  TYPE_CENTRE_MARKS, TYPE_COLOURS, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT,
+  TYPE_CHECK, TYPE_PAUSE, ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE,
+  ACTION_ROTATE, ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
+import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN } from "../lib/Modes"
 import { createContext, useReducer } from "react"
 import produce from "immer"
 import { isEqual } from "lodash"
@@ -52,7 +52,9 @@ function makeEmptyState(data) {
   return {
     data,
     mode: MODE_NORMAL,
-    enabledModes: [MODE_NORMAL],
+    modeGroup: 0,
+    enabledModes0: [MODE_NORMAL],
+    enabledModes1: [MODE_PEN],
     digits: makeGivenDigits(data),
     cornerMarks: makeGivenMarks(data, "cornermarks"),
     centreMarks: makeGivenMarks(data, "centremarks"),
@@ -79,7 +81,13 @@ function filterGivens(digits, selection) {
 }
 
 function modeReducer(draft, action) {
-  let newEnabledModes = [...draft.enabledModes]
+  let newEnabledModes
+  if (draft.modeGroup === 0) {
+    newEnabledModes = [...draft.enabledModes0]
+  } else {
+    newEnabledModes = [...draft.enabledModes1]
+  }
+
   switch (action.action) {
     case ACTION_SET:
       newEnabledModes = [action.mode]
@@ -101,7 +109,12 @@ function modeReducer(draft, action) {
     }
   }
 
-  let newMode = MODE_NORMAL
+  let newMode
+  if (draft.modeGroup === 0) {
+    newMode = MODE_NORMAL
+  } else {
+    newMode = MODE_PEN
+  }
   if (newEnabledModes.length > 0) {
     newMode = newEnabledModes[newEnabledModes.length - 1]
   }
@@ -120,12 +133,32 @@ function modeReducer(draft, action) {
       case MODE_COLOUR:
         newMode = MODE_NORMAL
         break
+      case MODE_PEN:
+        newMode = MODE_PEN
+        break
     }
     newEnabledModes = [newMode]
   }
 
   draft.mode = newMode
-  draft.enabledModes = newEnabledModes
+  if (draft.modeGroup === 0) {
+    draft.enabledModes0 = newEnabledModes
+  } else {
+    draft.enabledModes1 = newEnabledModes
+  }
+}
+
+function modeGroupReducer(draft, action) {
+  switch (action.action) {
+    case ACTION_ROTATE:
+      draft.modeGroup = (draft.modeGroup + 1) % 2
+      if (draft.modeGroup === 0) {
+        draft.mode = draft.enabledModes0[draft.enabledModes0.length - 1]
+      } else {
+        draft.mode = draft.enabledModes1[draft.enabledModes1.length - 1]
+      }
+      break
+  }
 }
 
 function marksReducer(marks, action, selection) {
@@ -316,6 +349,10 @@ function gameReducerNoUndo(state, mode, action) {
   switch (action.type) {
     case TYPE_MODE:
       modeReducer(state, action)
+      return
+
+    case TYPE_MODE_GROUP:
+      modeGroupReducer(state, action)
       return
 
     case TYPE_DIGITS:

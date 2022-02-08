@@ -1,5 +1,6 @@
 module.exports = {
   TYPE_MODE: "mode",
+  TYPE_MODE_GROUP: "modeGroup",
   TYPE_DIGITS: "digits",
   TYPE_CORNER_MARKS: "cornerMarks",
   TYPE_CENTRE_MARKS: "centreMarks",

@@ -5,10 +5,10 @@ import Modal from "../../components/Modal"
 import Pad from "../../components/Pad"
 import Sidebar from "../../components/Sidebar"
 import StatusBar from "../../components/StatusBar"
-import { TYPE_MODE, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT,
+import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT,
   ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
-import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR } from "../../components/lib/Modes"
+import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN } from "../../components/lib/Modes"
 import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter.js"
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Frown, ThumbsUp } from "lucide-react"
@@ -196,6 +196,12 @@ const Index = () => {
           action: ACTION_ROTATE
         })
         e.preventDefault()
+      } else if (e.key === "Tab" && !metaPressed && !shiftPressed && !altPressed) {
+        updateGame({
+          type: TYPE_MODE_GROUP,
+          action: ACTION_ROTATE
+        })
+        e.preventDefault()
       } else if (e.key === "Meta" || e.key === "Control") {
         updateGame({
           type: TYPE_MODE,
@@ -330,18 +336,21 @@ const Index = () => {
           action: ACTION_REMOVE,
           mode: MODE_CENTRE
         })
+        metaPressed = false
       } else if (shiftPressed) {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_REMOVE,
           mode: MODE_CORNER
         })
+        shiftPressed = false
       } else if (altPressed) {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_REMOVE,
           mode: MODE_COLOUR
         })
+        altPressed = false
       }
     }
 
