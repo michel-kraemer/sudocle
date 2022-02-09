@@ -1,7 +1,8 @@
 import GameContext from "./contexts/GameContext"
 import SettingsContext from "./contexts/SettingsContext"
 import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
-import { xytok } from "./lib/utils"
+import { MODE_PEN } from "./lib/Modes"
+import { ktoxy, xytok } from "./lib/utils"
 import Color from "color"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
@@ -291,6 +292,34 @@ function shortenLine(points, delta = 3) {
     lastPointX, lastPointY]
 }
 
+function euclidianBresenhamInterpolate(x0, y0, x1, y1) {
+  let dx = Math.abs(x1 - x0)
+  let sx = x0 < x1 ? 1 : -1
+  let dy = -Math.abs(y1 - y0)
+  let sy = y0 < y1 ? 1 : -1
+  let err = dx + dy
+
+  let result = []
+  while (true) {
+    if (x0 === x1 && y0 === y1) {
+      break
+    }
+    let e2 = 2 * err
+    if (e2 > dy) {
+      err += dy
+      x0 += sx
+      result.push([x0, y0])
+    }
+    if (e2 < dx) {
+      err += dx
+      y0 += sy
+      result.push([x0, y0])
+    }
+  }
+  result.pop()
+  return result
+}
+
 function filterDuplicatePoints(points) {
   let i = 3
   while (i < points.length) {
@@ -546,6 +575,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const colourElements = useRef([])
   const selectionElements = useRef([])
   const errorElements = useRef([])
+  const penCurrentWaypoints = useRef([])
+  const penCurrentWaypointsElements = useRef([])
 
   const renderLoopStarted = useRef(0)
   const rendering = useRef(false)
@@ -553,6 +584,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
   const settings = useContext(SettingsContext.State)
+
+  const currentMode = useRef(game.mode)
 
   const cellSize = game.data.cellSize * SCALE_FACTOR
   const cellSizeFactor = useRef(1)
@@ -620,6 +653,61 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     })
   }, [updateGame])
 
+  const penCell = useCallback((cell, evt, append = false) => {
+    let k = cell.data.k
+    if (append) {
+      let pcw = penCurrentWaypoints.current
+      let toAdd = []
+      if (pcw.length > 0) {
+        let fp = pcw[pcw.length - 1]
+        let fpp = ktoxy(fp)
+        let kp = ktoxy(k)
+        if (fpp[0] !== kp[0] && fpp[1] !== kp[1]) {
+          // cursor was moved diagonally or jumped to a distant cell
+          // interpolate between the last cell and the new one
+          let interpolated = euclidianBresenhamInterpolate(fpp[0], fpp[1], kp[0], kp[1])
+          for (let ip of interpolated) {
+            toAdd.push(xytok(ip[0], ip[1]))
+          }
+        }
+      }
+      toAdd.push(k)
+
+      // check if we've moved backwards and, if so, how much
+      let matched = 0
+      for (let a = pcw.length - 2, b = 0; a >= 0, b < toAdd.length; --a, ++b) {
+        if (pcw[a] === toAdd[b]) {
+          matched++
+        } else {
+          break
+        }
+      }
+      if (matched > 0) {
+        // remove as many waypoints as we've moved back
+        pcw.splice(-matched)
+      } else {
+        // we did not move backwards - just add the new waypoints
+        for (let ap of toAdd) {
+          pcw.push(ap)
+        }
+      }
+    } else {
+      penCurrentWaypoints.current = [k]
+    }
+
+    // render waypoints
+    penCurrentWaypointsElements.current.forEach(e => e.data.draw())
+    renderNow()
+  }, [renderNow])
+
+  const selectOrPenCell = useCallback((cell, evt, append = false) => {
+    if (currentMode.current !== MODE_PEN) {
+      selectCell(cell, evt, append)
+    } else {
+      penCell(cell, evt, append)
+    }
+  }, [selectCell, penCell])
+
   const onKeyDown = useCallback(e => {
     let digit = e.code.match("Digit([0-9])")
     if (digit) {
@@ -682,7 +770,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     }
   }
 
-  const onTouchMove = useCallback((e) => {
+  const onTouchMove = useCallback(e => {
     let touch = e.touches[0]
     let x = touch.pageX
     let y = touch.pageY
@@ -691,9 +779,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     interactionManager.mapPositionToPoint(p, x, y)
     let hit = interactionManager.hitTest(p, cellsElement.current)
     if (hit?.data?.k !== undefined) {
-      selectCell(hit, e, true)
+      selectOrPenCell(hit, e, true)
     }
-  }, [selectCell])
+  }, [selectOrPenCell])
 
   // Custom render loop. Render on demand and then repeat rendering for
   // MAX_RENDER_LOOP_TIME milliseconds. Then pause rendering again. This has
@@ -717,6 +805,20 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       doRender()
     }
   }, [])
+
+  useEffect(() => {
+    currentMode.current = game.mode
+
+    if (app.current !== undefined) {
+      if (game.mode === MODE_PEN) {
+        app.current.renderer.plugins.interaction.cursorStyles.pointer = "crosshair"
+      } else {
+        app.current.renderer.plugins.interaction.cursorStyles.pointer = "pointer"
+      }
+    }
+
+    penCurrentWaypoints.current = []
+  }, [game.mode])
 
   useEffect(() => {
     // optimised resolution for different screens
@@ -788,6 +890,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     //   digit                    50
     //   corner marks             50
     //   centre marks             50
+    //   pen waypoints            60
 
     // ***************** render everything that could contribute to bounds
 
@@ -797,6 +900,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         let cell = new PIXI.Graphics()
         cell.interactive = true
         cell.buttonMode = true
+        cell.cursor = "pointer"
 
         cell.data = {
           k: xytok(x, y),
@@ -814,14 +918,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         }
 
         cell.on("pointerdown", function (e) {
-          selectCell(this, e)
+          selectOrPenCell(this, e)
           e.stopPropagation()
           e.data.originalEvent.preventDefault()
         })
 
         cell.on("pointerover", function (e) {
           if (e.data.buttons === 1) {
-            selectCell(this, e, true)
+            selectOrPenCell(this, e, true)
           }
           e.stopPropagation()
         })
@@ -1009,10 +1113,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     background.interactive = true
     background.zIndex = -1000
     background.on("pointerdown", () => {
-      updateGame({
-        type: TYPE_SELECTION,
-        action: ACTION_CLEAR
-      })
+      if (currentMode.current !== MODE_PEN) {
+        updateGame({
+          type: TYPE_SELECTION,
+          action: ACTION_CLEAR
+        })
+      }
     })
     backgroundElement.current = background
 
@@ -1179,6 +1285,37 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       })
     })
 
+    // create element that visualises current pen waypoints
+    let penWaypoints = new PIXI.Graphics()
+    penWaypoints.zIndex = 60
+    penWaypoints.data = {
+      draw: function (cellSize) {
+        this.cellSize = cellSize || this.cellSize
+        if (this.cellSize === undefined) {
+          return
+        }
+
+        let wps = penCurrentWaypoints.current
+        penWaypoints.clear()
+        if (wps.length > 1) {
+          penWaypoints.lineStyle({
+            width: 2 * SCALE_FACTOR,
+            color: 0x0,
+            cap: PIXI.LINE_CAP.ROUND,
+            join: PIXI.LINE_JOIN.ROUND
+          })
+          let p0 = ktoxy(wps[0])
+          penWaypoints.moveTo((p0[0] + 0.5) * this.cellSize, (p0[1] + 0.5) * this.cellSize)
+          for (let i = 0; i < wps.length - 1; ++i) {
+            let p = ktoxy(wps[i + 1])
+            penWaypoints.lineTo((p[0] + 0.5) * this.cellSize, (p[1] + 0.5) * this.cellSize)
+          }
+        }
+      }
+    }
+    all.addChild(penWaypoints)
+    penCurrentWaypointsElements.current.push(penWaypoints)
+
     if (onFinishRender) {
       onFinishRender()
     }
@@ -1204,13 +1341,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       colourElements.current = []
       selectionElements.current = []
       errorElements.current = []
+      penCurrentWaypointsElements.current = []
 
       newApp.view.removeEventListener("touchmove", onTouchMove)
       newApp.destroy(true, true)
       app.current = undefined
     }
-  }, [game.data, cellSize, regions, cages, extraRegions, selectCell, updateGame,
-      onFinishRender, onTouchMove])
+  }, [game.data, cellSize, regions, cages, extraRegions, selectOrPenCell,
+      updateGame, onFinishRender, onTouchMove])
 
   useEffect(() => {
     let cs = cellSize * (settings.zoom + ZOOM_DELTA)
@@ -1225,7 +1363,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         cageLabelTextElements, cageLabelBackgroundElements, lineElements,
         arrowHeadElements, extraRegionElements, underlayElements, overlayElements,
         givenCornerMarkElements, digitElements, centreMarkElements, colourElements,
-        selectionElements, errorElements]
+        selectionElements, errorElements, penCurrentWaypointsElements]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
           if (e.clear !== undefined) {
@@ -1309,7 +1447,18 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       ref.current.style.marginLeft = `${additionalMarginX}px`
       ref.current.style.marginRight = "0"
     }
-  }, [cellSize, maxWidth, maxHeight, portrait, settings.zoom])
+
+    // check if we're currently hovering over an element that has a custom cursor
+    let interactionManager = app.current.renderer.plugins.interaction
+    let pos = interactionManager.mouse.global
+    let hit = interactionManager.hitTest(pos, allElement.current)
+    if (hit?.cursor !== undefined) {
+      // reset cursor mode before setting the new one - otherwise, the cursor
+      // will not change at all
+      interactionManager.setCursorMode("default")
+      interactionManager.setCursorMode(hit.cursor)
+    }
+  }, [cellSize, maxWidth, maxHeight, portrait, settings.zoom, game.mode])
 
   // register keyboard handlers
   useEffect(() => {
@@ -1375,7 +1524,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       app.current.renderer.height, themeColours)
   }, [settings.theme, settings.selectionColour, settings.zoom, settings.fontSizeFactorDigits,
       settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
-      maxWidth, maxHeight, portrait])
+      maxWidth, maxHeight, portrait, game.mode])
 
   useEffect(() => {
     selectionElements.current.forEach(s => {
@@ -1489,7 +1638,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       game.errors, settings.theme, settings.colourPalette, settings.selectionColour,
       settings.customColours, settings.zoom, settings.fontSizeFactorDigits,
       settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
-      maxWidth, maxHeight, portrait, renderNow])
+      maxWidth, maxHeight, portrait, renderNow, game.mode])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick} onDoubleClick={onDoubleClick}>
