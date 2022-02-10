@@ -1,8 +1,9 @@
 import GameContext from "./contexts/GameContext"
 import SettingsContext from "./contexts/SettingsContext"
-import { TYPE_DIGITS, TYPE_SELECTION, ACTION_CLEAR, ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
+import { TYPE_DIGITS, TYPE_PENLINES, TYPE_SELECTION, ACTION_CLEAR,
+  ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
 import { MODE_PEN } from "./lib/Modes"
-import { ktoxy, xytok } from "./lib/utils"
+import { ktoxy, xytok, pltok } from "./lib/utils"
 import Color from "color"
 import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
@@ -17,6 +18,9 @@ const FONT_SIZE_CORNER_MARKS_LOW_DPI = 28
 const FONT_SIZE_CENTRE_MARKS_HIGH_DPI = 29
 const FONT_SIZE_CENTRE_MARKS_LOW_DPI = 29
 const MAX_RENDER_LOOP_TIME = 500
+
+const PENLINE_TYPE_CENTER_RIGHT = 0
+const PENLINE_TYPE_CENTER_DOWN = 1
 
 let PIXI
 if (typeof window !== "undefined") {
@@ -577,6 +581,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const errorElements = useRef([])
   const penCurrentWaypoints = useRef([])
   const penCurrentWaypointsElements = useRef([])
+  const penLineElements = useRef([])
 
   const renderLoopStarted = useRef(0)
   const rendering = useRef(false)
@@ -662,7 +667,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         let fp = pcw[pcw.length - 1]
         let fpp = ktoxy(fp)
         let kp = ktoxy(k)
-        if (fpp[0] !== kp[0] && fpp[1] !== kp[1]) {
+        let dx = Math.abs(kp[0] - fpp[0])
+        let dy = Math.abs(kp[1] - fpp[1])
+        if (dx + dy !== 1) {
           // cursor was moved diagonally or jumped to a distant cell
           // interpolate between the last cell and the new one
           let interpolated = euclidianBresenhamInterpolate(fpp[0], fpp[1], kp[0], kp[1])
@@ -783,6 +790,36 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     }
   }, [selectOrPenCell])
 
+  const onPointerUp = useCallback(e => {
+    let pwc = penCurrentWaypoints.current
+    if (pwc.length > 0) {
+      let penLines = []
+      for (let i = 0; i < pwc.length - 1; ++i) {
+        let p1 = ktoxy(pwc[i])
+        let p2 = ktoxy(pwc[i + 1])
+        if (p2[0] > p1[0]) {
+          penLines.push(pltok(p1[0], p1[1], PENLINE_TYPE_CENTER_RIGHT))
+        } else if (p2[0] < p1[0]) {
+          penLines.push(pltok(p2[0], p2[1], PENLINE_TYPE_CENTER_RIGHT))
+        } else if (p2[1] > p1[1]) {
+          penLines.push(pltok(p1[0], p1[1], PENLINE_TYPE_CENTER_DOWN))
+        } else if (p2[1] < p1[1]) {
+          penLines.push(pltok(p2[0], p2[1], PENLINE_TYPE_CENTER_DOWN))
+        }
+      }
+      updateGame({
+        type: TYPE_PENLINES,
+        action: ACTION_PUSH,
+        k: penLines
+      })
+      penCurrentWaypoints.current = []
+
+      // render waypoints (this will basically remove them from the grid)
+      penCurrentWaypointsElements.current.forEach(e => e.data.draw())
+      renderNow()
+    }
+  }, [updateGame, renderNow])
+
   // Custom render loop. Render on demand and then repeat rendering for
   // MAX_RENDER_LOOP_TIME milliseconds. Then pause rendering again. This has
   // two benefits: (1) it forces the browser to refresh the screen as quickly
@@ -851,6 +888,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // register touch handler
     newApp.view.addEventListener("touchmove", onTouchMove)
+    document.addEventListener("pointerup", onPointerUp, false)
+    document.addEventListener("pointercancel", onPointerUp, false)
+    document.addEventListener("touchend", onPointerUp, false)
+    document.addEventListener("touchcancel", onPointerUp, false)
 
     let themeColours = getThemeColours(ref.current)
 
@@ -890,7 +931,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     //   digit                    50
     //   corner marks             50
     //   centre marks             50
-    //   pen waypoints            60
+    //   pen lines                60
+    //   pen waypoints            70
 
     // ***************** render everything that could contribute to bounds
 
@@ -1285,9 +1327,57 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       })
     })
 
+    // create invisible elements for pen lines
+    game.data.cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let lineStyle = {
+          width: 2 * SCALE_FACTOR,
+          color: 0x0,
+          cap: PIXI.LINE_CAP.ROUND,
+          join: PIXI.LINE_JOIN.ROUND
+        }
+
+        if (x < row.length - 1) {
+          let penLine1 = new PIXI.Graphics()
+          penLine1.visible = false
+          penLine1.zIndex = 60
+          penLine1.data = {
+            k: pltok(x, y, PENLINE_TYPE_CENTER_RIGHT),
+            draw: function (cellSize) {
+              penLine1.lineStyle(lineStyle)
+              penLine1.moveTo(0, 0)
+              penLine1.lineTo(cellSize, 0)
+              penLine1.x = (x + 0.5) * cellSize
+              penLine1.y = (y + 0.5) * cellSize
+            }
+          }
+          all.addChild(penLine1)
+          penLineElements.current.push(penLine1)
+        }
+
+        if (y < game.data.cells.length - 1) {
+          let penLine2 = new PIXI.Graphics()
+          penLine2.visible = false
+          penLine2.zIndex = 60
+          penLine2.data = {
+            k: pltok(x, y, PENLINE_TYPE_CENTER_DOWN),
+            draw: function (cellSize) {
+              penLine2.lineStyle(lineStyle)
+              penLine2.moveTo(0, 0)
+              penLine2.lineTo(0, cellSize)
+              penLine2.x = (x + 0.5) * cellSize
+              penLine2.y = (y + 0.5) * cellSize
+            }
+          }
+          all.addChild(penLine2)
+          penLineElements.current.push(penLine2)
+        }
+      })
+    })
+
     // create element that visualises current pen waypoints
     let penWaypoints = new PIXI.Graphics()
-    penWaypoints.zIndex = 60
+    penWaypoints.zIndex = 70
     penWaypoints.data = {
       draw: function (cellSize) {
         this.cellSize = cellSize || this.cellSize
@@ -1299,8 +1389,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         penWaypoints.clear()
         if (wps.length > 1) {
           penWaypoints.lineStyle({
-            width: 2 * SCALE_FACTOR,
-            color: 0x0,
+            width: 3 * SCALE_FACTOR,
+            color: 0x009e73,
             cap: PIXI.LINE_CAP.ROUND,
             join: PIXI.LINE_JOIN.ROUND
           })
@@ -1342,13 +1432,18 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       selectionElements.current = []
       errorElements.current = []
       penCurrentWaypointsElements.current = []
+      penLineElements.current = []
 
+      document.removeEventListener("touchcancel", onPointerUp)
+      document.removeEventListener("touchend", onPointerUp)
+      document.removeEventListener("pointercancel", onPointerUp)
+      document.removeEventListener("pointerup", onPointerUp)
       newApp.view.removeEventListener("touchmove", onTouchMove)
       newApp.destroy(true, true)
       app.current = undefined
     }
   }, [game.data, cellSize, regions, cages, extraRegions, selectOrPenCell,
-      updateGame, onFinishRender, onTouchMove])
+      updateGame, onFinishRender, onTouchMove, onPointerUp])
 
   useEffect(() => {
     let cs = cellSize * (settings.zoom + ZOOM_DELTA)
@@ -1363,7 +1458,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         cageLabelTextElements, cageLabelBackgroundElements, lineElements,
         arrowHeadElements, extraRegionElements, underlayElements, overlayElements,
         givenCornerMarkElements, digitElements, centreMarkElements, colourElements,
-        selectionElements, errorElements, penCurrentWaypointsElements]
+        selectionElements, errorElements, penCurrentWaypointsElements, penLineElements]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
           if (e.clear !== undefined) {
@@ -1629,16 +1724,21 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       }
     }
 
+    for (let pl of penLineElements.current) {
+      pl.visible = game.penLines.has(pl.data.k)
+    }
+
     for (let e of errorElements.current) {
       e.visible = game.errors.has(e.data.k)
     }
 
     renderNow()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
-      game.errors, settings.theme, settings.colourPalette, settings.selectionColour,
-      settings.customColours, settings.zoom, settings.fontSizeFactorDigits,
-      settings.fontSizeFactorCentreMarks, settings.fontSizeFactorCornerMarks,
-      maxWidth, maxHeight, portrait, renderNow, game.mode])
+      game.penLines, game.errors, settings.theme, settings.colourPalette,
+      settings.selectionColour, settings.customColours, settings.zoom,
+      settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
+      settings.fontSizeFactorCornerMarks, maxWidth, maxHeight, portrait,
+      renderNow, game.mode])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick} onDoubleClick={onDoubleClick}>

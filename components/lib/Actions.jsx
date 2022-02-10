@@ -5,6 +5,7 @@ module.exports = {
   TYPE_CORNER_MARKS: "cornerMarks",
   TYPE_CENTRE_MARKS: "centreMarks",
   TYPE_COLOURS: "colours",
+  TYPE_PENLINES: "penLines",
   TYPE_SELECTION: "selection",
   TYPE_UNDO: "undo",
   TYPE_REDO: "redo",

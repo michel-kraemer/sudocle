@@ -1,8 +1,9 @@
 import { xytok, ktoxy } from "../lib/utils"
 import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_DIGITS, TYPE_CORNER_MARKS,
-  TYPE_CENTRE_MARKS, TYPE_COLOURS, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT,
-  TYPE_CHECK, TYPE_PAUSE, ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE,
-  ACTION_ROTATE, ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
+  TYPE_CENTRE_MARKS, TYPE_COLOURS, TYPE_PENLINES, TYPE_SELECTION, TYPE_UNDO,
+  TYPE_REDO, TYPE_INIT, TYPE_CHECK, TYPE_PAUSE, ACTION_ALL, ACTION_SET,
+  ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE, ACTION_RIGHT,
+  ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN } from "../lib/Modes"
 import { createContext, useReducer } from "react"
 import produce from "immer"
@@ -59,6 +60,7 @@ function makeEmptyState(data) {
     cornerMarks: makeGivenMarks(data, "cornermarks"),
     centreMarks: makeGivenMarks(data, "centremarks"),
     colours: new Map(),
+    penLines: new Set(),
     selection: new Set(),
     errors: new Set(),
     undoStates: [],
@@ -207,6 +209,32 @@ function digitsReducer(digits, action, selection, attrName = "digit") {
         digits.delete(sc)
       }
       break
+    }
+  }
+}
+
+function penLinesReducer(penLines, action) {
+  switch (action.action) {
+    case ACTION_PUSH: {
+      if (Array.isArray(action.k)) {
+        for (let k of action.k) {
+          penLines.add(k)
+        }
+      } else {
+        penLines.add(action.k)
+      }
+      return
+    }
+
+    case ACTION_REMOVE: {
+      if (Array.isArray(action.k)) {
+        for (let k of action.k) {
+          penLines.delete(k)
+        }
+      } else {
+        penLines.delete(action.k)
+      }
+      return
     }
   }
 }
@@ -374,6 +402,10 @@ function gameReducerNoUndo(state, mode, action) {
       digitsReducer(state.colours, action, state.selection, "colour")
       return
 
+    case TYPE_PENLINES:
+      penLinesReducer(state.penLines, action)
+      return
+
     case TYPE_SELECTION:
       selectionReducer(state.selection, action, state.data?.cells)
       return
@@ -385,7 +417,8 @@ function makeUndoState(state) {
     digits: state.digits,
     cornerMarks: state.cornerMarks,
     centreMarks: state.centreMarks,
-    colours: state.colours
+    colours: state.colours,
+    penLines: state.penLines
   }
 }
 

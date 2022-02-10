@@ -13,3 +13,7 @@ export function xytok(x, y) {
 export function ktoxy(c) {
   return [c >> 24, c & 0xfff]
 }
+
+export function pltok(x, y, type) {
+  return x << 20 | y << 8 | type
+}
