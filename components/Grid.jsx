@@ -476,6 +476,21 @@ function cellToScreenCoords(cell, mx, my, cellSize) {
   return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
 }
 
+function penWaypointsToKey(wp1, wp2) {
+  let p1 = ktoxy(wp1)
+  let p2 = ktoxy(wp2)
+  if (p2[0] > p1[0]) {
+    return pltok(p1[0], p1[1], PENLINE_TYPE_CENTER_RIGHT)
+  } else if (p2[0] < p1[0]) {
+    return pltok(p2[0], p2[1], PENLINE_TYPE_CENTER_RIGHT)
+  } else if (p2[1] > p1[1]) {
+    return pltok(p1[0], p1[1], PENLINE_TYPE_CENTER_DOWN)
+  } else if (p2[1] < p1[1]) {
+    return pltok(p2[0], p2[1], PENLINE_TYPE_CENTER_DOWN)
+  }
+  return undefined
+}
+
 function drawOverlay(overlay, mx, my, zIndex) {
   let r = new PIXI.Graphics()
   r.zIndex = zIndex
@@ -580,6 +595,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const selectionElements = useRef([])
   const errorElements = useRef([])
   const penCurrentWaypoints = useRef([])
+  const penCurrentWaypointsAdd = useRef(true)
   const penCurrentWaypointsElements = useRef([])
   const penLineElements = useRef([])
 
@@ -698,6 +714,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           pcw.push(ap)
         }
       }
+
+      // check if we are adding a pen line or removing it
+      if (pcw.length > 1) {
+        let firstKey = penWaypointsToKey(pcw[0], pcw[1])
+        let visible = penLineElements.current.some(e => e.data.k === firstKey && e.visible)
+        penCurrentWaypointsAdd.current = !visible
+      }
     } else {
       penCurrentWaypoints.current = [k]
     }
@@ -795,21 +818,20 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     if (pwc.length > 0) {
       let penLines = []
       for (let i = 0; i < pwc.length - 1; ++i) {
-        let p1 = ktoxy(pwc[i])
-        let p2 = ktoxy(pwc[i + 1])
-        if (p2[0] > p1[0]) {
-          penLines.push(pltok(p1[0], p1[1], PENLINE_TYPE_CENTER_RIGHT))
-        } else if (p2[0] < p1[0]) {
-          penLines.push(pltok(p2[0], p2[1], PENLINE_TYPE_CENTER_RIGHT))
-        } else if (p2[1] > p1[1]) {
-          penLines.push(pltok(p1[0], p1[1], PENLINE_TYPE_CENTER_DOWN))
-        } else if (p2[1] < p1[1]) {
-          penLines.push(pltok(p2[0], p2[1], PENLINE_TYPE_CENTER_DOWN))
+        let k = penWaypointsToKey(pwc[i], pwc[i + 1])
+        if (k !== undefined) {
+          penLines.push(k)
         }
+      }
+      let action
+      if (penCurrentWaypointsAdd.current) {
+        action = ACTION_PUSH
+      } else {
+        action = ACTION_REMOVE
       }
       updateGame({
         type: TYPE_PENLINES,
-        action: ACTION_PUSH,
+        action,
         k: penLines
       })
       penCurrentWaypoints.current = []
@@ -1388,9 +1410,15 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         let wps = penCurrentWaypoints.current
         penWaypoints.clear()
         if (wps.length > 1) {
+          let color
+          if (penCurrentWaypointsAdd.current) {
+            color = 0x009e73
+          } else {
+            color = 0xde3333
+          }
           penWaypoints.lineStyle({
             width: 3 * SCALE_FACTOR,
-            color: 0x009e73,
+            color,
             cap: PIXI.LINE_CAP.ROUND,
             join: PIXI.LINE_JOIN.ROUND
           })
