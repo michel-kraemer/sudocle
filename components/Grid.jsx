@@ -21,6 +21,8 @@ const MAX_RENDER_LOOP_TIME = 500
 
 const PENLINE_TYPE_CENTER_RIGHT = 0
 const PENLINE_TYPE_CENTER_DOWN = 1
+const PENLINE_TYPE_EDGE_RIGHT = 2
+const PENLINE_TYPE_EDGE_DOWN = 3
 
 let PIXI
 if (typeof window !== "undefined") {
@@ -476,17 +478,26 @@ function cellToScreenCoords(cell, mx, my, cellSize) {
   return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
 }
 
-function penWaypointsToKey(wp1, wp2) {
+function penWaypointsToKey(wp1, wp2, penCurrentDrawEdge) {
+  let right
+  let down
+  if (penCurrentDrawEdge) {
+    right = PENLINE_TYPE_EDGE_RIGHT
+    down = PENLINE_TYPE_EDGE_DOWN
+  } else {
+    right = PENLINE_TYPE_CENTER_RIGHT
+    down = PENLINE_TYPE_CENTER_DOWN
+  }
   let p1 = ktoxy(wp1)
   let p2 = ktoxy(wp2)
   if (p2[0] > p1[0]) {
-    return pltok(p1[0], p1[1], PENLINE_TYPE_CENTER_RIGHT)
+    return pltok(p1[0], p1[1], right)
   } else if (p2[0] < p1[0]) {
-    return pltok(p2[0], p2[1], PENLINE_TYPE_CENTER_RIGHT)
+    return pltok(p2[0], p2[1], right)
   } else if (p2[1] > p1[1]) {
-    return pltok(p1[0], p1[1], PENLINE_TYPE_CENTER_DOWN)
+    return pltok(p1[0], p1[1], down)
   } else if (p2[1] < p1[1]) {
-    return pltok(p2[0], p2[1], PENLINE_TYPE_CENTER_DOWN)
+    return pltok(p2[0], p2[1], down)
   }
   return undefined
 }
@@ -598,6 +609,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const penCurrentWaypointsAdd = useRef(true)
   const penCurrentWaypointsElements = useRef([])
   const penHitareaElements = useRef([])
+  const penCurrentDrawEdge = useRef(false)
   const penLineElements = useRef([])
 
   const renderLoopStarted = useRef(0)
@@ -693,11 +705,38 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     let x = e.data.global.x
     let y = e.data.global.y
-    let cellX = Math.floor(x / cellSize)
-    let cellY = Math.floor(y / cellSize)
+    let fCellX = x / cellSize
+    let fCellY = y / cellSize
+    if (penCurrentDrawEdge.current) {
+      fCellX += 0.5
+      fCellY += 0.5
+    }
+    let cellX = Math.floor(fCellX)
+    let cellY = Math.floor(fCellY)
     let k = xytok(cellX, cellY)
 
     if (penCurrentWaypoints.current.length === 0) {
+      // check if we are drawing an edge
+      let tolerance = 0.15
+      let rCellX = Math.round(fCellX)
+      let rCellY = Math.round(fCellY)
+      let rx = fCellX - rCellX
+      let ry = fCellY - rCellY
+      if (rx >= 0 && rx <= tolerance) {
+        // left edge
+        penCurrentDrawEdge.current = true
+      } else if (rx >= -tolerance && rx <= 0) {
+        // right edge
+        k = xytok(cellX + 1, cellY)
+        penCurrentDrawEdge.current = true
+      } else if (ry >= 0 && ry <= tolerance) {
+        // top edge
+        penCurrentDrawEdge.current = true
+      } else if (ry >= -tolerance && ry <= 0) {
+        // bottom edge
+        penCurrentDrawEdge.current = true
+      }
+
       penCurrentWaypoints.current = [k]
     } else if (penCurrentWaypoints.current[penCurrentWaypoints.current.length - 1] === k) {
       // nothing to do
@@ -833,7 +872,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     if (pwc.length > 0) {
       let penLines = []
       for (let i = 0; i < pwc.length - 1; ++i) {
-        let k = penWaypointsToKey(pwc[i], pwc[i + 1])
+        let k = penWaypointsToKey(pwc[i], pwc[i + 1], penCurrentDrawEdge.current)
         if (k !== undefined) {
           penLines.push(k)
         }
@@ -850,6 +889,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         k: penLines
       })
       penCurrentWaypoints.current = []
+      penCurrentDrawEdge.current = false
 
       // render waypoints (this will basically remove them from the grid)
       penCurrentWaypointsElements.current.forEach(e => e.data.draw())
@@ -1369,47 +1409,46 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // create invisible elements for pen lines
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let lineStyle = {
-          width: 2 * SCALE_FACTOR,
-          color: 0x0,
-          cap: PIXI.LINE_CAP.ROUND,
-          join: PIXI.LINE_JOIN.ROUND
+        function makeLine(rx, ry, horiz, dx, dy, type) {
+          let line = new PIXI.Graphics()
+          line.visible = false
+          line.zIndex = 60
+          line.data = {
+            k: pltok(rx, ry, type),
+            draw: function (cellSize) {
+              line.lineStyle({
+                width: 2 * SCALE_FACTOR,
+                color: 0,
+                cap: PIXI.LINE_CAP.ROUND,
+                join: PIXI.LINE_JOIN.ROUND
+              })
+              line.moveTo(0, 0)
+              if (horiz) {
+                line.lineTo(cellSize, 0)
+              } else {
+                line.lineTo(0, cellSize)
+              }
+              line.x = (rx + dx) * cellSize
+              line.y = (ry + dy) * cellSize
+            }
+          }
+          all.addChild(line)
+          penLineElements.current.push(line)
         }
 
         if (x < row.length - 1) {
-          let penLine1 = new PIXI.Graphics()
-          penLine1.visible = false
-          penLine1.zIndex = 60
-          penLine1.data = {
-            k: pltok(x, y, PENLINE_TYPE_CENTER_RIGHT),
-            draw: function (cellSize) {
-              penLine1.lineStyle(lineStyle)
-              penLine1.moveTo(0, 0)
-              penLine1.lineTo(cellSize, 0)
-              penLine1.x = (x + 0.5) * cellSize
-              penLine1.y = (y + 0.5) * cellSize
-            }
-          }
-          all.addChild(penLine1)
-          penLineElements.current.push(penLine1)
+          makeLine(x, y, true, 0.5, 0.5, PENLINE_TYPE_CENTER_RIGHT)
         }
-
+        makeLine(x, y, true, 0, 0, PENLINE_TYPE_EDGE_RIGHT)
+        if (y === game.data.cells.length - 1) {
+          makeLine(x, y + 1, true, 0, 0, PENLINE_TYPE_EDGE_RIGHT)
+        }
         if (y < game.data.cells.length - 1) {
-          let penLine2 = new PIXI.Graphics()
-          penLine2.visible = false
-          penLine2.zIndex = 60
-          penLine2.data = {
-            k: pltok(x, y, PENLINE_TYPE_CENTER_DOWN),
-            draw: function (cellSize) {
-              penLine2.lineStyle(lineStyle)
-              penLine2.moveTo(0, 0)
-              penLine2.lineTo(0, cellSize)
-              penLine2.x = (x + 0.5) * cellSize
-              penLine2.y = (y + 0.5) * cellSize
-            }
-          }
-          all.addChild(penLine2)
-          penLineElements.current.push(penLine2)
+          makeLine(x, y, false, 0.5, 0.5, PENLINE_TYPE_CENTER_DOWN)
+        }
+        makeLine(x, y, false, 0, 0, PENLINE_TYPE_EDGE_DOWN)
+        if (x === row.length - 1) {
+          makeLine(x + 1, y, false, 0, 0, PENLINE_TYPE_EDGE_DOWN)
         }
       })
     })
@@ -1433,6 +1472,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           } else {
             color = 0xde3333
           }
+          let d = 0.5
+          if (penCurrentDrawEdge.current) {
+            d = 0
+          }
           penWaypoints.lineStyle({
             width: 3 * SCALE_FACTOR,
             color,
@@ -1440,10 +1483,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
             join: PIXI.LINE_JOIN.ROUND
           })
           let p0 = ktoxy(wps[0])
-          penWaypoints.moveTo((p0[0] + 0.5) * this.cellSize, (p0[1] + 0.5) * this.cellSize)
+          penWaypoints.moveTo((p0[0] + d) * this.cellSize, (p0[1] + d) * this.cellSize)
           for (let i = 0; i < wps.length - 1; ++i) {
             let p = ktoxy(wps[i + 1])
-            penWaypoints.lineTo((p[0] + 0.5) * this.cellSize, (p[1] + 0.5) * this.cellSize)
+            penWaypoints.lineTo((p[0] + d) * this.cellSize, (p[1] + d) * this.cellSize)
           }
         }
       }
