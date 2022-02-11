@@ -597,6 +597,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const penCurrentWaypoints = useRef([])
   const penCurrentWaypointsAdd = useRef(true)
   const penCurrentWaypointsElements = useRef([])
+  const penHitareaElements = useRef([])
   const penLineElements = useRef([])
 
   const renderLoopStarted = useRef(0)
@@ -658,6 +659,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   }, [game.data])
 
   const selectCell = useCallback((cell, evt, append = false) => {
+    if (currentMode.current === MODE_PEN) {
+      // do nothing in pen mode
+      return
+    }
+
     let action = append ? ACTION_PUSH : ACTION_SET
     let oe = evt?.data?.originalEvent
     if (oe?.metaKey || oe?.ctrlKey) {
@@ -667,6 +673,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         action = ACTION_PUSH
       }
     }
+
     updateGame({
       type: TYPE_SELECTION,
       action,
@@ -674,21 +681,39 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     })
   }, [updateGame])
 
-  const penCell = useCallback((cell, evt, append = false) => {
-    let k = cell.data.k
-    if (append) {
+  const onPenMove = useCallback((e, cellSize) => {
+    if (e.target === null) {
+      // pointer is not over the hit area
+      return
+    }
+    if (e.data.buttons !== 1) {
+      // let mouse button is not pressed
+      return
+    }
+
+    let x = e.data.global.x
+    let y = e.data.global.y
+    let cellX = Math.floor(x / cellSize)
+    let cellY = Math.floor(y / cellSize)
+    let k = xytok(cellX, cellY)
+
+    if (penCurrentWaypoints.current.length === 0) {
+      penCurrentWaypoints.current = [k]
+    } else if (penCurrentWaypoints.current[penCurrentWaypoints.current.length - 1] === k) {
+      // nothing to do
+      return
+    } else {
       let pcw = penCurrentWaypoints.current
       let toAdd = []
       if (pcw.length > 0) {
         let fp = pcw[pcw.length - 1]
         let fpp = ktoxy(fp)
-        let kp = ktoxy(k)
-        let dx = Math.abs(kp[0] - fpp[0])
-        let dy = Math.abs(kp[1] - fpp[1])
+        let dx = Math.abs(cellX - fpp[0])
+        let dy = Math.abs(cellY - fpp[1])
         if (dx + dy !== 1) {
           // cursor was moved diagonally or jumped to a distant cell
           // interpolate between the last cell and the new one
-          let interpolated = euclidianBresenhamInterpolate(fpp[0], fpp[1], kp[0], kp[1])
+          let interpolated = euclidianBresenhamInterpolate(fpp[0], fpp[1], cellX, cellY)
           for (let ip of interpolated) {
             toAdd.push(xytok(ip[0], ip[1]))
           }
@@ -717,26 +742,16 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
       // check if we are adding a pen line or removing it
       if (pcw.length > 1) {
-        let firstKey = penWaypointsToKey(pcw[0], pcw[1])
+        let firstKey = penWaypointsToKey(pcw[0], pcw[1], penCurrentDrawEdge.current)
         let visible = penLineElements.current.some(e => e.data.k === firstKey && e.visible)
         penCurrentWaypointsAdd.current = !visible
       }
-    } else {
-      penCurrentWaypoints.current = [k]
     }
 
     // render waypoints
     penCurrentWaypointsElements.current.forEach(e => e.data.draw())
     renderNow()
   }, [renderNow])
-
-  const selectOrPenCell = useCallback((cell, evt, append = false) => {
-    if (currentMode.current !== MODE_PEN) {
-      selectCell(cell, evt, append)
-    } else {
-      penCell(cell, evt, append)
-    }
-  }, [selectCell, penCell])
 
   const onKeyDown = useCallback(e => {
     let digit = e.code.match("Digit([0-9])")
@@ -809,9 +824,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     interactionManager.mapPositionToPoint(p, x, y)
     let hit = interactionManager.hitTest(p, cellsElement.current)
     if (hit?.data?.k !== undefined) {
-      selectOrPenCell(hit, e, true)
+      selectCell(hit, e, true)
     }
-  }, [selectOrPenCell])
+  }, [selectCell])
 
   const onPointerUp = useCallback(e => {
     let pwc = penCurrentWaypoints.current
@@ -875,6 +890,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         app.current.renderer.plugins.interaction.cursorStyles.pointer = "pointer"
       }
     }
+    penHitareaElements.current.forEach(e => e.visible = game.mode === MODE_PEN)
 
     penCurrentWaypoints.current = []
   }, [game.mode])
@@ -955,6 +971,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     //   centre marks             50
     //   pen lines                60
     //   pen waypoints            70
+    //   pen tool hitarea         80
 
     // ***************** render everything that could contribute to bounds
 
@@ -982,14 +999,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         }
 
         cell.on("pointerdown", function (e) {
-          selectOrPenCell(this, e)
+          selectCell(this, e)
           e.stopPropagation()
           e.data.originalEvent.preventDefault()
         })
 
         cell.on("pointerover", function (e) {
           if (e.data.buttons === 1) {
-            selectOrPenCell(this, e, true)
+            selectCell(this, e, true)
           }
           e.stopPropagation()
         })
@@ -1434,6 +1451,25 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     all.addChild(penWaypoints)
     penCurrentWaypointsElements.current.push(penWaypoints)
 
+    // add invisible hit area for pen tool
+    let penHitArea = new PIXI.Graphics()
+    penHitArea.interactive = true
+    penHitArea.buttonMode = true
+    penHitArea.cursor = "crosshair"
+    penHitArea.zIndex = 80
+    penHitArea.visible = false
+    penHitArea.data = {
+      draw: function (cellSize) {
+        penHitArea.hitArea = new PIXI.Rectangle(0, 0,
+          game.data.cells.length * cellSize,
+          game.data.cells[0].length * cellSize)
+          penHitArea.removeAllListeners()
+          penHitArea.on("pointermove", e => onPenMove(e, cellSize))
+      }
+    }
+    all.addChild(penHitArea)
+    penHitareaElements.current.push(penHitArea)
+
     if (onFinishRender) {
       onFinishRender()
     }
@@ -1460,6 +1496,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       selectionElements.current = []
       errorElements.current = []
       penCurrentWaypointsElements.current = []
+      penHitareaElements.current = []
       penLineElements.current = []
 
       document.removeEventListener("touchcancel", onPointerUp)
@@ -1470,8 +1507,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       newApp.destroy(true, true)
       app.current = undefined
     }
-  }, [game.data, cellSize, regions, cages, extraRegions, selectOrPenCell,
-      updateGame, onFinishRender, onTouchMove, onPointerUp])
+  }, [game.data, cellSize, regions, cages, extraRegions, selectCell, onPenMove,
+    updateGame, onFinishRender, onTouchMove, onPointerUp])
 
   useEffect(() => {
     let cs = cellSize * (settings.zoom + ZOOM_DELTA)
@@ -1486,7 +1523,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         cageLabelTextElements, cageLabelBackgroundElements, lineElements,
         arrowHeadElements, extraRegionElements, underlayElements, overlayElements,
         givenCornerMarkElements, digitElements, centreMarkElements, colourElements,
-        selectionElements, errorElements, penCurrentWaypointsElements, penLineElements]
+        selectionElements, errorElements, penCurrentWaypointsElements,
+        penLineElements, penHitareaElements]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
           if (e.clear !== undefined) {
