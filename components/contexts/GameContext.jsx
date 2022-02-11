@@ -4,7 +4,7 @@ import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_DIGITS, TYPE_CORNER_MARKS,
   TYPE_REDO, TYPE_INIT, TYPE_CHECK, TYPE_PAUSE, ACTION_ALL, ACTION_SET,
   ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE, ACTION_RIGHT,
   ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
-import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN } from "../lib/Modes"
+import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN, getModeGroup } from "../lib/Modes"
 import { createContext, useReducer } from "react"
 import produce from "immer"
 import { isEqual } from "lodash"
@@ -93,6 +93,7 @@ function modeReducer(draft, action) {
   switch (action.action) {
     case ACTION_SET:
       newEnabledModes = [action.mode]
+      draft.modeGroup = getModeGroup(action.mode)
       break
 
     case ACTION_PUSH:
