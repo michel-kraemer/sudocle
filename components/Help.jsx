@@ -7,6 +7,7 @@ const Help = () => {
   const [keyX, setKeyX] = useState("x")
   const [keyC, setKeyC] = useState("c")
   const [keyV, setKeyV] = useState("v")
+  const [keyP, setKeyP] = useState("p")
 
   async function getKeyboardKey(key, def) {
     if (typeof navigator !== "undefined" && navigator.keyboard !== undefined &&
@@ -32,6 +33,7 @@ const Help = () => {
       setKeyX(await getKeyboardKey("KeyX", "x"))
       setKeyC(await getKeyboardKey("KeyC", "c"))
       setKeyV(await getKeyboardKey("KeyV", "v"))
+      setKeyP(await getKeyboardKey("KeyP", "p"))
     }
 
     getInternationalKeyboardKeys()
@@ -40,6 +42,7 @@ const Help = () => {
   let meta = isApple ? <>&#8984;</> : "Ctrl"
   let alt = isApple ? <>&#8997;</> : "Alt"
   let del = isApple ? <>&#9003;</> : "Delete"
+  let tab = isApple ? <>&#x21e5;</> : "Tab"
   let shift = <>&#x21e7;</>
 
   return (<>
@@ -89,19 +92,25 @@ const Help = () => {
       <div className="divider"></div>
 
       <div className="key"><kbd>Space</kbd></div>
-      <div className="desc">Switch to next mode</div>
+      <div className="desc">Switch to next mode in group</div>
+
+      <div className="key"><kbd>{tab}</kbd></div>
+      <div className="desc">Toggle mode group</div>
 
       <div className="key"><kbd>{keyZ.toUpperCase()}</kbd></div>
-      <div className="desc">Digit mode</div>
+      <div className="desc">Digit mode (Group 1)</div>
 
       <div className="key"><kbd>{keyX.toUpperCase()}</kbd></div>
-      <div className="desc">Corner mark mode</div>
+      <div className="desc">Corner mark mode (Group 1)</div>
 
       <div className="key"><kbd>{keyC.toUpperCase()}</kbd></div>
-      <div className="desc">Centre mark mode</div>
+      <div className="desc">Centre mark mode (Group 1)</div>
 
       <div className="key"><kbd>{keyV.toUpperCase()}</kbd></div>
-      <div className="desc">Colour mode</div>
+      <div className="desc">Colour mode (Group 1)</div>
+
+      <div className="key"><kbd>{keyP.toUpperCase()}</kbd></div>
+      <div className="desc">Pen mode (Group 2)</div>
 
       <div className="divider"></div>
 
