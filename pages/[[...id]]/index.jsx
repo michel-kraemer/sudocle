@@ -270,6 +270,13 @@ const Index = () => {
           mode: MODE_COLOUR
         })
         e.preventDefault()
+      } else if (e.code === "KeyP") {
+        updateGame({
+          type: TYPE_MODE,
+          action: ACTION_SET,
+          mode: MODE_PEN
+        })
+        e.preventDefault()
       } else if (e.key === "ArrowRight") {
         updateGame({
           type: TYPE_SELECTION,
