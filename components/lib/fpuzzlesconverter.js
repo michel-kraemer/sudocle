@@ -161,7 +161,8 @@ export function convertFPuzzle(puzzle) {
 
     return {
       value: col.given && col.value,
-      centremarks: col.centerPencilMarks
+      centremarks: col.centerPencilMarks,
+      cornermarks: col.cornerPencilMarks
     }
   }))
 

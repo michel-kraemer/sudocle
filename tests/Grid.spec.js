@@ -5,7 +5,8 @@ const { compare } = require("odiff-bin")
 const path = require("path")
 
 const fixturesDir = path.join(__dirname, "fixtures/grids")
-const fixtures = fsSync.readdirSync(fixturesDir).filter(f => f.endsWith(".json"))
+const fixtures = fsSync.readdirSync(fixturesDir)
+  .filter(f => f.endsWith(".json") && f !== "package.json" && f !== "package-lock.json")
 
 const testResultsDir = path.join(__dirname, "..", "test-results", path.basename(__filename))
 const tempScreenshotsDir = path.join(testResultsDir, "temp")
