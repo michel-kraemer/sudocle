@@ -703,8 +703,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       return
     }
 
-    let x = e.data.global.x
-    let y = e.data.global.y
+    let gridBounds = gridElement.current.getBounds()
+    let x = e.data.global.x - gridBounds.x
+    let y = e.data.global.y - gridBounds.y
     let fCellX = x / cellSize
     let fCellY = y / cellSize
     if (penCurrentDrawEdge.current) {
