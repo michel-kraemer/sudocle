@@ -32,19 +32,19 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-modal": "^3.14.4",
-    "sass": "^1.49.7",
-    "sass-loader": "^12.5.0"
+    "sass": "^1.49.9",
+    "sass-loader": "^12.6.0"
   },
   "devDependencies": {
     "@jsdevtools/readdir-enhanced": "^6.0.4",
-    "@playwright/test": "^1.19.0",
+    "@playwright/test": "^1.19.2",
     "eslint": "^8.9.0",
-    "eslint-config-next": "^12.0.10",
+    "eslint-config-next": "^12.1.0",
     "eslint-webpack-plugin": "^3.1.1",
     "html-webpack-plugin": "^5.5.0",
     "odiff-bin": "^2.5.0",
     "start-server-and-test": "^1.14.0",
-    "stylelint": "^14.5.0",
+    "stylelint": "^14.5.3",
     "stylelint-config-standard-scss": "^3.0.0"
   }
 }
