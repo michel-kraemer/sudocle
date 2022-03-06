@@ -1165,9 +1165,29 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
             cap: PIXI.LINE_CAP.ROUND,
             join: PIXI.LINE_JOIN.ROUND
           })
+          let lvx = 0
+          let lvy = 0
           poly.moveTo(points[0], points[1])
           for (let i = 2; i < points.length; i += 2) {
+            // calculate direction
+            let vx = points[i] - points[i - 2]
+            let vy = points[i + 1] - points[i - 1]
+            let vl = Math.sqrt(vx * vx + vy * vy)
+            vx /= vl
+            vy /= vl
+
+            // Start new line if we're going backwards (i.e. if the direction
+            // of the current line segement is opposite the direction of the
+            // last segment. We need to do this to make caps at such turning
+            // points actually round and to avoid other drawing issues.
+            if (vx === lvx && vy === -lvy || vx === -lvx && vy === lvy) {
+              poly.moveTo(points[i - 2], points[i - 1])
+            }
+
             poly.lineTo(points[i], points[i + 1])
+
+            lvx = vx
+            lvy = vy
           }
         }
       }
