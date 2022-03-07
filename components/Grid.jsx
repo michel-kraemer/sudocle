@@ -551,7 +551,7 @@ function drawOverlay(overlay, mx, my, zIndex) {
         if (overlay.borderColor !== undefined) {
           let nBorderColour = getRGBColor(overlay.borderColor)
           if (nBorderColour !== nBackgroundColour &&
-              !(overlay.width === 1 && overlay.height === 1 && isGrey(nBorderColour))) {
+              !(overlay.width === 1 && overlay.height === 1 && !overlay.rounded && isGrey(nBorderColour))) {
             r.lineStyle({
               width: 2,
               color: nBorderColour,
