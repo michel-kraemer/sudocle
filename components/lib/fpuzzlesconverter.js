@@ -271,13 +271,18 @@ export function convertFPuzzle(puzzle) {
       let [minX, minY, maxX, maxY] = cellsToBoundingBox(r.cells)
       let width = 1 + (maxX - minX)
       let height = 1 + (maxY - minY)
+      let rotation
+      if (r.angle !== undefined) {
+        rotation = r.angle * (2 * Math.PI) / 360
+      }
       underlays.push({
         center: cellsToCenter(r.cells),
         width: width * (r.width || 0.5),
         height: height * (r.height || 0.5),
         borderColor: r.outlineC || "#000000",
         backgroundColor: r.baseC || "#FFFFFF",
-        rounded: false
+        rounded: false,
+        rotation
       })
     }
   }
