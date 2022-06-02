@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "@datapunt/matomo-tracker-js": "^0.5.1",
-    "@fontsource/roboto": "^4.5.5",
+    "@fontsource/roboto": "^4.5.7",
     "classnames": "^2.3.1",
     "color": "^4.2.3",
     "favicons": "^6.2.2",
@@ -27,13 +27,13 @@
     "mini-svg-data-uri": "^1.4.4",
     "next": "^12.1.6",
     "normalize.css": "^8.0.1",
-    "pixi.js-legacy": "^6.3.0",
+    "pixi.js-legacy": "^6.4.2",
     "polygon-clipping": "^0.15.3",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
     "react-modal": "^3.15.1",
     "sass": "^1.52.1",
-    "sass-loader": "^12.6.0"
+    "sass-loader": "^13.0.0"
   },
   "devDependencies": {
     "@jsdevtools/readdir-enhanced": "^6.0.4",
@@ -44,7 +44,7 @@
     "html-webpack-plugin": "^5.5.0",
     "odiff-bin": "^2.5.0",
     "start-server-and-test": "^1.14.0",
-    "stylelint": "^14.6.1",
+    "stylelint": "^14.8.5",
     "stylelint-config-standard-scss": "^4.0.0"
   }
 }
