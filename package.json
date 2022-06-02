@@ -30,7 +30,7 @@
     "pixi.js-legacy": "^6.3.0",
     "polygon-clipping": "^0.15.3",
     "react": "^18.1.0",
-    "react-dom": "^18.0.0",
+    "react-dom": "^18.1.0",
     "react-modal": "^3.15.1",
     "sass": "^1.52.1",
     "sass-loader": "^12.6.0"
