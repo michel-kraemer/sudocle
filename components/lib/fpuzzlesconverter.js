@@ -169,10 +169,14 @@ export function convertFPuzzle(puzzle) {
   let cages = []
   let killercages = [...(puzzle.killercage || []), ...(puzzle.cage || [])]
   for (let cage of killercages) {
-    cages.push({
+    let r = {
       cells: cage.cells.map(c => cellToCell(c, 0, 0)),
       value: cage.value
-    })
+    }
+    if (cage.outlineC) {
+      r.borderColor = cage.outlineC
+    }
+    cages.push(r)
   }
 
   if (puzzle.title) {

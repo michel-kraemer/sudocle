@@ -467,8 +467,9 @@ function drawBackground(graphics, width, height, themeColours) {
 
 function changeLineColour(graphicElements, colour) {
   for (let e of graphicElements) {
+    let c = e.data?.borderColor || colour
     for (let i = 0; i < e.geometry.graphicsData.length; ++i) {
-      e.geometry.graphicsData[i].lineStyle.color = colour
+      e.geometry.graphicsData[i].lineStyle.color = c
     }
     e.geometry.invalidate()
   }
@@ -646,6 +647,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         return {
           outline: union,
           value: cage.value,
+          borderColor: cage.borderColor,
           topleft
         }
       })
@@ -1077,11 +1079,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       let poly = new PIXI.Graphics()
       poly.zIndex = 1
       poly.data = {
+        borderColor: cage.borderColor ? getRGBColor(cage.borderColor) : undefined,
         draw: function (cellSize) {
           let disposedOutline = disposePolygon(cage.outline.map(v => v * cellSize),
             regions.map(rarr => rarr.map(v => v * cellSize)), 1)
           let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
-          poly.lineStyle({ width: 1, color: themeColours.foregroundColor })
+          let color = cage.borderColor ? getRGBColor(cage.borderColor) :
+              themeColours.foregroundColor
+          poly.lineStyle({ width: 1, color })
           drawDashedPolygon(shrunkenOutline, 3, 2, poly)
         }
       }
