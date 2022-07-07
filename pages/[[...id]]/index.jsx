@@ -120,6 +120,9 @@ const Index = () => {
         <script>
           window.addEventListener("message", function (e) {
             let puzzle = JSON.parse(compressor.decompressFromBase64(e.data))
+            if (puzzle === null) {
+              puzzle = JSON.parse(compressor.decompressFromBase64(e.data.replace(/ /g, "+")))
+            }
             e.source.postMessage(puzzle, e.origin)
           })
         </script>
