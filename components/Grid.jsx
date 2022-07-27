@@ -1529,8 +1529,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     penHitArea.data = {
       draw: function (cellSize) {
         penHitArea.hitArea = new PIXI.Rectangle(0, 0,
-          game.data.cells.length * cellSize,
-          game.data.cells[0].length * cellSize)
+          game.data.cells[0].length * cellSize,
+          game.data.cells.length * cellSize)
           penHitArea.removeAllListeners()
           penHitArea.on("pointermove", e => onPenMove(e, cellSize))
       }
