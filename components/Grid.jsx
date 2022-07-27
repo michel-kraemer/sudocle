@@ -594,7 +594,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const cageLabelTextElements = useRef([])
   const cageLabelBackgroundElements = useRef([])
   const lineElements = useRef([])
-  const arrowHeadElements = useRef([])
   const extraRegionElements = useRef([])
   const underlayElements = useRef([])
   const overlayElements = useRef([])
@@ -1152,12 +1151,15 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       extraRegionElements.current.push(poly)
     }
 
-    // sort lines by thickness
-    let lines = [...game.data.lines]
+    // sort lines and arrows by thickness
+    let lines = [
+      ...game.data.lines.map(l => ({ ...l, isArrow: false })),
+      ...game.data.arrows.map(a => ({ ...a, isArrow: true }))
+    ]
     lines.sort((a, b) => b.thickness - a.thickness)
 
     // add lines and arrows
-    lines.concat(game.data.arrows).forEach(line => {
+    lines.forEach(line => {
       let poly = new PIXI.Graphics()
       poly.zIndex = -1
       poly.data = {
@@ -1198,49 +1200,46 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       }
       all.addChild(poly)
       lineElements.current.push(poly)
-    })
 
-    // add arrow heads
-    game.data.arrows.forEach(arrow => {
-      if (arrow.wayPoints.length <= 1) {
-        return
-      }
-      let poly = new PIXI.Graphics()
-      poly.zIndex = -1
-      poly.data = {
-        draw: function (cellSize) {
-          let points = shortenLine(filterDuplicatePoints(flatten(arrow.wayPoints.map(wp =>
-              cellToScreenCoords(wp, grid.x, grid.y, cellSize)))))
-          let lastPointX = points[points.length - 2]
-          let lastPointY = points[points.length - 1]
-          let secondToLastX = points[points.length - 4]
-          let secondToLastY = points[points.length - 3]
-          let dx = lastPointX - secondToLastX
-          let dy = lastPointY - secondToLastY
-          let l = Math.sqrt(dx * dx + dy * dy)
-          dx /= l
-          dy /= l
-          let f = Math.min(arrow.headLength * cellSize * 0.7, l / 3)
-          let ex = lastPointX - dx * f
-          let ey = lastPointY - dy * f
-          let ex1 = ex - dy * f
-          let ey1 = ey + dx * f
-          let ex2 = ex + dy * f
-          let ey2 = ey - dx * f
-          poly.lineStyle({
-            width: arrow.thickness * SCALE_FACTOR,
-            color: getRGBColor(arrow.color),
-            cap: PIXI.LINE_CAP.ROUND,
-            join: PIXI.LINE_JOIN.ROUND
-          })
-          poly.moveTo(lastPointX, lastPointY)
-          poly.lineTo(ex1, ey1)
-          poly.moveTo(lastPointX, lastPointY)
-          poly.lineTo(ex2, ey2)
+      // arrow heads
+      if (line.isArrow && line.wayPoints.length > 1) {
+        let head = new PIXI.Graphics()
+        head.zIndex = -1
+        head.data = {
+          draw: function (cellSize) {
+            let points = shortenLine(filterDuplicatePoints(flatten(line.wayPoints.map(wp =>
+                cellToScreenCoords(wp, grid.x, grid.y, cellSize)))))
+            let lastPointX = points[points.length - 2]
+            let lastPointY = points[points.length - 1]
+            let secondToLastX = points[points.length - 4]
+            let secondToLastY = points[points.length - 3]
+            let dx = lastPointX - secondToLastX
+            let dy = lastPointY - secondToLastY
+            let l = Math.sqrt(dx * dx + dy * dy)
+            dx /= l
+            dy /= l
+            let f = Math.min(line.headLength * cellSize * 0.7, l / 3)
+            let ex = lastPointX - dx * f
+            let ey = lastPointY - dy * f
+            let ex1 = ex - dy * f
+            let ey1 = ey + dx * f
+            let ex2 = ex + dy * f
+            let ey2 = ey - dx * f
+            head.lineStyle({
+              width: line.thickness * SCALE_FACTOR,
+              color: getRGBColor(line.color),
+              cap: PIXI.LINE_CAP.ROUND,
+              join: PIXI.LINE_JOIN.ROUND
+            })
+            head.moveTo(lastPointX, lastPointY)
+            head.lineTo(ex1, ey1)
+            head.moveTo(lastPointX, lastPointY)
+            head.lineTo(ex2, ey2)
+          }
         }
+        all.addChild(head)
+        lineElements.current.push(head)
       }
-      all.addChild(poly)
-      arrowHeadElements.current.push(poly)
     })
 
     // add underlays and overlays
@@ -1553,7 +1552,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       cageLabelTextElements.current = []
       cageLabelBackgroundElements.current = []
       lineElements.current = []
-      arrowHeadElements.current = []
       extraRegionElements.current = []
       underlayElements.current = []
       overlayElements.current = []
@@ -1590,7 +1588,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     for (let i = 0; i < 10; ++i) {
       let elementsToRedraw = [cellElements, regionElements, cageElements,
         cageLabelTextElements, cageLabelBackgroundElements, lineElements,
-        arrowHeadElements, extraRegionElements, underlayElements, overlayElements,
+        extraRegionElements, underlayElements, overlayElements,
         givenCornerMarkElements, digitElements, centreMarkElements, colourElements,
         selectionElements, errorElements, penCurrentWaypointsElements,
         penLineElements, penHitareaElements]
