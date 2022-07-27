@@ -707,38 +707,40 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     let gridBounds = gridElement.current.getBounds()
     let x = e.data.global.x - gridBounds.x
     let y = e.data.global.y - gridBounds.y
+
     let fCellX = x / cellSize
     let fCellY = y / cellSize
-    if (penCurrentDrawEdge.current) {
-      fCellX += 0.5
-      fCellY += 0.5
-    }
     let cellX = Math.floor(fCellX)
     let cellY = Math.floor(fCellY)
+    let cellDX = fCellX - cellX
+    let cellDY = fCellY - cellY
+    if (penCurrentWaypoints.current.length === 0) {
+      // snap to cell edge or cell center
+      if (cellDX >= 0.25 && cellDX <= 0.75 && cellDY >= 0.25 && cellDY <= 0.75) {
+        penCurrentDrawEdge.current = false
+      } else {
+        penCurrentDrawEdge.current = true
+        if (cellDX >= 0.5) {
+          cellX++
+        }
+        if (cellDY >= 0.5) {
+          cellY++
+        }
+      }
+    } else {
+      if (penCurrentDrawEdge.current) {
+        if (cellDX >= 0.5) {
+          cellX++
+        }
+        if (cellDY >= 0.5) {
+          cellY++
+        }
+      }
+    }
+
     let k = xytok(cellX, cellY)
 
     if (penCurrentWaypoints.current.length === 0) {
-      // check if we are drawing an edge
-      let tolerance = 0.15
-      let rCellX = Math.round(fCellX)
-      let rCellY = Math.round(fCellY)
-      let rx = fCellX - rCellX
-      let ry = fCellY - rCellY
-      if (rx >= 0 && rx <= tolerance) {
-        // left edge
-        penCurrentDrawEdge.current = true
-      } else if (rx >= -tolerance && rx <= 0) {
-        // right edge
-        k = xytok(cellX + 1, cellY)
-        penCurrentDrawEdge.current = true
-      } else if (ry >= 0 && ry <= tolerance) {
-        // top edge
-        penCurrentDrawEdge.current = true
-      } else if (ry >= -tolerance && ry <= 0) {
-        // bottom edge
-        penCurrentDrawEdge.current = true
-      }
-
       penCurrentWaypoints.current = [k]
     } else if (penCurrentWaypoints.current[penCurrentWaypoints.current.length - 1] === k) {
       // nothing to do
