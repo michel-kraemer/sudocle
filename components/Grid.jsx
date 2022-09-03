@@ -1094,8 +1094,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       grid.addChild(poly)
       cageElements.current.push(poly)
 
-      if (cage.value !== undefined && cage.value !== null && cage.value !== 0 &&
-        `${cage.value}`.trim() !== "") {
+      if (cage.value !== undefined && cage.value !== null && `${cage.value}`.trim() !== "") {
         // create cage label
         // use larger font and scale down afterwards to improve text rendering
         let topleftText = new PIXI.Text(cage.value, {
