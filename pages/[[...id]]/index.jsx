@@ -72,7 +72,11 @@ const Index = () => {
 
     if (id === null || id === "") {
       let s = new URLSearchParams(window.location.search)
+      let puzzleId = s.get("puzzleid")
       let fpuzzlesId = s.get("fpuzzles")
+      if (fpuzzlesId === null && puzzleId !== null && puzzleId.startsWith("fpuzzles")) {
+        fpuzzlesId = puzzleId
+      }
       if (fpuzzlesId !== null) {
         id = fpuzzlesId
         if (!id.startsWith("fpuzzles")) {
