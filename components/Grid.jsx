@@ -9,6 +9,7 @@ import polygonClipping from "polygon-clipping"
 import styles from "./Grid.scss"
 import { useCallback, useContext, useEffect, useMemo, useRef } from "react"
 import { flatten } from "lodash"
+import { DropShadowFilter } from "@pixi/filter-drop-shadow"
 
 const SCALE_FACTOR = 1.2
 const ZOOM_DELTA = 0.05
@@ -78,7 +79,7 @@ function unionCells(cells) {
     }
   }
 
-  return flatten(unions.map(u => u.map(u2 => flatten(u2))))
+  return unions.map(u => u.map(u2 => flatten(u2)))
 }
 
 function hasCageValue(x, y, cages) {
@@ -503,6 +504,23 @@ function penWaypointsToKey(wp1, wp2, penCurrentDrawEdge) {
   return undefined
 }
 
+function getFogLights(data, currentDigits) {
+  let r = []
+  if (data.fogLights !== undefined) {
+    r.push(...data.fogLights)
+  }
+  if (currentDigits !== undefined && data.solution !== undefined) {
+    currentDigits.forEach((v, k) => {
+      let [x, y] = ktoxy(k)
+      let expected = data.solution[y][x]
+      if (v.digit === expected) {
+        r.push([y, x])
+      }
+    })
+  }
+  return r
+}
+
 function drawOverlay(overlay, mx, my, zIndex) {
   let r = new PIXI.Graphics()
   r.zIndex = zIndex
@@ -598,6 +616,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const underlayElements = useRef([])
   const overlayElements = useRef([])
   const backgroundElement = useRef()
+  const fogElements = useRef([])
   const givenCornerMarkElements = useRef([])
   const digitElements = useRef([])
   const centreMarkElements = useRef([])
@@ -625,13 +644,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
   const cellSizeFactor = useRef(1)
 
   const regions = useMemo(() => flatten(game.data.regions.map(region => {
-    return unionCells(region)
+    return flatten(unionCells(region))
   })), [game.data])
 
   const cages = useMemo(() => flatten(game.data.cages
     .filter(cage => cage.cells?.length)
     .map(cage => {
-      let unions = unionCells(cage.cells)
+      let unions = flatten(unionCells(cage.cells))
       return unions.map(union => {
         // find top-left cell
         let topleft = cage.cells[0]
@@ -657,7 +676,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       return flatten(game.data.extraRegions
         .filter(r => r.cells?.length)
         .map(r => {
-          let unions = unionCells(r.cells)
+          let unions = flatten(unionCells(r.cells))
           return unions.map(union => {
             return {
               outline: union,
@@ -994,10 +1013,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // all                            sortable
     //   background            -1000
-    //   extra regions           -20
-    //   underlays               -10
-    //   lines and arrows         -1
-    //   arrow heads              -1
+    //   extra regions           -30
+    //   underlays               -20
+    //   lines and arrows        -10
+    //   arrow heads             -10
+    //   fog                      -1
     //   colour                    0
     //   errors                   10
     //   selection                20
@@ -1018,6 +1038,99 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     //   pen tool hitarea         80
 
     // ***************** render everything that could contribute to bounds
+
+    // fog
+    let fogMask = undefined
+    if (game.data.fogLights !== undefined) {
+      let fog = new PIXI.Graphics()
+      fog.zIndex = -1
+      fog.data = {
+        draw: function (cellSize, zoomFactor, currentDigits) {
+          let cells = Array(game.data.cells.length)
+          for (let i = 0; i < game.data.cells.length; ++i) {
+            cells[i] = Array(game.data.cells[0].length).fill(1)
+          }
+
+          let lights = getFogLights(game.data, currentDigits)
+          for (let light of lights) {
+            let y = light[0]
+            let x = light[1]
+            if (y > 0) {
+              if (x > 0) {
+                cells[y - 1][x - 1] = 0
+              }
+              cells[y - 1][x] = 0
+              if (x < cells[y - 1].length - 1) {
+                cells[y - 1][x + 1] = 0
+              }
+            }
+            cells[y][x - 1] = 0
+            cells[y][x] = 0
+            cells[y][x + 1] = 0
+            if (y < cells.length - 1) {
+              if (x > 0) {
+                cells[y + 1][x - 1] = 0
+              }
+              cells[y + 1][x] = 0
+              if (x < cells[y + 1].length - 1) {
+                cells[y + 1][x + 1] = 0
+              }
+            }
+          }
+
+          let flatCells = []
+          cells.forEach((row, y) => {
+            row.forEach((v, x) => {
+              if (v === 1) {
+                flatCells.push([y, x])
+              }
+            })
+          })
+
+          let polygons = unionCells(flatCells)
+          for (let polygon of polygons) {
+            let poly = polygon.map(o => o.map(r => r * cellSize))
+            fog.beginFill(0x8b909b)
+            fog.drawPolygon(poly[0])
+            fog.endFill()
+            if (poly.length > 1) {
+              fog.beginHole()
+              for (let i = 1; i < poly.length; ++i) {
+                fog.drawPolygon(poly[i])
+              }
+              fog.endHole()
+            }
+          }
+        }
+      }
+      let dropShadow = new DropShadowFilter({
+        distance: 0,
+        blur: 5,
+        quality: 6,
+        alpha: 0.9,
+        color: 0x272e31
+      })
+      dropShadow.padding = 20
+      fog.filters = [dropShadow]
+      fogElements.current.push(fog)
+      all.addChild(fog)
+
+      fogMask = new PIXI.Graphics()
+      fogMask.data = {
+        draw: function (cellSize, zoomFactor, currentDigits) {
+          fogMask.beginFill(0)
+          let lights = getFogLights(game.data, currentDigits)
+          for (let light of lights) {
+            let y = light[0]
+            let x = light[1]
+            fogMask.drawRect((x - 1) * cellSize, (y - 1) * cellSize, cellSize * 3, cellSize * 3)
+          }
+          fogMask.endFill()
+        }
+      }
+      fogElements.current.push(fogMask)
+      all.addChild(fogMask)
+    }
 
     // render cells
     game.data.cells.forEach((row, y) => {
@@ -1079,6 +1192,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       // draw outline
       let poly = new PIXI.Graphics()
       poly.zIndex = 1
+      poly.mask = fogMask
       poly.data = {
         borderColor: cage.borderColor ? getRGBColor(cage.borderColor) : undefined,
         draw: function (cellSize) {
@@ -1102,6 +1216,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
           fontSize: fontSizeCageLabels
         })
         topleftText.zIndex = 3
+        topleftText.mask = fogMask
         topleftText.scale.x = 0.5
         topleftText.scale.y = 0.5
         topleftText.data = {
@@ -1115,6 +1230,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
         let topleftBg = new PIXI.Graphics()
         topleftBg.zIndex = 2
+        topleftBg.mask = fogMask
         topleftBg.data = {
           draw: function (cellSize) {
             topleftBg.beginFill(0xffffff)
@@ -1137,7 +1253,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // render extra regions
     for (let r of extraRegions) {
       let poly = new PIXI.Graphics()
-      poly.zIndex = -20
+      poly.zIndex = -30
+      poly.mask = fogMask
       poly.data = {
         draw: function (cellSize) {
           let disposedOutline = disposePolygon(r.outline.map(v => v * cellSize),
@@ -1162,7 +1279,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     // add lines and arrows
     lines.forEach(line => {
       let poly = new PIXI.Graphics()
-      poly.zIndex = -1
+      poly.zIndex = -10
+      poly.mask = fogMask
       poly.data = {
         draw: function (cellSize) {
           let points = shortenLine(filterDuplicatePoints(flatten(line.wayPoints.map(wp =>
@@ -1205,7 +1323,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       // arrow heads
       if (line.isArrow && line.wayPoints.length > 1) {
         let head = new PIXI.Graphics()
-        head.zIndex = -1
+        head.zIndex = -10
+        head.mask = fogMask
         head.data = {
           draw: function (cellSize) {
             let points = shortenLine(filterDuplicatePoints(flatten(line.wayPoints.map(wp =>
@@ -1245,12 +1364,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     // add underlays and overlays
     game.data.underlays.forEach(underlay => {
-      let e = drawOverlay(underlay, grid.x, grid.y, -10)
+      let e = drawOverlay(underlay, grid.x, grid.y, -20)
+      e.mask = fogMask
       all.addChild(e)
       underlayElements.current.push(e)
     })
     game.data.overlays.forEach(overlay => {
       let e = drawOverlay(overlay, grid.x, grid.y, 40)
+      e.mask = fogMask
       all.addChild(e)
       overlayElements.current.push(e)
     })
@@ -1556,6 +1677,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       extraRegionElements.current = []
       underlayElements.current = []
       overlayElements.current = []
+      fogElements.current = []
       givenCornerMarkElements.current = []
       digitElements.current = []
       centreMarkElements.current = []
@@ -1589,7 +1711,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     for (let i = 0; i < 10; ++i) {
       let elementsToRedraw = [cellElements, regionElements, cageElements,
         cageLabelTextElements, cageLabelBackgroundElements, lineElements,
-        extraRegionElements, underlayElements, overlayElements,
+        extraRegionElements, underlayElements, overlayElements, fogElements,
         givenCornerMarkElements, digitElements, centreMarkElements, colourElements,
         selectionElements, errorElements, penCurrentWaypointsElements,
         penLineElements, penHitareaElements]
@@ -1864,6 +1986,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
     for (let e of errorElements.current) {
       e.visible = game.errors.has(e.data.k)
+    }
+
+    for (let e of fogElements.current) {
+      e.clear()
+      e.data.draw(scaledCellSize, cellSizeFactor.current, game.digits)
     }
 
     renderNow()

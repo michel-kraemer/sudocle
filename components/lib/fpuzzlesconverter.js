@@ -1,4 +1,4 @@
-import { chunk, mean } from "lodash"
+import { chunk, mean, isString } from "lodash"
 
 const MIN_GRID_SIZE = 3
 const MAX_GRID_SIZE = 16
@@ -166,17 +166,28 @@ export function convertFPuzzle(puzzle) {
     }
   }))
 
+  let fogLights = undefined
   let cages = []
   let killercages = [...(puzzle.killercage || []), ...(puzzle.cage || [])]
   for (let cage of killercages) {
-    let r = {
-      cells: cage.cells.map(c => cellToCell(c, 0, 0)),
-      value: cage.value
+    if (isString(cage.value) && (cage.value.toLowerCase() === "fow" ||
+        cage.value.toLowerCase() === "foglight")) {
+        if (fogLights === undefined) {
+          fogLights = []
+        }
+        for (let c of cage.cells) {
+          fogLights.push(cellToCell(c, 0, 0))
+        }
+    } else {
+      let r = {
+        cells: cage.cells.map(c => cellToCell(c, 0, 0)),
+        value: cage.value
+      }
+      if (cage.outlineC) {
+        r.borderColor = cage.outlineC
+      }
+      cages.push(r)
     }
-    if (cage.outlineC) {
-      r.borderColor = cage.outlineC
-    }
-    cages.push(r)
   }
 
   if (puzzle.title) {
@@ -657,7 +668,8 @@ export function convertFPuzzle(puzzle) {
     overlays,
     underlays,
     arrows,
-    solution
+    solution,
+    fogLights
   }
 
   return result
