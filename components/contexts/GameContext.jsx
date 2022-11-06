@@ -344,32 +344,46 @@ function checkDuplicates(grid, errors, flip = false) {
   }
 }
 
-function checkReducer(digits, cells = []) {
+function checkReducer(digits, cells = [], solution = undefined) {
   let errors = new Set()
-  let gridByRow = []
-  let gridByCol = []
 
-  // check for empty cells
-  cells.forEach((row, y) => {
-    row.forEach((col, x) => {
-      let k = xytok(x, y)
-      let d = digits.get(k)
-      if (d === undefined) {
-        errors.add(k)
-      } else {
-        gridByRow[y] = gridByRow[y] || []
-        gridByRow[y][x] = d.digit
-        gridByCol[x] = gridByCol[x] || []
-        gridByCol[x][y] = d.digit
-      }
+  if (solution === undefined) {
+    let gridByRow = []
+    let gridByCol = []
+
+    // check for empty cells
+    cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let k = xytok(x, y)
+        let d = digits.get(k)
+        if (d === undefined) {
+          errors.add(k)
+        } else {
+          gridByRow[y] = gridByRow[y] || []
+          gridByRow[y][x] = d.digit
+          gridByCol[x] = gridByCol[x] || []
+          gridByCol[x][y] = d.digit
+        }
+      })
     })
-  })
 
-  // check for duplicate digits in rows
-  checkDuplicates(gridByRow, errors)
+    // check for duplicate digits in rows
+    checkDuplicates(gridByRow, errors)
 
-  // check for duplicate digits in cols
-  checkDuplicates(gridByCol, errors, true)
+    // check for duplicate digits in cols
+    checkDuplicates(gridByCol, errors, true)
+  } else {
+    cells.forEach((row, y) => {
+      row.forEach((col, x) => {
+        let k = xytok(x, y)
+        let actual = digits.get(k)
+        let expected = solution[y][x]
+        if (expected !== undefined && expected !== actual?.digit) {
+          errors.add(k)
+        }
+      })
+    })
+  }
 
   return errors
 }
@@ -491,7 +505,7 @@ function gameReducer(state, action) {
     }
 
     if (action.type === TYPE_CHECK) {
-      draft.errors = checkReducer(draft.digits, draft.data?.cells)
+      draft.errors = checkReducer(draft.digits, draft.data?.cells, draft.data?.solution)
       if (!draft.solved) {
         draft.solved = draft.errors.size === 0
       }

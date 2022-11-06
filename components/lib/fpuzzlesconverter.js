@@ -630,6 +630,23 @@ export function convertFPuzzle(puzzle) {
     }
   }
 
+  let solution = undefined
+  if (puzzle.solution !== undefined) {
+    let i = 0
+    solution = []
+    cells.forEach((row) => {
+      let srow = []
+      solution.push(srow)
+      row.forEach(() => {
+        let v = puzzle.solution[i++]
+        if (v === 0) {
+          v = undefined
+        }
+        srow.push(v)
+      })
+    })
+  }
+
   let result = {
     cellSize: 50,
     cells,
@@ -639,7 +656,8 @@ export function convertFPuzzle(puzzle) {
     extraRegions,
     overlays,
     underlays,
-    arrows
+    arrows,
+    solution
   }
 
   return result
