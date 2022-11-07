@@ -650,6 +650,9 @@ export function convertFPuzzle(puzzle) {
       solution.push(srow)
       row.forEach(() => {
         let v = puzzle.solution[i++]
+        if (isString(v) && !isNaN(v)) {
+          v = +v
+        }
         if (v === 0) {
           v = undefined
         }
