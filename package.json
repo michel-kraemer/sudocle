@@ -24,7 +24,7 @@
     "image-webpack-loader": "^8.1.0",
     "immer": "^9.0.16",
     "lodash": "^4.17.21",
-    "lucide-react": "^0.98.0",
+    "lucide-react": "^0.99.0",
     "mini-svg-data-uri": "^1.4.4",
     "next": "^13.0.2",
     "normalize.css": "^8.0.1",
