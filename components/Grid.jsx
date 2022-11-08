@@ -713,6 +713,29 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     })
   }, [updateGame])
 
+  // Custom render loop. Render on demand and then repeat rendering for
+  // MAX_RENDER_LOOP_TIME milliseconds. Then pause rendering again. This has
+  // two benefits: (1) it forces the browser to refresh the screen as quickly
+  // as possible (without this, there might be lags of 500ms - 1s every now
+  // and then!), (2) it saves CPU cycles and therefore battery.
+  const renderNow = useCallback(() => {
+    function doRender() {
+      let elapsed = new Date() - renderLoopStarted.current
+      if (app.current !== undefined && elapsed < MAX_RENDER_LOOP_TIME) {
+        rendering.current = true
+        app.current.render()
+        requestAnimationFrame(doRender)
+      } else {
+        rendering.current = false
+      }
+    }
+
+    renderLoopStarted.current = +new Date()
+    if (!rendering.current) {
+      doRender()
+    }
+  }, [])
+
   const onPenMove = useCallback((e, cellSize) => {
     if (e.target === null) {
       // pointer is not over the hit area
@@ -919,29 +942,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
       renderNow()
     }
   }, [updateGame, renderNow])
-
-  // Custom render loop. Render on demand and then repeat rendering for
-  // MAX_RENDER_LOOP_TIME milliseconds. Then pause rendering again. This has
-  // two benefits: (1) it forces the browser to refresh the screen as quickly
-  // as possible (without this, there might be lags of 500ms - 1s every now
-  // and then!), (2) it saves CPU cycles and therefore battery.
-  const renderNow = useCallback(() => {
-    function doRender() {
-      let elapsed = new Date() - renderLoopStarted.current
-      if (app.current !== undefined && elapsed < MAX_RENDER_LOOP_TIME) {
-        rendering.current = true
-        app.current.render()
-        requestAnimationFrame(doRender)
-      } else {
-        rendering.current = false
-      }
-    }
-
-    renderLoopStarted.current = +new Date()
-    if (!rendering.current) {
-      doRender()
-    }
-  }, [])
 
   useEffect(() => {
     currentMode.current = game.mode
