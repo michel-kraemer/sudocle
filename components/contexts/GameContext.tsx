@@ -5,32 +5,125 @@ import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_DIGITS, TYPE_CORNER_MARKS,
   ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE, ACTION_RIGHT,
   ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN, getModeGroup } from "../lib/Modes"
-import { createContext, useReducer } from "react"
+import { createContext, ReactNode, useReducer } from "react"
 import produce from "immer"
-import { isEqual } from "lodash"
+import { isEqual, isString } from "lodash"
 
-const State = createContext()
-const Dispatch = createContext()
+interface DataCell {
+  value?: number | string,
+  cornermarks?: Array<number | string>,
+  centremarks?: Array<number | string>
+}
 
-function makeGiven(data, srcAttr, generator) {
+interface Cage {
+  cells: Array<[number, number]>,
+  value?: number | string
+}
+
+interface Data {
+  cells: Array<Array<DataCell>>,
+  regions: Array<[number, number]>,
+  cages: Array<Cage>,
+  lines: Array<[number, number]>,
+  arrows: Array<[number, number]>,
+  underlays: Array<[number, number]>,
+  overlays: Array<[number, number]>,
+  solution?: Array<Array<number | undefined>>,
+  title?: string,
+  author?: string,
+  rules?: string,
+  solved: boolean
+}
+
+interface Digit {
+  digit: number | string,
+  given: boolean
+}
+
+interface Colour {
+  colour: number | string
+}
+
+interface PersistentGameState {
+  digits: Map<number, Digit>,
+  cornerMarks: Map<number, Set<number | string>>,
+  centreMarks: Map<number, Set<number | string>>,
+  colours: Map<number, Colour>,
+  penLines: Set<number>
+}
+
+interface GameState extends PersistentGameState {
+  data?: Data,
+  mode: string,
+  modeGroup: number,
+  enabledModes0: Array<string>,
+  enabledModes1: Array<string>,
+  selection: Set<number>,
+  errors: Set<number>,
+  undoStates: Array<PersistentGameState>,
+  nextUndoState: number,
+  solved: boolean,
+  paused: boolean,
+  checkCounter: number
+}
+
+interface Action {
+  type: string,
+  action: string
+}
+
+interface InitAction extends Action {
+  data: Data
+}
+
+interface ModeAction extends Action {
+  mode: string
+}
+
+interface DigitAction extends Action {
+  digit: number
+}
+
+interface MarkAction extends Action {
+  digit: number
+}
+
+interface PenLineAction extends Action {
+  k: number
+}
+
+interface SelectionAction extends Action {
+  k: number | Array<number>,
+  append: boolean
+}
+
+const State = createContext(makeEmptyState())
+const Dispatch = createContext((_: Action) => {})
+
+function makeGiven<T, R>(data: Data | undefined,
+    accessor: (cell: DataCell) => T | undefined,
+    generator: (value: T) => R): Map<number, R> {
   if (data === undefined || data.cells === undefined) {
-    return new Map()
+    return new Map<number, R>()
   }
 
-  let r = new Map()
+  let r = new Map<number, R>()
   data.cells.forEach((row, y) => {
     row.forEach((col, x) => {
-      if (col[srcAttr] !== undefined && (!Array.isArray(col[srcAttr]) || col[srcAttr].length > 0)) {
-        r.set(xytok(x, y), generator(col[srcAttr]))
+      let v = accessor(col)
+      if (v !== undefined && (!Array.isArray(v) || v.length > 0)) {
+        r.set(xytok(x, y), generator(v))
       }
     })
   })
   return r
 }
 
-function makeGivenDigits(data) {
-  return makeGiven(data, "value", n => {
-    n = /^\d+$/.test(n) ? +n : n
+function makeGivenDigits(data: Data | undefined): Map<number, Digit> {
+  return makeGiven(data, c => c.value, n => {
+    if (isString(n)) {
+      n = /^\d+$/.test(n) ? +n : n
+    }
     return {
       digit: n,
       given: true
@@ -38,18 +131,19 @@ function makeGivenDigits(data) {
   })
 }
 
-function makeGivenMarks(data, srcAttr) {
-  return makeGiven(data, srcAttr, cms => {
-    let digits = new Set()
+function makeGivenMarks<T extends Array<string | number>>(data: Data | undefined,
+    accessor: (cell: DataCell) => T | undefined): Map<number, Set<string | number>> {
+  return makeGiven(data, accessor, cms => {
+    let digits = new Set<string | number>()
     for (let cm of cms) {
-      let n = /^\d+$/.test(cm) ? +cm : cm
+      let n = isString(cm) && /^\d+$/.test(cm) ? +cm : cm
       digits.add(n)
     }
     return digits
   })
 }
 
-function makeEmptyState(data) {
+function makeEmptyState(data?: Data): GameState {
   return {
     data,
     mode: MODE_NORMAL,
@@ -57,32 +151,32 @@ function makeEmptyState(data) {
     enabledModes0: [MODE_NORMAL],
     enabledModes1: [MODE_PEN],
     digits: makeGivenDigits(data),
-    cornerMarks: makeGivenMarks(data, "cornermarks"),
-    centreMarks: makeGivenMarks(data, "centremarks"),
+    cornerMarks: makeGivenMarks(data, c => c.cornermarks),
+    centreMarks: makeGivenMarks(data, c => c.centremarks),
     colours: new Map(),
     penLines: new Set(),
     selection: new Set(),
     errors: new Set(),
     undoStates: [],
     nextUndoState: 0,
-    solved: (data || {}).solved || false,
+    solved: data?.solved || false,
     paused: false,
     checkCounter: 0
   }
 }
 
-function filterGivens(digits, selection) {
-  let r = []
+function filterGivens(digits: Map<number, Digit>, selection: Set<number>): Set<number> {
+  let r = new Set<number>()
   for (let sc of selection) {
     let cell = digits.get(sc)
     if (cell === undefined || !cell.given) {
-      r.push(sc)
+      r.add(sc)
     }
   }
   return r
 }
 
-function modeReducer(draft, action) {
+function modeReducer(draft: GameState, action: ModeAction) {
   let newEnabledModes
   if (draft.modeGroup === 0) {
     newEnabledModes = [...draft.enabledModes0]
@@ -151,7 +245,7 @@ function modeReducer(draft, action) {
   }
 }
 
-function modeGroupReducer(draft, action) {
+function modeGroupReducer(draft: GameState, action: Action) {
   switch (action.action) {
     case ACTION_ROTATE:
       draft.modeGroup = (draft.modeGroup + 1) % 2
@@ -164,7 +258,8 @@ function modeGroupReducer(draft, action) {
   }
 }
 
-function marksReducer(marks, action, selection) {
+function marksReducer(marks: Map<number, Set<string | number>>,
+    action: MarkAction, selection: Set<number>) {
   switch (action.action) {
     case ACTION_SET: {
       for (let sc of selection) {
@@ -194,12 +289,14 @@ function marksReducer(marks, action, selection) {
   }
 }
 
-function digitsReducer(digits, action, selection, attrName = "digit") {
+function digitsReducer(digits: Map<number, Digit>, action: DigitAction,
+    selection: Set<number>) {
   switch (action.action) {
     case ACTION_SET: {
       for (let sc of selection) {
         digits.set(sc, {
-          [attrName]: action.digit
+          digit: action.digit,
+          given: false
         })
       }
       break
@@ -214,7 +311,28 @@ function digitsReducer(digits, action, selection, attrName = "digit") {
   }
 }
 
-function penLinesReducer(penLines, action) {
+function coloursReducer(colours: Map<number, Colour>, action: DigitAction,
+    selection: Iterable<number>) {
+  switch (action.action) {
+    case ACTION_SET: {
+      for (let sc of selection) {
+        colours.set(sc, {
+          colour: action.digit
+        })
+      }
+      break
+    }
+
+    case ACTION_REMOVE: {
+      for (let sc of selection) {
+        colours.delete(sc)
+      }
+      break
+    }
+  }
+}
+
+function penLinesReducer(penLines: Set<number>, action: PenLineAction) {
   switch (action.action) {
     case ACTION_PUSH: {
       if (Array.isArray(action.k)) {
@@ -240,7 +358,8 @@ function penLinesReducer(penLines, action) {
   }
 }
 
-function selectionReducer(selection, action, cells = []) {
+function selectionReducer(selection: Set<number>, action: SelectionAction,
+    cells: Array<Array<DataCell>> = []) {
   switch (action.action) {
     case ACTION_ALL:
       selection.clear()
@@ -289,7 +408,7 @@ function selectionReducer(selection, action, cells = []) {
   if (selection.size > 0 && (action.action === ACTION_RIGHT ||
       action.action === ACTION_LEFT || action.action === ACTION_UP ||
       action.action === ACTION_DOWN)) {
-    let last = [...selection].pop()
+    let last = [...selection].pop()!
     if (!action.append) {
       selection.clear()
     }
@@ -322,7 +441,7 @@ function selectionReducer(selection, action, cells = []) {
   }
 }
 
-function checkDuplicates(grid, errors, flip = false) {
+function checkDuplicates(grid: Array<Array<string | number>>, errors: Set<number>, flip = false) {
   for (let y = 0; y < grid.length; ++y) {
     let cells = grid[y]
     if (cells !== undefined) {
@@ -344,12 +463,13 @@ function checkDuplicates(grid, errors, flip = false) {
   }
 }
 
-function checkReducer(digits, cells = [], solution = undefined) {
-  let errors = new Set()
+function checkReducer(digits: Map<number, Digit>, cells: Array<Array<DataCell>> = [],
+    solution?: Array<Array<number | undefined>>): Set<number> {
+  let errors = new Set<number>()
 
   if (solution === undefined) {
-    let gridByRow = []
-    let gridByCol = []
+    let gridByRow: Array<Array<string | number>> = []
+    let gridByCol: Array<Array<string | number>> = []
 
     // check for empty cells
     cells.forEach((row, y) => {
@@ -374,7 +494,7 @@ function checkReducer(digits, cells = [], solution = undefined) {
     checkDuplicates(gridByCol, errors, true)
   } else {
     cells.forEach((row, y) => {
-      row.forEach((col, x) => {
+      row.forEach((_, x) => {
         let k = xytok(x, y)
         let actual = digits.get(k)
         let expected = solution[y][x]
@@ -388,10 +508,10 @@ function checkReducer(digits, cells = [], solution = undefined) {
   return errors
 }
 
-function gameReducerNoUndo(state, mode, action) {
+function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
   switch (action.type) {
     case TYPE_MODE:
-      modeReducer(state, action)
+      modeReducer(state, action as ModeAction)
       return
 
     case TYPE_MODE_GROUP:
@@ -401,33 +521,34 @@ function gameReducerNoUndo(state, mode, action) {
     case TYPE_DIGITS:
       switch (mode) {
         case MODE_CORNER:
-          marksReducer(state.cornerMarks, action,
+          marksReducer(state.cornerMarks, action as MarkAction,
             filterGivens(state.digits, state.selection))
           return
         case MODE_CENTRE:
-          marksReducer(state.centreMarks, action,
+          marksReducer(state.centreMarks, action as MarkAction,
             filterGivens(state.digits, state.selection))
           return
       }
-      digitsReducer(state.digits, action,
-        filterGivens(state.digits, state.selection))
+      digitsReducer(state.digits, action as DigitAction,
+          filterGivens(state.digits, state.selection))
       return
 
     case TYPE_COLOURS:
-      digitsReducer(state.colours, action, state.selection, "colour")
+      coloursReducer(state.colours, action as DigitAction, state.selection)
       return
 
     case TYPE_PENLINES:
-      penLinesReducer(state.penLines, action)
+      penLinesReducer(state.penLines, action as PenLineAction)
       return
 
     case TYPE_SELECTION:
-      selectionReducer(state.selection, action, state.data?.cells)
+      selectionReducer(state.selection, action as SelectionAction,
+        state.data?.cells)
       return
   }
 }
 
-function makeUndoState(state) {
+function makeUndoState(state: PersistentGameState): PersistentGameState {
   return {
     digits: state.digits,
     cornerMarks: state.cornerMarks,
@@ -437,12 +558,13 @@ function makeUndoState(state) {
   }
 }
 
-function gameReducer(state, action) {
+function gameReducer(state: GameState, action: Action) {
   return produce(state, draft => {
     if (action.type === TYPE_INIT) {
+      let initAction = action as InitAction
       let canonicalData = undefined
-      if (action.data !== undefined) {
-        canonicalData = { ...action.data }
+      if (initAction.data !== undefined) {
+        canonicalData = { ...initAction.data }
         canonicalData.cells = canonicalData.cells || []
         canonicalData.regions = canonicalData.regions || []
         canonicalData.cages = canonicalData.cages || []
@@ -569,7 +691,11 @@ function gameReducer(state, action) {
   })
 }
 
-const Provider = ({ children }) => {
+interface ProviderProps {
+  children: ReactNode
+}
+
+const Provider = ({ children } : ProviderProps) => {
   const [state, dispatch] = useReducer(gameReducer, makeEmptyState())
 
   return (

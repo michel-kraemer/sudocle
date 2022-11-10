@@ -1,24 +1,28 @@
 import Button from "./Button"
 import GameContext from "./contexts/GameContext"
-import { TYPE_PAUSE } from "./lib/Actions"
+import { ACTION_REMOVE, ACTION_SET, TYPE_PAUSE } from "./lib/Actions"
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Pause } from "lucide-react"
 import styles from "./Timer.scss"
 
-const Timer = ({ solved }) => {
+interface TimerProps {
+  solved: boolean
+}
+
+const Timer = ({ solved } : TimerProps) => {
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
 
   const [start] = useState(+new Date())
-  const [end, setEnd] = useState()
+  const [end, setEnd] = useState<number>()
   const [next, setNext] = useState(+new Date())
   const [s, setSeconds] = useState(0)
   const [m, setMinutes] = useState(0)
   const [h, setHours] = useState(0)
   const [continueVisible, setContinueVisible] = useState(false)
-  const [pauseStart, setPauseStart] = useState(undefined)
+  const [pauseStart, setPauseStart] = useState<number>()
   const [pausedElapsed, setPausedElapsed] = useState(0)
-  const nextTimer = useRef()
+  const nextTimer = useRef<number>()
 
   if (solved && end === undefined) {
     setEnd(+new Date())
@@ -26,17 +30,19 @@ const Timer = ({ solved }) => {
 
   const onPause = useCallback(() => {
     if (game.paused) {
-      let nextRemaining = next - pauseStart
+      let nextRemaining = next - pauseStart!
       setNext(+new Date() - (1000 - nextRemaining))
-      let elapsed = +new Date() - pauseStart
+      let elapsed = +new Date() - pauseStart!
       setPausedElapsed(oldElapsed => oldElapsed + elapsed)
       setNext(+new Date())
       updateGame({
-        type: TYPE_PAUSE
+        type: TYPE_PAUSE,
+        action: ACTION_REMOVE // TODO unnecessary
       })
     } else {
       updateGame({
-        type: TYPE_PAUSE
+        type: TYPE_PAUSE,
+        action: ACTION_SET // TODO unnecessary
       })
       setContinueVisible(true)
       setPauseStart(+new Date())
@@ -70,7 +76,7 @@ const Timer = ({ solved }) => {
       setHours(newh)
     }
 
-    nextTimer.current = setTimeout(() => {
+    nextTimer.current = window.setTimeout(() => {
       setNext(next + 1000)
     }, next - now)
   }, [s, m, h, start, end, next, game.paused, pausedElapsed])

@@ -1,7 +1,15 @@
+import { ChangeEvent } from "react"
 import styles from "./Checkbox.scss"
 
-const Checkbox = ({ name, label, value = false, onChange }) => {
-  function onChangeInternal(e) {
+interface CheckboxProps {
+  name: string,
+  label: string,
+  value: boolean,
+  onChange: (checked: boolean) => void
+}
+
+const Checkbox = ({ name, label, value, onChange } : CheckboxProps) => {
+  function onChangeInternal(e: ChangeEvent<HTMLInputElement>) {
     if (onChange) {
       onChange(e.target.checked)
     }

@@ -1,7 +1,19 @@
 import styles from "./RadioGroup.scss"
 
-const RadioGroup = ({ name, value, options, onChange }) => {
-  function onChangeInternal(id) {
+interface Option {
+  id: string,
+  label: string
+}
+
+interface RadioGroupProps {
+  name: string,
+  value: string,
+  options: Array<Option>,
+  onChange: (id: string) => void
+}
+
+const RadioGroup = ({ name, value, options, onChange }: RadioGroupProps) => {
+  function onChangeInternal(id: string) {
     if (onChange) {
       onChange(id)
     }

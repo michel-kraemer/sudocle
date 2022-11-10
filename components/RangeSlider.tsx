@@ -1,16 +1,28 @@
-import { useState } from "react"
+import { ChangeEvent, useState } from "react"
 import classNames from "classnames"
 import styles from "./RangeSlider.scss"
 
+interface RangeSliderProps {
+  id: string,
+  min?: number,
+  max?: number,
+  step?: number,
+  label: string,
+  value: number,
+  onChange: (value: number) => void,
+  valueChangeOnMouseUp?: boolean,
+  valueToDescription: (value: number) => string
+}
+
 const RangeSlider = ({ id, min = 0, max = 10, step = 1, label, value, onChange,
-    valueChangeOnMouseUp = false, valueToDescription }) => {
+    valueChangeOnMouseUp = false, valueToDescription } : RangeSliderProps) => {
   const [currentValue, setCurrentValue] = useState(value)
 
-  const [description, setDescription] = useState()
+  const [description, setDescription] = useState<string>()
   const [descriptionVisible, setDescriptionVisible] = useState(false)
   const [descriptionPosition, setDescriptionPosition] = useState(0)
 
-  function onChangeInternal(e) {
+  function onChangeInternal(e: ChangeEvent<HTMLInputElement>) {
     let v = +e.target.value
 
     setCurrentValue(v)
@@ -21,7 +33,7 @@ const RangeSlider = ({ id, min = 0, max = 10, step = 1, label, value, onChange,
     if (valueToDescription) {
       setDescription(valueToDescription(v))
     } else {
-      setDescription(v)
+      setDescription(`${v}`)
     }
     setDescriptionPosition((v - min) * 100 / (max - min))
   }

@@ -1,14 +1,36 @@
-import { createContext, useEffect, useReducer } from "react"
+import { createContext, ReactNode, useEffect, useReducer } from "react"
 import { produce } from "immer"
+
+interface Settings {
+  colourPalette: string,
+  theme: string,
+  selectionColour: string,
+  customColours: Array<string>,
+  zoom: number,
+  fontSizeFactorDigits: number,
+  fontSizeFactorCornerMarks: number,
+  fontSizeFactorCentreMarks: number
+}
+
+const DEFAULT_SETTINGS: Settings = {
+  colourPalette: "default",
+  theme: "default",
+  selectionColour: "yellow",
+  customColours: [],
+  zoom: 1,
+  fontSizeFactorDigits: 1,
+  fontSizeFactorCornerMarks: 1,
+  fontSizeFactorCentreMarks: 1
+}
 
 const LOCAL_STORAGE_KEY = "SudocleSettings"
 
-const State = createContext()
-const Dispatch = createContext()
+const State = createContext(DEFAULT_SETTINGS)
+const Dispatch = createContext((_: Settings) => {})
 
-const reducer = produce((draft, { colourPalette, theme, selectionColour,
+const reducer = produce((draft: Settings, { colourPalette, theme, selectionColour,
     customColours, zoom, fontSizeFactorDigits, fontSizeFactorCornerMarks,
-    fontSizeFactorCentreMarks }) => {
+    fontSizeFactorCentreMarks } : Settings) => {
   if (colourPalette !== undefined) {
     draft.colourPalette = colourPalette
   }
@@ -35,24 +57,19 @@ const reducer = produce((draft, { colourPalette, theme, selectionColour,
   }
 })
 
-const Provider = ({ children }) => {
-  const [state, dispatch] = useReducer(reducer, {
-    colourPalette: "default",
-    theme: "default",
-    selectionColour: "yellow",
-    customColours: [],
-    zoom: 1,
-    fontSizeFactorDigits: 1,
-    fontSizeFactorCornerMarks: 1,
-    fontSizeFactorCentreMarks: 1
-  })
+interface ProviderProps {
+  children: ReactNode
+}
+
+const Provider = ({ children } : ProviderProps) => {
+  const [state, dispatch] = useReducer(reducer, DEFAULT_SETTINGS)
 
   useEffect(() => {
     if (typeof localStorage !== "undefined") {
       let r = localStorage.getItem(LOCAL_STORAGE_KEY)
       if (r !== undefined && r !== null) {
-        r = JSON.parse(r)
-        dispatch(r)
+        let parsedSettings = JSON.parse(r) as Settings
+        dispatch(parsedSettings)
       }
     }
   }, [])

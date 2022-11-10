@@ -9,12 +9,14 @@ const Help = () => {
   const [keyV, setKeyV] = useState("v")
   const [keyP, setKeyP] = useState("p")
 
-  async function getKeyboardKey(key, def) {
-    if (typeof navigator !== "undefined" && navigator.keyboard !== undefined &&
-        navigator.keyboard.getLayoutMap !== undefined) {
-      let layoutMap = await navigator.keyboard.getLayoutMap()
-      if (layoutMap !== undefined) {
-        return layoutMap.get(key) || def
+  async function getKeyboardKey(key: string, def: string): Promise<string> {
+    if (typeof navigator !== "undefined") {
+      let nany = navigator as any
+      if (nany.keyboard !== undefined && nany.keyboard.getLayoutMap !== undefined) {
+        let layoutMap = await nany.keyboard.getLayoutMap()
+        if (layoutMap !== undefined) {
+          return layoutMap.get(key) || def
+        }
       }
     }
     return def
