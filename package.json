@@ -20,6 +20,7 @@
     "@pixi/filter-drop-shadow": "^5.0.0",
     "classnames": "^2.3.2",
     "color": "^4.2.3",
+    "css-loader": "^6.7.1",
     "favicons": "^7.0.2",
     "image-webpack-loader": "^8.1.0",
     "immer": "^9.0.16",

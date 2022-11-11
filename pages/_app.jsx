@@ -5,9 +5,8 @@ import styles from "./_app.scss?type=global"
 import MatomoTracker from "@datapunt/matomo-tracker-js"
 import { enableAllPlugins } from "immer"
 import { useEffect } from "react"
-import "@fontsource/roboto/300.css"
-import "@fontsource/roboto/400.css"
-import "@fontsource/roboto/500.css"
+import * as roboto400 from "@fontsource/roboto/400.css"
+import * as roboto500 from "@fontsource/roboto/500.css"
 
 enableAllPlugins()
 
@@ -23,6 +22,10 @@ const App = ({ Component, pageProps }) => {
   }, [])
 
   return (<>
+    <style jsx global>{`
+      ${roboto400.default}
+      ${roboto500.default}
+    `}</style>
     <GameContext.Provider>
       <SettingsContext.Provider>
         <SidebarContext.Provider>
