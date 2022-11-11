@@ -2,7 +2,9 @@ const ESLintPlugin = require("eslint-webpack-plugin")
 const svgToMiniDataURI = require("mini-svg-data-uri")
 const version = require("./package.json").version
 
-const basePath = process.env.NODE_ENV === "production" ? "/sudocle" : ""
+const basePath = process.env.SUDOCLE_BASE_PATH === undefined ?
+  (process.env.NODE_ENV === "production" ? "/sudocle" : "") :
+  process.env.SUDOCLE_BASE_PATH
 const eslintDirs = ["components", "cypress/plugins", "cypress/support", "pages"]
 
 const config = {
