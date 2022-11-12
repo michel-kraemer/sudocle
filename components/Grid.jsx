@@ -19,6 +19,7 @@ const FONT_SIZE_CORNER_MARKS_LOW_DPI = 28
 const FONT_SIZE_CENTRE_MARKS_HIGH_DPI = 29
 const FONT_SIZE_CENTRE_MARKS_LOW_DPI = 29
 const MAX_RENDER_LOOP_TIME = 500
+const DEFAULT_FONT_FAMILY = "Roboto, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ubuntu, \"Helvetica Neue\", Oxygen, Cantarell, sans-serif"
 
 const PENLINE_TYPE_CENTER_RIGHT = 0
 const PENLINE_TYPE_CENTER_DOWN = 1
@@ -348,7 +349,7 @@ function makeCornerMarks(x, y, cellSize, fontSize, leaveRoom, n = 11, fontWeight
 
   for (let i = 0; i < n; ++i) {
     let text = new PIXI.Text("", {
-      fontFamily: "Roboto, sans-serif",
+      fontFamily: DEFAULT_FONT_FAMILY,
       fontSize,
       fontWeight
     })
@@ -537,7 +538,7 @@ function drawOverlay(overlay, mx, my, zIndex) {
       fontSize *= (1 / 0.75)
     }
     text = new PIXI.Text(overlay.text, {
-      fontFamily: "Roboto, sans-serif",
+      fontFamily: DEFAULT_FONT_FAMILY,
       fontSize
     })
     if (overlay.fontColor) {
@@ -1212,7 +1213,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
         // create cage label
         // use larger font and scale down afterwards to improve text rendering
         let topleftText = new PIXI.Text(cage.value, {
-          fontFamily: "Roboto, sans-serif",
+          fontFamily: DEFAULT_FONT_FAMILY,
           fontSize: fontSizeCageLabels
         })
         topleftText.zIndex = 3
@@ -1425,7 +1426,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
-          fontFamily: "Roboto, sans-serif",
+          fontFamily: DEFAULT_FONT_FAMILY,
           fontSize: FONT_SIZE_DIGITS
         })
         text.visible = false
@@ -1472,7 +1473,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let text = new PIXI.Text("", {
-          fontFamily: "Roboto, sans-serif",
+          fontFamily: DEFAULT_FONT_FAMILY,
           fontSize: FONT_SIZE_CENTRE_MARKS_HIGH_DPI
         })
         text.zIndex = 50
