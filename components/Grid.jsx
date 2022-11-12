@@ -1408,7 +1408,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }) => {
 
         let hcv = hasCageValue(x, y, cages)
         let cms = makeCornerMarks(x, y, cellSize, FONT_SIZE_CORNER_MARKS_HIGH_DPI,
-            hcv, arr.length, "bold")
+            hcv, arr.length, "700")
         cms.forEach((cm, i) => {
           cm.zIndex = 41
           cm.style.fill = themeColours.foregroundColor

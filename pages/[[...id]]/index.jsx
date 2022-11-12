@@ -11,6 +11,7 @@ import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN } from "../../components/lib/Modes"
 import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter.js"
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import FontFaceObserver from "fontfaceobserver"
 import { Frown, ThumbsUp } from "lucide-react"
 import Head from "next/head"
 import styles from "./index.scss"
@@ -34,6 +35,7 @@ const Index = () => {
   const [solvedModalOpen, setSolvedModalOpen] = useState()
   const [errorModalOpen, setErrorModalOpen] = useState()
   const [isTest, setIsTest] = useState(false)
+  const [fontsLoaded, setFontsLoaded] = useState(false)
 
   function onMouseDown(e) {
     // check if we hit a target that would clear the selction
@@ -53,6 +55,18 @@ const Index = () => {
   }
 
   const onFinishRender = useCallback(() => setRendering(false), [])
+
+  function collectTextToLoad(data) {
+    let characters = new Set(Array.from("0BESbswy"))
+    let datastr = JSON.stringify(JSON.stringify(data))
+    // only add non-latin characters
+    for (let i = 0; i < datastr.length; ++i) {
+      if (datastr[i] > "\u00FF") {
+        characters.add(datastr[i])
+      }
+    }
+    return [...characters].join("")
+  }
 
   // load game data
   useEffect(() => {
@@ -165,6 +179,7 @@ const Index = () => {
         })
       }
       window.resetTestGrid = function() {
+        setFontsLoaded(false) // make sure fonts for the next grid will be loaded
         updateGame({
           type: TYPE_INIT,
           data: undefined
@@ -189,6 +204,28 @@ const Index = () => {
       load(url, fallbackUrl)
     }
   }, [game.data, updateGame])
+
+  useEffect(() => {
+    if (game.data.cells.length === 0) {
+      // game is not loaded yet
+      return
+    }
+
+    // make sure all required fonts are loaded
+    let fontRoboto300 = new FontFaceObserver("Roboto", {
+      weight: 300
+    })
+    let fontRoboto700 = new FontFaceObserver("Roboto", {
+      weight: 700
+    })
+    let textToLoad = collectTextToLoad(game.data)
+    Promise.all([fontRoboto300.load(textToLoad), fontRoboto700.load(textToLoad)]).then(() => {
+      setFontsLoaded(true)
+    }, () => {
+      console.warn("Roboto font is not available. Using fallback font.")
+      setFontsLoaded(true)
+    })
+  }, [game.data])
 
   // register keyboard handlers
   useEffect(() => {
@@ -484,8 +521,9 @@ const Index = () => {
       {!isTest && <StatusBar />}
       <div className="game-container" ref={gameContainerRef}>
         <div className="grid-container" ref={gridContainerRef}>
-          {(game.data && game.data.cells.length > 0) && <Grid portrait={portrait} maxWidth={gridMaxWidth}
-            maxHeight={gridMaxHeight} onFinishRender={onFinishRender} />}
+          {(game.data && game.data.cells.length > 0 && fontsLoaded) &&
+            <Grid portrait={portrait} maxWidth={gridMaxWidth}
+              maxHeight={gridMaxHeight} onFinishRender={onFinishRender} />}
         </div>
         {rendering && !error && <div className="loading">
           Loading ...

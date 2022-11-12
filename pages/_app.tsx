@@ -11,6 +11,7 @@ import roboto400 from "@fontsource/roboto/400.css"
 import roboto400italic from "@fontsource/roboto/400-italic.css"
 import roboto500 from "@fontsource/roboto/500.css"
 import roboto500italic from "@fontsource/roboto/500-italic.css"
+import roboto700 from "@fontsource/roboto/700.css"
 import robotoCondensed400 from "@fontsource/roboto-condensed/400.css"
 
 enableAllPlugins()
@@ -32,6 +33,7 @@ const App = ({ Component, pageProps }: AppProps) => {
       ${roboto400italic}
       ${roboto500}
       ${roboto500italic}
+      ${roboto700}
       ${robotoCondensed400}
       ${baloo700}
     `}</style>
