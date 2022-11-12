@@ -11,18 +11,24 @@ import Color from "color"
 import classNames from "classnames"
 import styles from "./Pad.scss"
 
+interface Colour {
+  colour: string,
+  digit: number,
+  light: boolean
+}
+
 const Pad = () => {
-  const ref = useRef()
+  const ref = useRef<HTMLDivElement>(null)
   const settings = useContext(SettingsContext.State)
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
-  const [colours, setColours] = useState([])
+  const [colours, setColours] = useState<Colour[]>([])
   const [checkReady, setCheckReady] = useState(false)
 
   useEffect(() => {
-    let computedStyle = getComputedStyle(ref.current)
+    let computedStyle = getComputedStyle(ref.current!)
     let nColours = +computedStyle.getPropertyValue("--colors")
-    let newColours = []
+    let newColours: Colour[] = []
     let colourPalette = settings.colourPalette
     if (colourPalette === "custom" && settings.customColours.length === 0) {
       colourPalette = "default"
@@ -60,7 +66,7 @@ const Pad = () => {
     }
   }, [game.data, game.digits])
 
-  function onDigit(digit) {
+  function onDigit(digit: number) {
     updateGame({
       type: TYPE_DIGITS,
       action: ACTION_SET,
@@ -68,7 +74,7 @@ const Pad = () => {
     })
   }
 
-  function onColour(digit) {
+  function onColour(digit: number) {
     updateGame({
       type: TYPE_COLOURS,
       action: ACTION_SET,
@@ -76,7 +82,7 @@ const Pad = () => {
     })
   }
 
-  function onMode(mode) {
+  function onMode(mode: string) {
     updateGame({
       type: TYPE_MODE,
       action: ACTION_SET,
@@ -189,7 +195,7 @@ const Pad = () => {
       {digitButtons[5]}
       {modeGroup === 0 && (
         <Button active={game.mode === MODE_CENTRE} noPadding
-            onClick={() => game.mode !== onMode(MODE_CENTRE)}>
+            onClick={() => onMode(MODE_CENTRE)}>
           <div className="label-container">Centre</div>
         </Button>
       ) || <div className="placeholder"></div>}

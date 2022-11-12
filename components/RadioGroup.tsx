@@ -1,14 +1,15 @@
+import { ReactNode } from "react"
 import styles from "./RadioGroup.scss"
 
 interface Option {
   id: string,
-  label: string
+  label: ReactNode
 }
 
 interface RadioGroupProps {
   name: string,
   value: string,
-  options: Array<Option>,
+  options: Option[],
   onChange: (id: string) => void
 }
 

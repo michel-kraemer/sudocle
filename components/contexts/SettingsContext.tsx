@@ -5,7 +5,7 @@ interface Settings {
   colourPalette: string,
   theme: string,
   selectionColour: string,
-  customColours: Array<string>,
+  customColours: string[],
   zoom: number,
   fontSizeFactorDigits: number,
   fontSizeFactorCornerMarks: number,
@@ -26,11 +26,11 @@ const DEFAULT_SETTINGS: Settings = {
 const LOCAL_STORAGE_KEY = "SudocleSettings"
 
 const State = createContext(DEFAULT_SETTINGS)
-const Dispatch = createContext((_: Settings) => {})
+const Dispatch = createContext((_: Partial<Settings>) => {})
 
 const reducer = produce((draft: Settings, { colourPalette, theme, selectionColour,
     customColours, zoom, fontSizeFactorDigits, fontSizeFactorCornerMarks,
-    fontSizeFactorCentreMarks } : Settings) => {
+    fontSizeFactorCentreMarks }: Partial<Settings>) => {
   if (colourPalette !== undefined) {
     draft.colourPalette = colourPalette
   }
@@ -61,7 +61,7 @@ interface ProviderProps {
   children: ReactNode
 }
 
-const Provider = ({ children } : ProviderProps) => {
+const Provider = ({ children }: ProviderProps) => {
   const [state, dispatch] = useReducer(reducer, DEFAULT_SETTINGS)
 
   useEffect(() => {

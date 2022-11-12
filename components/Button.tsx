@@ -10,7 +10,7 @@ interface ButtonProps {
   children: ReactNode
 }
 
-const Button = ({ active = false, onClick, noPadding = false, pulsating = false, children } : ButtonProps) => {
+const Button = ({ active = false, onClick, noPadding = false, pulsating = false, children }: ButtonProps) => {
   const [pressed, setPressed] = useState(false)
 
   function onClickInternal(e: MouseEvent) {

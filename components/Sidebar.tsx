@@ -6,31 +6,41 @@ import GameContext from "./contexts/GameContext"
 import SidebarContext from "./contexts/SidebarContext"
 import classNames from "classnames"
 import { BookOpen, HelpCircle, Info, Sliders, X } from "lucide-react"
-import { useContext } from "react"
+import { ReactNode, useContext } from "react"
 import { ID_RULES, ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
 import styles from "./Sidebar.scss"
+
+interface Tab {
+  id: string,
+  icon: ReactNode,
+  y: number
+}
 
 const Sidebar = () => {
   const sidebarState = useContext(SidebarContext.State)
   const onTabClick = useContext(SidebarContext.OnTabClick)
   const game = useContext(GameContext.State)
 
-  let tabs = [{
+  let tabs: Tab[] = [{
     id: ID_SETTINGS,
-    icon: <Sliders />
+    icon: <Sliders />,
+    y: 0
   }, {
     id: ID_HELP,
-    icon: <HelpCircle />
+    icon: <HelpCircle />,
+    y: 0
   }, {
     id: ID_ABOUT,
-    icon: <Info />
+    icon: <Info />,
+    y: 0
   }]
 
   if (game.data !== undefined && game.data.title !== undefined && game.data.rules !== undefined) {
     // add rules tab if game data contains rules
     tabs.unshift({
       id: ID_RULES,
-      icon: <BookOpen />
+      icon: <BookOpen />,
+      y: 0
     })
   }
 

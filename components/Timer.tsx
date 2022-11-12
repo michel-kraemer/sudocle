@@ -9,7 +9,7 @@ interface TimerProps {
   solved: boolean
 }
 
-const Timer = ({ solved } : TimerProps) => {
+const Timer = ({ solved }: TimerProps) => {
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
 

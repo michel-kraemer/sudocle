@@ -10,51 +10,51 @@ const Settings = () => {
   const updateSettings = useContext(SettingsContext.Dispatch)
   const [themeInternal, setThemeInternal] = useState(settings.theme)
 
-  const refPlaceholderCTC = useRef()
-  const refPlaceholderWong = useRef()
+  const refPlaceholderCTC = useRef<HTMLDivElement>(null)
+  const refPlaceholderWong = useRef<HTMLDivElement>(null)
 
-  const [coloursDefault, setColoursDefault] = useState([])
-  const [coloursCTC, setColoursCTC] = useState([])
-  const [coloursWong, setColoursWong] = useState([])
+  const [coloursDefault, setColoursDefault] = useState<string[]>([])
+  const [coloursCTC, setColoursCTC] = useState<string[]>([])
+  const [coloursWong, setColoursWong] = useState<string[]>([])
   const [coloursCustom, setColoursCustom] = useState(settings.customColours)
 
-  function onChangeTheme(theme) {
+  function onChangeTheme(theme: string) {
     setThemeInternal(theme)
     setTimeout(() => {
       updateSettings({ theme })
     }, 100)
   }
 
-  const changeZoomTimeout = useRef()
-  function onChangeZoom(value) {
+  const changeZoomTimeout = useRef<number>()
+  function onChangeZoom(value: number) {
     if (changeZoomTimeout.current !== undefined) {
       clearTimeout(changeZoomTimeout.current)
     }
-    changeZoomTimeout.current = setTimeout(() => {
+    changeZoomTimeout.current = window.setTimeout(() => {
       updateSettings({ zoom: value })
     }, 200)
   }
 
-  function zoomValueToDescription(value) {
+  function zoomValueToDescription(value: number) {
     if (value === 1) {
       return "Default"
     }
     return `x${value}`
   }
 
-  function onChangeFontSizeDigits(value) {
+  function onChangeFontSizeDigits(value: number) {
     updateSettings({ fontSizeFactorDigits: value })
   }
 
-  function onChangeFontSizeCornerMarks(value) {
+  function onChangeFontSizeCornerMarks(value: number) {
     updateSettings({ fontSizeFactorCornerMarks: value })
   }
 
-  function onChangeFontSizeCentreMarks(value) {
+  function onChangeFontSizeCentreMarks(value: number) {
     updateSettings({ fontSizeFactorCentreMarks: value })
   }
 
-  function fontSizeValueToDescription(value) {
+  function fontSizeValueToDescription(value: number): string | undefined {
     if (value === 0.75) {
       return "Tiny"
     } else if (value === 0.875) {
@@ -73,7 +73,7 @@ const Settings = () => {
     return undefined
   }
 
-  function onUpdateCustomColours(colours) {
+  function onUpdateCustomColours(colours: string[]) {
     setColoursCustom(colours)
     updateSettings({ customColours: colours })
   }
@@ -83,7 +83,7 @@ const Settings = () => {
   }, [settings.theme])
 
   useEffect(() => {
-    function makeColours(elem) {
+    function makeColours(elem: Element): string[] {
       let style = getComputedStyle(elem)
       let nColours = +style.getPropertyValue("--colors")
       let result = []
@@ -96,8 +96,8 @@ const Settings = () => {
 
     let defaultColours = makeColours(document.body)
     setColoursDefault(defaultColours)
-    setColoursCTC(makeColours(refPlaceholderCTC.current))
-    setColoursWong(makeColours(refPlaceholderWong.current))
+    setColoursCTC(makeColours(refPlaceholderCTC.current!))
+    setColoursWong(makeColours(refPlaceholderWong.current!))
     setColoursCustom(old => old.length === 0 ? defaultColours : old)
   }, [])
 
@@ -138,7 +138,7 @@ const Settings = () => {
     <h3>Zoom</h3>
     <div className="slider">
       <RangeSlider id="range-zoom"
-        min="0.9" max="1.25" step="0.05" value={settings.zoom}
+        min={0.9} max={1.25} step={0.05} value={settings.zoom}
         onChange={onChangeZoom}
         valueToDescription={zoomValueToDescription} />
     </div>
@@ -146,19 +146,19 @@ const Settings = () => {
     <h3>Font sizes</h3>
     <div className="slider">
       <RangeSlider id="range-digits" label="Digits"
-        min="0.75" max="1.5" step="0.125" value={settings.fontSizeFactorDigits}
+        min={0.75} max={1.5} step={0.125} value={settings.fontSizeFactorDigits}
         onChange={onChangeFontSizeDigits}
         valueToDescription={fontSizeValueToDescription} />
     </div>
     <div className="slider">
       <RangeSlider id="range-corner-marks" label="Corner marks"
-        min="0.75" max="1.5" step="0.125" value={settings.fontSizeFactorCornerMarks}
+        min={0.75} max={1.5} step={0.125} value={settings.fontSizeFactorCornerMarks}
         onChange={onChangeFontSizeCornerMarks}
         valueToDescription={fontSizeValueToDescription} />
     </div>
     <div className="slider">
       <RangeSlider id="range-centre-marks" label="Centre marks"
-        min="0.75" max="1.5" step="0.125" value={settings.fontSizeFactorCentreMarks}
+        min={0.75} max={1.5} step={0.125} value={settings.fontSizeFactorCentreMarks}
         onChange={onChangeFontSizeCentreMarks}
         valueToDescription={fontSizeValueToDescription} />
     </div>

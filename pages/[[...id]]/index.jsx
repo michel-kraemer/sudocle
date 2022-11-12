@@ -56,7 +56,7 @@ const Index = () => {
 
   // load game data
   useEffect(() => {
-    if (game.data !== undefined) {
+    if (game.data.cells.length > 0) {
       // game data already loaded
       return
     }
@@ -484,7 +484,7 @@ const Index = () => {
       {!isTest && <StatusBar />}
       <div className="game-container" ref={gameContainerRef}>
         <div className="grid-container" ref={gridContainerRef}>
-          {game.data && <Grid portrait={portrait} maxWidth={gridMaxWidth}
+          {(game.data && game.data.cells.length > 0) && <Grid portrait={portrait} maxWidth={gridMaxWidth}
             maxHeight={gridMaxHeight} onFinishRender={onFinishRender} />}
         </div>
         {rendering && !error && <div className="loading">

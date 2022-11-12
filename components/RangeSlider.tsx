@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react"
+import { ChangeEvent, ReactNode, useState } from "react"
 import classNames from "classnames"
 import styles from "./RangeSlider.scss"
 
@@ -7,15 +7,15 @@ interface RangeSliderProps {
   min?: number,
   max?: number,
   step?: number,
-  label: string,
+  label?: ReactNode,
   value: number,
   onChange: (value: number) => void,
   valueChangeOnMouseUp?: boolean,
-  valueToDescription: (value: number) => string
+  valueToDescription: (value: number) => string | undefined
 }
 
 const RangeSlider = ({ id, min = 0, max = 10, step = 1, label, value, onChange,
-    valueChangeOnMouseUp = false, valueToDescription } : RangeSliderProps) => {
+    valueChangeOnMouseUp = false, valueToDescription }: RangeSliderProps) => {
   const [currentValue, setCurrentValue] = useState(value)
 
   const [description, setDescription] = useState<string>()

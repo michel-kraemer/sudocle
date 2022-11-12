@@ -11,28 +11,39 @@ import { isEqual, isString } from "lodash"
 
 interface DataCell {
   value?: number | string,
-  cornermarks?: Array<number | string>,
-  centremarks?: Array<number | string>
+  cornermarks?: (number | string)[],
+  centremarks?: (number | string)[]
 }
 
 interface Cage {
-  cells: Array<[number, number]>,
+  cells: [number, number][],
   value?: number | string
 }
 
 interface Data {
-  cells: Array<Array<DataCell>>,
-  regions: Array<[number, number]>,
-  cages: Array<Cage>,
-  lines: Array<[number, number]>,
-  arrows: Array<[number, number]>,
-  underlays: Array<[number, number]>,
-  overlays: Array<[number, number]>,
-  solution?: Array<Array<number | undefined>>,
+  cells: DataCell[][],
+  regions: [number, number][],
+  cages: Cage[],
+  lines: [number, number][],
+  arrows: [number, number][],
+  underlays: [number, number][],
+  overlays: [number, number][],
+  solution?: (number | undefined)[][],
   title?: string,
   author?: string,
   rules?: string,
   solved: boolean
+}
+
+const EmptyData: Data = {
+  cells: [],
+  regions: [],
+  cages: [],
+  lines: [],
+  arrows: [],
+  underlays: [],
+  overlays: [],
+  solved: false
 }
 
 interface Digit {
@@ -53,14 +64,14 @@ interface PersistentGameState {
 }
 
 interface GameState extends PersistentGameState {
-  data?: Data,
+  data: Data,
   mode: string,
   modeGroup: number,
-  enabledModes0: Array<string>,
-  enabledModes1: Array<string>,
+  enabledModes0: string[],
+  enabledModes1: string[],
   selection: Set<number>,
   errors: Set<number>,
-  undoStates: Array<PersistentGameState>,
+  undoStates: PersistentGameState[],
   nextUndoState: number,
   solved: boolean,
   paused: boolean,
@@ -93,12 +104,12 @@ interface PenLineAction extends Action {
 }
 
 interface SelectionAction extends Action {
-  k: number | Array<number>,
+  k: number | number[],
   append: boolean
 }
 
 const State = createContext(makeEmptyState())
-const Dispatch = createContext((_: Action) => {})
+const Dispatch = createContext((_: any) => {})
 
 function makeGiven<T, R>(data: Data | undefined,
     accessor: (cell: DataCell) => T | undefined,
@@ -131,7 +142,7 @@ function makeGivenDigits(data: Data | undefined): Map<number, Digit> {
   })
 }
 
-function makeGivenMarks<T extends Array<string | number>>(data: Data | undefined,
+function makeGivenMarks<T extends (string | number)[]>(data: Data | undefined,
     accessor: (cell: DataCell) => T | undefined): Map<number, Set<string | number>> {
   return makeGiven(data, accessor, cms => {
     let digits = new Set<string | number>()
@@ -145,7 +156,7 @@ function makeGivenMarks<T extends Array<string | number>>(data: Data | undefined
 
 function makeEmptyState(data?: Data): GameState {
   return {
-    data,
+    data: data || EmptyData,
     mode: MODE_NORMAL,
     modeGroup: 0,
     enabledModes0: [MODE_NORMAL],
@@ -359,7 +370,7 @@ function penLinesReducer(penLines: Set<number>, action: PenLineAction) {
 }
 
 function selectionReducer(selection: Set<number>, action: SelectionAction,
-    cells: Array<Array<DataCell>> = []) {
+    cells: DataCell[][] = []) {
   switch (action.action) {
     case ACTION_ALL:
       selection.clear()
@@ -441,7 +452,7 @@ function selectionReducer(selection: Set<number>, action: SelectionAction,
   }
 }
 
-function checkDuplicates(grid: Array<Array<string | number>>, errors: Set<number>, flip = false) {
+function checkDuplicates(grid: (string | number)[][], errors: Set<number>, flip = false) {
   for (let y = 0; y < grid.length; ++y) {
     let cells = grid[y]
     if (cells !== undefined) {
@@ -463,13 +474,13 @@ function checkDuplicates(grid: Array<Array<string | number>>, errors: Set<number
   }
 }
 
-function checkReducer(digits: Map<number, Digit>, cells: Array<Array<DataCell>> = [],
-    solution?: Array<Array<number | undefined>>): Set<number> {
+function checkReducer(digits: Map<number, Digit>, cells: DataCell[][] = [],
+    solution?: (number | undefined)[][]): Set<number> {
   let errors = new Set<number>()
 
   if (solution === undefined) {
-    let gridByRow: Array<Array<string | number>> = []
-    let gridByCol: Array<Array<string | number>> = []
+    let gridByRow: (string | number)[][] = []
+    let gridByCol: (string | number)[][] = []
 
     // check for empty cells
     cells.forEach((row, y) => {
@@ -558,7 +569,7 @@ function makeUndoState(state: PersistentGameState): PersistentGameState {
   }
 }
 
-function gameReducer(state: GameState, action: Action) {
+function gameReducer(state: GameState, action: any) {
   return produce(state, draft => {
     if (action.type === TYPE_INIT) {
       let initAction = action as InitAction
@@ -695,7 +706,7 @@ interface ProviderProps {
   children: ReactNode
 }
 
-const Provider = ({ children } : ProviderProps) => {
+const Provider = ({ children }: ProviderProps) => {
   const [state, dispatch] = useReducer(gameReducer, makeEmptyState())
 
   return (

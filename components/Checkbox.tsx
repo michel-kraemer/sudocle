@@ -8,7 +8,7 @@ interface CheckboxProps {
   onChange: (checked: boolean) => void
 }
 
-const Checkbox = ({ name, label, value, onChange } : CheckboxProps) => {
+const Checkbox = ({ name, label, value, onChange }: CheckboxProps) => {
   function onChangeInternal(e: ChangeEvent<HTMLInputElement>) {
     if (onChange) {
       onChange(e.target.checked)

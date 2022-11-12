@@ -25,7 +25,7 @@ interface ProviderProps {
   children: ReactNode
 }
 
-const Provider = ({ children } : ProviderProps) => {
+const Provider = ({ children }: ProviderProps) => {
   const [state, setState] = useState(DEFAULT_SIDEBAR_STATE)
 
   function setExpanded(expanded: boolean) {

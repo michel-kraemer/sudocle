@@ -1,8 +1,15 @@
 import styles from "./Palette.scss"
 import { Minus, Plus } from "lucide-react"
 import Color from "color"
+import { FormEvent } from "react"
 
-const Palette = ({ colours, customisable = false, updatePalette }) => {
+interface PaletteProps {
+  colours: string[],
+  customisable?: boolean,
+  updatePalette?: (colours: string[]) => void
+}
+
+const Palette = ({ colours, customisable = false, updatePalette }: PaletteProps) => {
   let gridTemplateColumns = `repeat(${colours.length}, 1fr)`
   if (customisable) {
     // add space for customise buttons
@@ -26,9 +33,12 @@ const Palette = ({ colours, customisable = false, updatePalette }) => {
     updatePalette(newColours)
   }
 
-  function onChangeColour(i, e) {
+  function onChangeColour(i: number, e: FormEvent<HTMLInputElement>) {
+    if (updatePalette === undefined) {
+      return
+    }
     let newColours = [...colours]
-    newColours[i] = e.target.value
+    newColours[i] = e.currentTarget.value
     updatePalette(newColours)
   }
 
@@ -37,7 +47,7 @@ const Palette = ({ colours, customisable = false, updatePalette }) => {
       if (customisable) {
         return <label key={i} className="colour customisable" style={{ backgroundColor: c }}>
           <input type="color" className="colour" defaultValue={Color(c.trim()).hex()}
-            onInput={(e) => onChangeColour(i, e)} />
+            onInput={e => onChangeColour(i, e)} />
         </label>
       } else {
         return <div key={i} className="colour" style={{ backgroundColor: c }}></div>
