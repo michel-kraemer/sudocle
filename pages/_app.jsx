@@ -5,10 +5,12 @@ import styles from "./_app.scss?type=global"
 import MatomoTracker from "@datapunt/matomo-tracker-js"
 import { enableAllPlugins } from "immer"
 import { useEffect } from "react"
+import * as baloo700 from "@fontsource/baloo-2/700.css"
 import * as roboto400 from "@fontsource/roboto/400.css"
 import * as roboto400italic from "@fontsource/roboto/400-italic.css"
 import * as roboto500 from "@fontsource/roboto/500.css"
 import * as roboto500italic from "@fontsource/roboto/500-italic.css"
+import * as robotoCondensed400 from "@fontsource/roboto-condensed/400.css"
 
 enableAllPlugins()
 
@@ -29,6 +31,8 @@ const App = ({ Component, pageProps }) => {
       ${roboto400italic.default}
       ${roboto500.default}
       ${roboto500italic.default}
+      ${robotoCondensed400.default}
+      ${baloo700.default}
     `}</style>
     <GameContext.Provider>
       <SettingsContext.Provider>
