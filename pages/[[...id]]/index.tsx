@@ -9,8 +9,9 @@ import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_
   ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
   ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN } from "../../components/lib/Modes"
-import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter.js"
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import { Data } from "../../components/types/Data"
+import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter"
+import { MouseEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react"
 import FontFaceObserver from "fontfaceobserver"
 import { Frown, ThumbsUp } from "lucide-react"
 import Head from "next/head"
@@ -23,28 +24,28 @@ const Index = () => {
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
   const settings = useContext(SettingsContext.State)
-  const appRef = useRef()
-  const gameContainerRef = useRef()
-  const gridContainerRef = useRef()
-  const padContainerRef = useRef()
+  const appRef = useRef<HTMLDivElement>(null)
+  const gameContainerRef = useRef<HTMLDivElement>(null)
+  const gridContainerRef = useRef<HTMLDivElement>(null)
+  const padContainerRef = useRef<HTMLDivElement>(null)
   const [gridMaxWidth, setGridMaxWidth] = useState(0)
   const [gridMaxHeight, setGridMaxHeight] = useState(0)
   const [portrait, setPortrait] = useState(false)
   const [rendering, setRendering] = useState(true)
-  const [error, setError] = useState()
-  const [solvedModalOpen, setSolvedModalOpen] = useState()
-  const [errorModalOpen, setErrorModalOpen] = useState()
+  const [error, setError] = useState<ReactNode>()
+  const [solvedModalOpen, setSolvedModalOpen] = useState<boolean>(false)
+  const [errorModalOpen, setErrorModalOpen] = useState<boolean>(false)
   const [isTest, setIsTest] = useState(false)
   const [fontsLoaded, setFontsLoaded] = useState(false)
 
-  function onMouseDown(e) {
+  function onMouseDown(e: MouseEvent<HTMLDivElement>) {
     // check if we hit a target that would clear the selction
     let shouldClearSelection = e.target === appRef.current ||
       e.target === gameContainerRef.current ||
       e.target === gridContainerRef.current ||
       e.target === padContainerRef.current ||
       // pad itself but not its buttons
-      e.target.parentElement === padContainerRef.current
+      (e.target as Node).parentElement === padContainerRef.current
 
     if (shouldClearSelection) {
       updateGame({
@@ -56,7 +57,7 @@ const Index = () => {
 
   const onFinishRender = useCallback(() => setRendering(false), [])
 
-  function collectTextToLoad(data) {
+  function collectTextToLoad(data: Data): string {
     let characters = new Set(Array.from("0BESbswy"))
     let datastr = JSON.stringify(JSON.stringify(data))
     // only add non-latin characters
@@ -104,7 +105,7 @@ const Index = () => {
       }
     }
 
-    async function load(url, fallbackUrl) {
+    async function load(url: string, fallbackUrl: string) {
       let response = await fetch(url)
       if (response.status !== 200) {
         response = await fetch(fallbackUrl)
@@ -127,11 +128,11 @@ const Index = () => {
 
     async function loadFPuzzles() {
       let iframe = document.createElement("iframe")
-      iframe.style.width = 0
-      iframe.style.height = 0
-      iframe.style.border = 0
+      iframe.style.width = "0"
+      iframe.style.height = "0"
+      iframe.style.border = "0"
       iframe.style.position = "absolute"
-      iframe.sandbox = "allow-scripts"
+      iframe.sandbox.add("allow-scripts")
       iframe.srcdoc = `<head>
         <script src="https://www.f-puzzles.com/Compression.js?v=1.11.2"
           referrerpolicy="no-referrer"></script>
@@ -146,7 +147,7 @@ const Index = () => {
         </script>
       </head>`
 
-      function responseListener(e) {
+      function responseListener(e: MessageEvent) {
         if (e.origin === "null" && e.source === iframe.contentWindow) {
           window.removeEventListener("message", responseListener)
           iframe.remove()
@@ -161,14 +162,15 @@ const Index = () => {
 
       iframe.onload = function () {
         let puzzle = decodeURIComponent(id.substring(8))
-        iframe.contentWindow.postMessage(puzzle, "*")
+        iframe.contentWindow!.postMessage(puzzle, "*")
       }
 
       document.body.appendChild(iframe)
     }
 
     async function loadTest() {
-      window.initTestGrid = function(json) {
+      let w = window as any
+      w.initTestGrid = function(json: any) {
         if (json.fpuzzles !== undefined) {
           json = convertFPuzzle(json.fpuzzles)
         }
@@ -178,7 +180,7 @@ const Index = () => {
           data: json
         })
       }
-      window.resetTestGrid = function() {
+      w.resetTestGrid = function() {
         setFontsLoaded(false) // make sure fonts for the next grid will be loaded
         updateGame({
           type: TYPE_INIT,
@@ -197,6 +199,7 @@ const Index = () => {
       let fallbackUrl
       if (id === null || id === "") {
         url = `${process.env.basePath}/empty-grid.json`
+        fallbackUrl = url
       } else {
         url = DATABASE_URL.replace("{}", id)
         fallbackUrl = FALLBACK_URL.replace("{}", id)
@@ -233,7 +236,7 @@ const Index = () => {
     let shiftPressed = false
     let altPressed = false
 
-    function onKeyDown(e) {
+    function onKeyDown(e: KeyboardEvent) {
       if (e.key === " ") {
         updateGame({
           type: TYPE_MODE,
@@ -352,7 +355,7 @@ const Index = () => {
       }
     }
 
-    function onKeyUp(e) {
+    function onKeyUp(e: KeyboardEvent) {
       if (e.key === "Meta" || e.key === "Control") {
         updateGame({
           type: TYPE_MODE,
@@ -422,17 +425,17 @@ const Index = () => {
     let oldH = 0
 
     function onResize() {
-      let style = window.getComputedStyle(gameContainerRef.current)
-      let w = gameContainerRef.current.clientWidth - parseInt(style.paddingLeft) - parseInt(style.paddingRight)
-      let h = gameContainerRef.current.clientHeight - parseInt(style.paddingTop) - parseInt(style.paddingBottom)
+      let style = window.getComputedStyle(gameContainerRef.current!)
+      let w = gameContainerRef.current!.clientWidth - parseInt(style.paddingLeft) - parseInt(style.paddingRight)
+      let h = gameContainerRef.current!.clientHeight - parseInt(style.paddingTop) - parseInt(style.paddingBottom)
       let portrait = window.innerHeight > window.innerWidth
       let newW
       let newH
       if (portrait) {
         newW = w
-        newH = h - padContainerRef.current.offsetHeight
+        newH = h - padContainerRef.current!.offsetHeight
       } else {
-        newW = w - padContainerRef.current.offsetWidth
+        newW = w - padContainerRef.current!.offsetWidth
         newH = h
       }
       if (oldW !== newW || oldH !== newH) {
@@ -460,7 +463,7 @@ const Index = () => {
       return
     }
 
-    function onBeforeUnload(e) {
+    function onBeforeUnload(e: BeforeUnloadEvent) {
       if (game.nextUndoState === 0 || game.solved) {
         // nothing to lose - we can close the tab
         return

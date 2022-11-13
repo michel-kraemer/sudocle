@@ -1,8 +1,152 @@
 import { chunk, mean, isString } from "lodash"
+import { Arrow, Cage, Data, DataCell, ExtraRegion, Line, Overlay } from "../types/Data"
+
+interface FPuzzlesCell {
+  value?: number | string,
+  cornerPencilMarks?: (number | string)[],
+  centerPencilMarks?: (number | string)[],
+  given?: boolean,
+  region?: number,
+  c?: string
+}
+
+interface FPuzzlesCage {
+  cells: string[]
+  value: number | string,
+  outlineC?: string
+}
+
+interface FPuzzlesMinMax {
+  cell: string
+}
+
+interface FPuzzlesLine {
+  lines: string[][],
+  outlineC?: string
+  width?: number
+}
+
+interface FPuzzlesClone {
+  cells?: string[],
+  cloneCells?: string[]
+}
+
+interface FPuzzlesRectangle {
+  cells: string[],
+  baseC?: string,
+  outlineC?: string,
+  fontC?: string,
+  width?: number,
+  height?: number,
+  angle?: number
+}
+
+interface FPuzzlesOddEven {
+  cell: string
+}
+
+interface FPuzzlesExtraRegion {
+  cells: string[]
+}
+
+interface FPuzzlesArrow {
+  lines?: string[][],
+  cells?: string[]
+}
+
+interface FPuzzlesLittleKillerSum {
+  cell: string,
+  cells?: string[],
+  direction?: string,
+  value?: number | string
+}
+
+interface FPuzzlesQuadruple {
+  cells: string[],
+  values: (number | string)[]
+}
+
+interface FPuzzlesPalindrome {
+  lines: string[][]
+}
+
+interface FPuzzlesBetweenLine {
+  lines: string[][]
+}
+
+interface FPuzzlesDifferenceRatio {
+  cells: string[],
+  value: number | string
+}
+
+interface FPuzzlesXV {
+  cells: string[],
+  value: string
+}
+
+interface FPuzzlesSandwichSum {
+  cell: string,
+  value: number | string
+}
+
+interface FPuzzlesCircle {
+  cells: string[],
+  baseC?: string,
+  outlineC?: string,
+  fontC?: string,
+  width: number,
+  height: number,
+  value?: number | string
+}
+
+interface FPuzzlesThermometer {
+  lines: string[][]
+}
+
+interface FPuzzlesText {
+  cells: string[],
+  value?: string,
+  fontC?: string,
+  size?: number,
+  angle?: number
+}
+
+interface FPuzzlesData {
+  size?: number,
+  grid: FPuzzlesCell[][],
+  title?: string,
+  author?: string,
+  ruleset?: string,
+  cage?: FPuzzlesCage[]
+  killercage?: FPuzzlesCage[],
+  minimum?: FPuzzlesMinMax[],
+  maximum?: FPuzzlesMinMax[],
+  ["diagonal+"]: boolean,
+  ["diagonal-"]: boolean,
+  line?: FPuzzlesLine[],
+  clone?: FPuzzlesClone[],
+  rectangle?: FPuzzlesRectangle[],
+  odd?: FPuzzlesOddEven[],
+  even?: FPuzzlesOddEven[],
+  extraregion?: FPuzzlesExtraRegion[],
+  arrow?: FPuzzlesArrow[],
+  littlekillersum?: FPuzzlesLittleKillerSum[],
+  quadruple?: FPuzzlesQuadruple[],
+  palindrome?: FPuzzlesPalindrome[],
+  betweenline?: FPuzzlesBetweenLine[],
+  difference?: FPuzzlesDifferenceRatio[]
+  ratio?: FPuzzlesDifferenceRatio[]
+  xv?: FPuzzlesXV[],
+  sandwichsum?: FPuzzlesSandwichSum[],
+  circle?: FPuzzlesCircle[],
+  thermometer?: FPuzzlesThermometer[],
+  text?: FPuzzlesText[],
+  solution?: (number | string | undefined)[]
+}
 
 const MIN_GRID_SIZE = 3
 const MAX_GRID_SIZE = 16
-const GRID_SIZES = [{}, {}, {},
+const GRID_SIZES = [undefined, undefined, undefined,
   { width: 3, height: 1 },
   { width: 2, height: 2 },
   { width: 5, height: 1 },
@@ -19,12 +163,12 @@ const GRID_SIZES = [{}, {}, {},
   { width: 4, height: 4 }
 ]
 
-function cellToCell(cell, offsetX = 0.5, offsetY = 0.5) {
-  let m = cell.match(/R([0-9]+)C([0-9]+)/)
+function cellToCell(cell: string, offsetX = 0.5, offsetY = 0.5): [number, number] {
+  let m = cell.match(/R([0-9]+)C([0-9]+)/)!
   return [+m[1] - 1 + offsetX, +m[2] - 1 + offsetY]
 }
 
-function cellsToBoundingBox(cells) {
+function cellsToBoundingBox(cells: string[]): [number, number, number, number] {
   let minX = Number.MAX_VALUE
   let minY = Number.MAX_VALUE
   let maxX = 0
@@ -47,16 +191,16 @@ function cellsToBoundingBox(cells) {
   return [minX, minY, maxX, maxY]
 }
 
-function cellsToCenter(cells) {
-  cells = cells.map(c => cellToCell(c))
-  return [mean(cells.map(c => c[0])), mean(cells.map(c => c[1]))]
+function cellsToCenter(cells: string[]): [number, number] {
+  let cc = cells.map(c => cellToCell(c))
+  return [mean(cc.map(c => c[0])), mean(cc.map(c => c[1]))]
 }
 
-function fixLineConnector(l0, l1, wp) {
-  l0 = cellToCell(l0, 0, 0)
-  l1 = cellToCell(l1, 0, 0)
-  let dx = l1[0] - l0[0]
-  let dy = l1[1] - l0[1]
+function fixLineConnector(l0: string, l1: string, wp: [number, number]) {
+  let cl0 = cellToCell(l0, 0, 0)
+  let cl1 = cellToCell(l1, 0, 0)
+  let dx = cl1[0] - cl0[0]
+  let dy = cl1[1] - cl0[1]
   if (dx !== 0 && dy !== 0) {
     wp[0] += 0.21 * dx
     wp[1] += 0.21 * dy
@@ -67,9 +211,10 @@ function fixLineConnector(l0, l1, wp) {
   }
 }
 
-function convertMinMax(m, isMax, arrows, underlays) {
+function convertMinMax(m: FPuzzlesMinMax, isMax: boolean, arrows: Arrow[],
+    underlays: Overlay[]) {
   let center = cellToCell(m.cell)
-  let newArrows = []
+  let newArrows: Arrow[] = []
   newArrows.push({
     wayPoints: [
       [center[0] - 0.3, center[1]],
@@ -126,7 +271,7 @@ function convertMinMax(m, isMax, arrows, underlays) {
   })
 }
 
-function makeDefaultRegions(puzzle) {
+function makeDefaultRegions(puzzle: FPuzzlesData): number[][] {
   let puzzleSize = puzzle.size || 9
   if (puzzleSize < MIN_GRID_SIZE) {
     puzzleSize = MIN_GRID_SIZE
@@ -134,8 +279,8 @@ function makeDefaultRegions(puzzle) {
   if (puzzleSize > MAX_GRID_SIZE) {
     puzzleSize = MAX_GRID_SIZE
   }
-  let { width, height } = GRID_SIZES[puzzleSize]
-  let regions = []
+  let { width, height } = GRID_SIZES[puzzleSize]!
+  let regions: number[][] = []
   let box = 0
   for (let r = 0; r < width; ++r) {
     for (let c = 0; c < height; ++c) {
@@ -151,23 +296,23 @@ function makeDefaultRegions(puzzle) {
   return regions
 }
 
-export function convertFPuzzle(puzzle) {
+export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   let defaultRegions = makeDefaultRegions(puzzle)
-  let regions = []
-  let cells = puzzle.grid.map((row, y) => row.map((col, x) => {
-    let r = isNaN(col.region) ? defaultRegions[y][x] : col.region
+  let regions: [number, number][][] = []
+  let cells: DataCell[][] = puzzle.grid.map((row, y) => row.map((col, x) => {
+    let r = col.region === undefined || isNaN(col.region) ? defaultRegions[y][x] : col.region
     regions[r] ||= []
     regions[r].push([y, x])
 
     return {
-      value: col.given && col.value,
+      value: col.given ? col.value : undefined,
       centremarks: col.centerPencilMarks,
       cornermarks: col.cornerPencilMarks
     }
   }))
 
-  let fogLights = undefined
-  let cages = []
+  let fogLights: [number, number][] | undefined = undefined
+  let cages: Cage[] = []
   let killercages = [...(puzzle.killercage || []), ...(puzzle.cage || [])]
   for (let cage of killercages) {
     if (isString(cage.value) && (cage.value.toLowerCase() === "fow" ||
@@ -179,7 +324,7 @@ export function convertFPuzzle(puzzle) {
           fogLights.push(cellToCell(c, 0, 0))
         }
     } else {
-      let r = {
+      let r: Cage = {
         cells: cage.cells.map(c => cellToCell(c, 0, 0)),
         value: cage.value
       }
@@ -211,7 +356,7 @@ export function convertFPuzzle(puzzle) {
     })
   }
 
-  let lines = []
+  let lines: Line[] = []
 
   if (puzzle["diagonal+"]) {
     lines.push({
@@ -247,7 +392,7 @@ export function convertFPuzzle(puzzle) {
     }
   }
 
-  let underlays = []
+  let underlays: Overlay[] = []
 
   // coloured cells
   for (let r = 0; r < puzzle.grid.length; ++r) {
@@ -329,7 +474,7 @@ export function convertFPuzzle(puzzle) {
   }
 
   // extra regions
-  let extraRegions = undefined
+  let extraRegions: ExtraRegion[] | undefined = undefined
   if (puzzle.extraregion !== undefined && puzzle.extraregion !== null) {
     extraRegions = []
     for (let e of puzzle.extraregion) {
@@ -340,7 +485,7 @@ export function convertFPuzzle(puzzle) {
     }
   }
 
-  let arrows = []
+  let arrows: Arrow[] = []
 
   if (puzzle.arrow !== undefined && puzzle.arrow !== null) {
     for (let a of puzzle.arrow) {
@@ -360,7 +505,7 @@ export function convertFPuzzle(puzzle) {
       }
       if (a.lines !== undefined && a.lines !== null) {
         for (let l of a.lines) {
-          let newArrow = {
+          let newArrow: Arrow = {
             wayPoints: l.map(c => cellToCell(c)),
             color: "#CFCFCF",
             thickness: 2,
@@ -375,12 +520,12 @@ export function convertFPuzzle(puzzle) {
     }
   }
 
-  let overlays = []
+  let overlays: Overlay[] = []
 
   if (puzzle.littlekillersum !== undefined && puzzle.littlekillersum !== null) {
     for (let l of puzzle.littlekillersum) {
       let center = cellToCell(l.cell)
-      let arrow
+      let arrow: Arrow | undefined = undefined
       if (l.direction === "UR") {
         arrow = {
           wayPoints: [[center[0] - 0.05, center[1] + 0.05], [center[0] - 0.5, center[1] + 0.5]],
@@ -418,7 +563,9 @@ export function convertFPuzzle(puzzle) {
         fontSize: 20,
         text: l.value
       })
-      arrows.push(arrow)
+      if (arrow !== undefined) {
+        arrows.push(arrow)
+      }
     }
   }
 
@@ -641,27 +788,33 @@ export function convertFPuzzle(puzzle) {
     }
   }
 
-  let solution = undefined
+  let solution: (number | undefined)[][] | undefined = undefined
   if (puzzle.solution !== undefined) {
     let i = 0
     solution = []
     cells.forEach((row) => {
-      let srow = []
-      solution.push(srow)
+      let srow: (number | undefined)[] = []
+      solution!.push(srow)
       row.forEach(() => {
-        let v = puzzle.solution[i++]
-        if (isString(v) && !isNaN(v)) {
-          v = +v
+        let v = puzzle.solution![i++]
+        let n: number | undefined
+        if (v !== undefined && isString(v)) {
+          n = +v
+          if (isNaN(n)) {
+            n = undefined
+          }
+        } else {
+          n = v
         }
-        if (v === 0) {
-          v = undefined
+        if (n === 0) {
+          n = undefined
         }
-        srow.push(v)
+        srow.push(n)
       })
     })
   }
 
-  let result = {
+  let result: Data = {
     cellSize: 50,
     cells,
     regions,
@@ -672,7 +825,8 @@ export function convertFPuzzle(puzzle) {
     underlays,
     arrows,
     solution,
-    fogLights
+    fogLights,
+    solved: false
   }
 
   return result

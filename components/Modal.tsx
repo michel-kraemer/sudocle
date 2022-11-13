@@ -8,7 +8,7 @@ import { MouseEventHandler, ReactNode } from "react"
 ReactModal.setAppElement("#__next")
 
 interface ModalProps extends ReactModal.Props {
-  alert: boolean,
+  alert?: boolean,
   icon: ReactNode,
   title: string,
   onOK: MouseEventHandler

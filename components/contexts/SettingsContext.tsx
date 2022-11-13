@@ -4,7 +4,7 @@ import { produce } from "immer"
 interface Settings {
   colourPalette: string,
   theme: string,
-  selectionColour: string,
+  selectionColour: "yellow" | "red" | "green" | "blue",
   customColours: string[],
   zoom: number,
   fontSizeFactorDigits: number,

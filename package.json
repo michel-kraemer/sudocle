@@ -19,7 +19,7 @@
     "@fontsource/baloo-2": "^4.5.10",
     "@fontsource/roboto": "^4.5.8",
     "@fontsource/roboto-condensed": "^4.5.9",
-    "@pixi/filter-drop-shadow": "^5.0.0",
+    "@pixi/filter-drop-shadow": "^4.2.0",
     "@types/fontfaceobserver": "^2.1.0",
     "classnames": "^2.3.2",
     "color": "^4.2.3",

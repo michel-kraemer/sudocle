@@ -4,38 +4,15 @@ import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_DIGITS, TYPE_CORNER_MARKS,
   TYPE_REDO, TYPE_INIT, TYPE_CHECK, TYPE_PAUSE, ACTION_ALL, ACTION_SET,
   ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE, ACTION_RIGHT,
   ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
+import { Data, DataCell } from "../types/Data"
+import { Digit } from "../types/Game"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN, getModeGroup } from "../lib/Modes"
 import { createContext, ReactNode, useReducer } from "react"
 import produce from "immer"
 import { isEqual, isString } from "lodash"
 
-interface DataCell {
-  value?: number | string,
-  cornermarks?: (number | string)[],
-  centremarks?: (number | string)[]
-}
-
-interface Cage {
-  cells: [number, number][],
-  value?: number | string
-}
-
-interface Data {
-  cells: DataCell[][],
-  regions: [number, number][],
-  cages: Cage[],
-  lines: [number, number][],
-  arrows: [number, number][],
-  underlays: [number, number][],
-  overlays: [number, number][],
-  solution?: (number | undefined)[][],
-  title?: string,
-  author?: string,
-  rules?: string,
-  solved: boolean
-}
-
 const EmptyData: Data = {
+  cellSize: 50,
   cells: [],
   regions: [],
   cages: [],
@@ -46,13 +23,8 @@ const EmptyData: Data = {
   solved: false
 }
 
-interface Digit {
-  digit: number | string,
-  given: boolean
-}
-
 interface Colour {
-  colour: number | string
+  colour: number
 }
 
 interface PersistentGameState {

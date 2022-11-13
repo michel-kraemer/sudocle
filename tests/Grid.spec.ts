@@ -1,8 +1,8 @@
-const { test, expect } = require("@playwright/test")
-const fs = require("fs/promises")
-const fsSync = require("fs")
-const { compare } = require("odiff-bin")
-const path = require("path")
+import { test, expect, Page } from "@playwright/test"
+import fs from "fs/promises"
+import fsSync from "fs"
+import { compare } from "odiff-bin"
+import path from "path"
 
 const fixturesDir = path.join(__dirname, "fixtures/grids")
 const fixtures = fsSync.readdirSync(fixturesDir)
@@ -15,7 +15,7 @@ fsSync.mkdirSync(tempScreenshotsDir, { recursive: true })
 const expectedScreenshotsDir = path.join(__dirname, `${path.basename(__filename)}-snapshots`)
 fsSync.mkdirSync(expectedScreenshotsDir, { recursive: true })
 
-let pages = []
+let pages: Page[] = []
 
 // Check if hardware acceleration is enabled. Without it, our tests will be much slower.
 test("GPU hardware acceleration", async ({ page }) => {
@@ -40,7 +40,7 @@ test.describe.parallel("Grid", () => {
       let page = pages[testInfo.workerIndex]
 
       // load puzzle
-      await page.evaluate(json => window.initTestGrid(json), data)
+      await page.evaluate(json => (window as any).initTestGrid(json), data)
 
       // take screenshot
       let grid = page.locator(".grid")
@@ -78,7 +78,7 @@ test.describe.parallel("Grid", () => {
       expect(result.match).toEqual(true)
 
       // reset Grid for the next test
-      await page.evaluate(() => window.resetTestGrid())
+      await page.evaluate(() => (window as any).resetTestGrid())
     })
   }
 })
