@@ -1,9 +1,10 @@
 import { xytok, ktoxy } from "../lib/utils"
-import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_DIGITS, TYPE_CORNER_MARKS,
-  TYPE_CENTRE_MARKS, TYPE_COLOURS, TYPE_PENLINES, TYPE_SELECTION, TYPE_UNDO,
-  TYPE_REDO, TYPE_INIT, TYPE_CHECK, TYPE_PAUSE, ACTION_ALL, ACTION_SET,
+import { Action, ColoursAction, DigitsAction, ModeAction, ModeGroupAction,
+  PenLinesAction, SelectionAction, ACTION_ALL, ACTION_SET,
   ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE, ACTION_RIGHT,
-  ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../lib/Actions"
+  ACTION_LEFT, ACTION_UP, ACTION_DOWN, TYPE_MODE, TYPE_MODE_GROUP,
+  TYPE_DIGITS, TYPE_COLOURS, TYPE_PENLINES, TYPE_SELECTION, TYPE_UNDO,
+  TYPE_REDO, TYPE_INIT, TYPE_CHECK, TYPE_PAUSE } from "../lib/Actions"
 import { Data, DataCell } from "../types/Data"
 import { Digit } from "../types/Game"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN, getModeGroup } from "../lib/Modes"
@@ -50,38 +51,8 @@ interface GameState extends PersistentGameState {
   checkCounter: number
 }
 
-interface Action {
-  type: string,
-  action: string
-}
-
-interface InitAction extends Action {
-  data: Data
-}
-
-interface ModeAction extends Action {
-  mode: string
-}
-
-interface DigitAction extends Action {
-  digit: number
-}
-
-interface MarkAction extends Action {
-  digit: number
-}
-
-interface PenLineAction extends Action {
-  k: number
-}
-
-interface SelectionAction extends Action {
-  k: number | number[],
-  append: boolean
-}
-
 const State = createContext(makeEmptyState())
-const Dispatch = createContext((_: any) => {})
+const Dispatch = createContext((_: Action) => {})
 
 function makeGiven<T, R>(data: Data | undefined,
     accessor: (cell: DataCell) => T | undefined,
@@ -169,21 +140,27 @@ function modeReducer(draft: GameState, action: ModeAction) {
 
   switch (action.action) {
     case ACTION_SET:
-      newEnabledModes = [action.mode]
-      draft.modeGroup = getModeGroup(action.mode)
+      if (action.mode !== undefined) {
+        newEnabledModes = [action.mode]
+        draft.modeGroup = getModeGroup(action.mode)
+      }
       break
 
     case ACTION_PUSH:
-      if (newEnabledModes.indexOf(action.mode) === -1) {
-        newEnabledModes.push(action.mode)
+      if (action.mode !== undefined) {
+        if (newEnabledModes.indexOf(action.mode) === -1) {
+          newEnabledModes.push(action.mode)
+        }
       }
       break
 
     case ACTION_REMOVE: {
-      let i = newEnabledModes.indexOf(action.mode)
-      // Never remove the mode at position 0! It represents the previous one
-      if (i >= 1) {
-        newEnabledModes.splice(i, 1)
+      if (action.mode !== undefined) {
+        let i = newEnabledModes.indexOf(action.mode)
+        // Never remove the mode at position 0! It represents the previous one
+        if (i >= 1) {
+          newEnabledModes.splice(i, 1)
+        }
       }
       break
     }
@@ -228,7 +205,7 @@ function modeReducer(draft: GameState, action: ModeAction) {
   }
 }
 
-function modeGroupReducer(draft: GameState, action: Action) {
+function modeGroupReducer(draft: GameState, action: ModeGroupAction) {
   switch (action.action) {
     case ACTION_ROTATE:
       draft.modeGroup = (draft.modeGroup + 1) % 2
@@ -242,22 +219,24 @@ function modeGroupReducer(draft: GameState, action: Action) {
 }
 
 function marksReducer(marks: Map<number, Set<string | number>>,
-    action: MarkAction, selection: Set<number>) {
+    action: DigitsAction, selection: Set<number>) {
   switch (action.action) {
     case ACTION_SET: {
-      for (let sc of selection) {
-        let digits = marks.get(sc)
-        if (digits === undefined) {
-          digits = new Set()
-          marks.set(sc, digits)
-        }
-        if (digits.has(action.digit)) {
-          digits.delete(action.digit)
-        } else {
-          digits.add(action.digit)
-        }
-        if (digits.size === 0) {
-          marks.delete(sc)
+      if (action.digit !== undefined) {
+        for (let sc of selection) {
+          let digits = marks.get(sc)
+          if (digits === undefined) {
+            digits = new Set()
+            marks.set(sc, digits)
+          }
+          if (digits.has(action.digit)) {
+            digits.delete(action.digit)
+          } else {
+            digits.add(action.digit)
+          }
+          if (digits.size === 0) {
+            marks.delete(sc)
+          }
         }
       }
       break
@@ -272,15 +251,17 @@ function marksReducer(marks: Map<number, Set<string | number>>,
   }
 }
 
-function digitsReducer(digits: Map<number, Digit>, action: DigitAction,
+function digitsReducer(digits: Map<number, Digit>, action: DigitsAction,
     selection: Set<number>) {
   switch (action.action) {
     case ACTION_SET: {
-      for (let sc of selection) {
-        digits.set(sc, {
-          digit: action.digit,
-          given: false
-        })
+      if (action.digit !== undefined) {
+        for (let sc of selection) {
+          digits.set(sc, {
+            digit: action.digit,
+            given: false
+          })
+        }
       }
       break
     }
@@ -294,14 +275,16 @@ function digitsReducer(digits: Map<number, Digit>, action: DigitAction,
   }
 }
 
-function coloursReducer(colours: Map<number, Colour>, action: DigitAction,
+function coloursReducer(colours: Map<number, Colour>, action: ColoursAction,
     selection: Iterable<number>) {
   switch (action.action) {
     case ACTION_SET: {
-      for (let sc of selection) {
-        colours.set(sc, {
-          colour: action.digit
-        })
+      if (action.digit !== undefined) {
+        for (let sc of selection) {
+          colours.set(sc, {
+            colour: action.digit
+          })
+        }
       }
       break
     }
@@ -315,7 +298,7 @@ function coloursReducer(colours: Map<number, Colour>, action: DigitAction,
   }
 }
 
-function penLinesReducer(penLines: Set<number>, action: PenLineAction) {
+function penLinesReducer(penLines: Set<number>, action: PenLinesAction) {
   switch (action.action) {
     case ACTION_PUSH: {
       if (Array.isArray(action.k)) {
@@ -357,32 +340,38 @@ function selectionReducer(selection: Set<number>, action: SelectionAction,
       return
     case ACTION_SET: {
       selection.clear()
-      if (Array.isArray(action.k)) {
-        for (let k of action.k) {
-          selection.add(k)
+      if (action.k !== undefined) {
+        if (Array.isArray(action.k)) {
+          for (let k of action.k) {
+            selection.add(k)
+          }
+        } else {
+          selection.add(action.k)
         }
-      } else {
-        selection.add(action.k)
       }
       return
     }
     case ACTION_PUSH: {
-      if (Array.isArray(action.k)) {
-        for (let k of action.k) {
-          selection.add(k)
+      if (action.k !== undefined) {
+        if (Array.isArray(action.k)) {
+          for (let k of action.k) {
+            selection.add(k)
+          }
+        } else {
+          selection.add(action.k)
         }
-      } else {
-        selection.add(action.k)
       }
       return
     }
     case ACTION_REMOVE: {
-      if (Array.isArray(action.k)) {
-        for (let k of action.k) {
-          selection.delete(k)
+      if (action.k !== undefined) {
+        if (Array.isArray(action.k)) {
+          for (let k of action.k) {
+            selection.delete(k)
+          }
+        } else {
+          selection.delete(action.k)
         }
-      } else {
-        selection.delete(action.k)
       }
       return
     }
@@ -494,7 +483,7 @@ function checkReducer(digits: Map<number, Digit>, cells: DataCell[][] = [],
 function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
   switch (action.type) {
     case TYPE_MODE:
-      modeReducer(state, action as ModeAction)
+      modeReducer(state, action)
       return
 
     case TYPE_MODE_GROUP:
@@ -504,24 +493,24 @@ function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
     case TYPE_DIGITS:
       switch (mode) {
         case MODE_CORNER:
-          marksReducer(state.cornerMarks, action as MarkAction,
+          marksReducer(state.cornerMarks, action,
             filterGivens(state.digits, state.selection))
           return
         case MODE_CENTRE:
-          marksReducer(state.centreMarks, action as MarkAction,
+          marksReducer(state.centreMarks, action,
             filterGivens(state.digits, state.selection))
           return
       }
-      digitsReducer(state.digits, action as DigitAction,
-          filterGivens(state.digits, state.selection))
+      digitsReducer(state.digits, action,
+        filterGivens(state.digits, state.selection))
       return
 
     case TYPE_COLOURS:
-      coloursReducer(state.colours, action as DigitAction, state.selection)
+      coloursReducer(state.colours, action, state.selection)
       return
 
     case TYPE_PENLINES:
-      penLinesReducer(state.penLines, action as PenLineAction)
+      penLinesReducer(state.penLines, action)
       return
 
     case TYPE_SELECTION:
@@ -541,13 +530,12 @@ function makeUndoState(state: PersistentGameState): PersistentGameState {
   }
 }
 
-function gameReducer(state: GameState, action: any) {
+function gameReducer(state: GameState, action: Action) {
   return produce(state, draft => {
     if (action.type === TYPE_INIT) {
-      let initAction = action as InitAction
       let canonicalData = undefined
-      if (initAction.data !== undefined) {
-        canonicalData = { ...initAction.data }
+      if (action.data !== undefined) {
+        canonicalData = { ...action.data }
         canonicalData.cells = canonicalData.cells || []
         canonicalData.regions = canonicalData.regions || []
         canonicalData.cages = canonicalData.cages || []
@@ -623,8 +611,7 @@ function gameReducer(state: GameState, action: any) {
       return
     }
 
-    if ((action.type === TYPE_DIGITS || action.type === TYPE_CORNER_MARKS ||
-        action.type === TYPE_CENTRE_MARKS || action.type === TYPE_COLOURS) &&
+    if ((action.type === TYPE_DIGITS || action.type === TYPE_COLOURS) &&
         action.action === ACTION_REMOVE) {
       let deleteColour = false
       if (draft.mode === MODE_COLOUR) {

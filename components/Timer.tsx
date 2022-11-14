@@ -1,6 +1,6 @@
 import Button from "./Button"
 import GameContext from "./contexts/GameContext"
-import { ACTION_REMOVE, ACTION_SET, TYPE_PAUSE } from "./lib/Actions"
+import { TYPE_PAUSE } from "./lib/Actions"
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Pause } from "lucide-react"
 import styles from "./Timer.scss"
@@ -36,13 +36,11 @@ const Timer = ({ solved }: TimerProps) => {
       setPausedElapsed(oldElapsed => oldElapsed + elapsed)
       setNext(+new Date())
       updateGame({
-        type: TYPE_PAUSE,
-        action: ACTION_REMOVE // TODO unnecessary
+        type: TYPE_PAUSE
       })
     } else {
       updateGame({
-        type: TYPE_PAUSE,
-        action: ACTION_SET // TODO unnecessary
+        type: TYPE_PAUSE
       })
       setContinueVisible(true)
       setPauseStart(+new Date())

@@ -1,7 +1,7 @@
 import GameContext from "./contexts/GameContext"
 import SettingsContext from "./contexts/SettingsContext"
-import { TYPE_DIGITS, TYPE_PENLINES, TYPE_SELECTION, ACTION_CLEAR,
-  ACTION_SET, ACTION_PUSH, ACTION_REMOVE } from "./lib/Actions"
+import { PenLinesAction, SelectionAction, ACTION_CLEAR, ACTION_SET, ACTION_PUSH,
+  ACTION_REMOVE, TYPE_DIGITS, TYPE_PENLINES, TYPE_SELECTION } from "./lib/Actions"
 import { Digit } from "./types/Game"
 import { Arrow, Data, DataCell, Line, Overlay } from "./types/Data"
 import { MODE_PEN } from "./lib/Modes"
@@ -763,7 +763,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       return
     }
 
-    let action = append ? ACTION_PUSH : ACTION_SET
+    let action: SelectionAction["action"] = append ? ACTION_PUSH : ACTION_SET
     if (evt instanceof PIXI.InteractionEvent) {
       let oe = evt.data.originalEvent
       if (oe.metaKey || oe.ctrlKey) {
@@ -960,7 +960,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         }
       }
 
-      let action = (e.metaKey || e.ctrlKey) ? ACTION_PUSH : ACTION_SET
+      let action: SelectionAction["action"] = (e.metaKey || e.ctrlKey) ? ACTION_PUSH : ACTION_SET
       updateGame({
         type: TYPE_SELECTION,
         action,
@@ -992,7 +992,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           penLines.push(k)
         }
       }
-      let action
+      let action: PenLinesAction["action"]
       if (penCurrentWaypointsAdd.current) {
         action = ACTION_PUSH
       } else {
