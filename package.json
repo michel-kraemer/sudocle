@@ -31,7 +31,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.98.0",
     "mini-svg-data-uri": "^1.4.4",
-    "next": "^13.0.2",
+    "next": "^13.0.3",
     "normalize.css": "^8.0.1",
     "pixi.js-legacy": "^6.5.3",
     "polygon-clipping": "^0.15.3",
