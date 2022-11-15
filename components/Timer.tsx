@@ -58,7 +58,7 @@ const Timer = ({ solved }: TimerProps) => {
       return
     }
 
-    let now = end || +new Date()
+    let now = end ?? +new Date()
     let elapsed = now - start - pausedElapsed
     let elapsedSeconds = Math.floor(elapsed / 1000)
     let news = elapsedSeconds % 60

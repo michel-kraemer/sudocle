@@ -61,9 +61,9 @@ const Index = () => {
     let characters = new Set(Array.from("0BESbswy"))
     let datastr = JSON.stringify(JSON.stringify(data))
     // only add non-latin characters
-    for (let i = 0; i < datastr.length; ++i) {
-      if (datastr[i] > "\u00FF") {
-        characters.add(datastr[i])
+    for (let c of datastr) {
+      if (c > "\u00FF") {
+        characters.add(c)
       }
     }
     return [...characters].join("")

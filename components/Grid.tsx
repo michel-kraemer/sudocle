@@ -523,9 +523,9 @@ function drawBackground(graphics: PIXI.Graphics, width: number, height: number,
 
 function changeLineColour(graphicElements: PIXI.GraphicsEx[], colour: number) {
   for (let e of graphicElements) {
-    let c = e.data?.borderColor || colour
-    for (let i = 0; i < e.geometry.graphicsData.length; ++i) {
-      e.geometry.graphicsData[i].lineStyle.color = c
+    let c = e.data?.borderColor ?? colour
+    for (let gd of e.geometry.graphicsData) {
+      gd.lineStyle.color = c
     }
     let gd = [...e.geometry.graphicsData]
     e.geometry.clear()
@@ -589,7 +589,7 @@ function drawOverlay(overlay: Overlay, mx: number, my: number, zIndex: number): 
   }
 
   let text: PIXI.Text
-  let fontSize = overlay.fontSize || 20
+  let fontSize = overlay.fontSize ?? 20
   if (overlay.text !== undefined) {
     fontSize *= SCALE_FACTOR
     if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
@@ -1679,7 +1679,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     penWaypoints.zIndex = 70
     penWaypoints.data = {
       draw: function (cellSize) {
-        this.cellSize = cellSize || this.cellSize
+        this.cellSize = cellSize ?? this.cellSize
         if (this.cellSize === undefined) {
           return
         }

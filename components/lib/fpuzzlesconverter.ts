@@ -272,7 +272,7 @@ function convertMinMax(m: FPuzzlesMinMax, isMax: boolean, arrows: Arrow[],
 }
 
 function makeDefaultRegions(puzzle: FPuzzlesData): number[][] {
-  let puzzleSize = puzzle.size || 9
+  let puzzleSize = puzzle.size ?? 9
   if (puzzleSize < MIN_GRID_SIZE) {
     puzzleSize = MIN_GRID_SIZE
   }
@@ -313,7 +313,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
 
   let fogLights: [number, number][] | undefined = undefined
   let cages: Cage[] = []
-  let killercages = [...(puzzle.killercage || []), ...(puzzle.cage || [])]
+  let killercages = [...(puzzle.killercage ?? []), ...(puzzle.cage ?? [])]
   for (let cage of killercages) {
     if (isString(cage.value) && (cage.value.toLowerCase() === "fow" ||
         cage.value.toLowerCase() === "foglight")) {
@@ -385,8 +385,8 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       for (let m of l.lines) {
         lines.push({
           wayPoints: m.map(c => cellToCell(c)),
-          color: l.outlineC || "#000000",
-          thickness: (l.width || 0.05) * 20
+          color: l.outlineC ?? "#000000",
+          thickness: (l.width ?? 0.05) * 20
         })
       }
     }
@@ -412,8 +412,8 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   // clones
   if (puzzle.clone !== undefined && puzzle.clone !== null) {
     for (let cl of puzzle.clone) {
-      let cells = cl.cells || []
-      let cloneCells = cl.cloneCells || []
+      let cells = cl.cells ?? []
+      let cloneCells = cl.cloneCells ?? []
       for (let c of [...cells, ...cloneCells]) {
         underlays.push({
           center: cellToCell(c),
@@ -437,10 +437,10 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       }
       underlays.push({
         center: cellsToCenter(r.cells),
-        width: width * (r.width || 0.5),
-        height: height * (r.height || 0.5),
-        borderColor: r.outlineC || "#000000",
-        backgroundColor: r.baseC || "#FFFFFF",
+        width: width * (r.width ?? 0.5),
+        height: height * (r.height ?? 0.5),
+        borderColor: r.outlineC ?? "#000000",
+        backgroundColor: r.baseC ?? "#FFFFFF",
         rounded: false,
         rotation
       })
@@ -511,7 +511,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
             thickness: 2,
             headLength: 0.3
           }
-          if (a.cells !== undefined && a.cells !== null && l.length > 1 && a.cells.indexOf(l[0]) >= 0) {
+          if (a.cells !== undefined && a.cells !== null && l.length > 1 && a.cells.includes(l[0])) {
             fixLineConnector(l[0], l[1], newArrow.wayPoints[0])
           }
           arrows.push(newArrow)
@@ -780,7 +780,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         center,
         width: 1,
         height: 1,
-        fontSize: 28 * (t.size || 1),
+        fontSize: 28 * (t.size ?? 1),
         fontColor: t.fontC,
         text: t.value,
         rotation

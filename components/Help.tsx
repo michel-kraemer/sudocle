@@ -12,7 +12,7 @@ const Help = () => {
   async function getKeyboardKey(key: string, def: string): Promise<string> {
     if (typeof navigator !== "undefined") {
       let nany = navigator as any
-      if (nany.keyboard !== undefined && nany.keyboard.getLayoutMap !== undefined) {
+      if (nany.keyboard?.getLayoutMap !== undefined) {
         let layoutMap = await nany.keyboard.getLayoutMap()
         if (layoutMap !== undefined) {
           return layoutMap.get(key) || def
@@ -25,7 +25,7 @@ const Help = () => {
   useLayoutEffect(() => {
     if (typeof navigator !== "undefined" && navigator.platform !== undefined) {
       let p = navigator.platform.toLowerCase()
-      if (p.indexOf("mac") >= 0 || p.indexOf("iphone") >= 0 || p.indexOf("ipad") >= 0) {
+      if (p.includes("mac") || p.includes("iphone") || p.includes("ipad")) {
         setIsApple(true)
       }
     }

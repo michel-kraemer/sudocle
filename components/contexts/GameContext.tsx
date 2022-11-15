@@ -100,7 +100,7 @@ function makeGivenMarks<T extends (string | number)[]>(data: Data | undefined,
 
 function makeEmptyState(data?: Data): GameState {
   return {
-    data: data || EmptyData,
+    data: data ?? EmptyData,
     mode: MODE_NORMAL,
     modeGroup: 0,
     enabledModes0: [MODE_NORMAL],
@@ -114,7 +114,7 @@ function makeEmptyState(data?: Data): GameState {
     errors: new Set(),
     undoStates: [],
     nextUndoState: 0,
-    solved: data?.solved || false,
+    solved: data?.solved ?? false,
     paused: false,
     checkCounter: 0
   }
@@ -149,7 +149,7 @@ function modeReducer(draft: GameState, action: ModeAction) {
 
     case ACTION_PUSH:
       if (action.mode !== undefined) {
-        if (newEnabledModes.indexOf(action.mode) === -1) {
+        if (!newEnabledModes.includes(action.mode)) {
           newEnabledModes.push(action.mode)
         }
       }
@@ -551,11 +551,11 @@ function gameReducer(state: GameState, action: Action) {
               cage.cells.length === 0) {
             if (typeof cage.value === "string") {
               if (cage.value.startsWith("title:")) {
-                canonicalData.title = canonicalData.title || cage.value.substring(6).trim()
+                canonicalData.title = canonicalData.title ?? cage.value.substring(6).trim()
               } else if (cage.value.startsWith("author:")) {
-                canonicalData.author = canonicalData.author || cage.value.substring(7).trim()
+                canonicalData.author = canonicalData.author ?? cage.value.substring(7).trim()
               } else if (cage.value.startsWith("rules:")) {
-                canonicalData.rules = canonicalData.rules || cage.value.substring(6).trim()
+                canonicalData.rules = canonicalData.rules ?? cage.value.substring(6).trim()
               }
             }
           }

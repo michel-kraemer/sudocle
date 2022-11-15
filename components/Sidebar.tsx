@@ -35,7 +35,7 @@ const Sidebar = () => {
     y: 0
   }]
 
-  if (game.data !== undefined && game.data.title !== undefined && game.data.rules !== undefined) {
+  if (game.data.title !== undefined && game.data.rules !== undefined) {
     // add rules tab if game data contains rules
     tabs.unshift({
       id: ID_RULES,

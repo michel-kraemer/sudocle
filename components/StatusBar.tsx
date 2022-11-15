@@ -13,7 +13,7 @@ const StatusBar = () => {
   return <div className="status-bar">
     <Timer solved={game.solved} />
     <div className="menu">
-      {game.data !== undefined && game.data.title !== undefined && game.data.rules !== undefined && (
+      {game.data.title !== undefined && game.data.rules !== undefined && (
         <div className="menu-item" onClick={() => onTabClick(ID_RULES)}>
           <BookOpen />
         </div>
