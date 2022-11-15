@@ -7,7 +7,8 @@ import { Action, ColoursAction, DigitsAction, ModeAction, ModeGroupAction,
   TYPE_REDO, TYPE_INIT, TYPE_CHECK, TYPE_PAUSE } from "../lib/Actions"
 import { Data, DataCell } from "../types/Data"
 import { Digit } from "../types/Game"
-import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN, getModeGroup } from "../lib/Modes"
+import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN, Mode,
+  getModeGroup } from "../lib/Modes"
 import { createContext, ReactNode, useReducer } from "react"
 import produce from "immer"
 import { isEqual, isString } from "lodash"
@@ -38,10 +39,10 @@ interface PersistentGameState {
 
 interface GameState extends PersistentGameState {
   data: Data,
-  mode: string,
+  mode: Mode,
   modeGroup: number,
-  enabledModes0: string[],
-  enabledModes1: string[],
+  enabledModes0: Mode[],
+  enabledModes1: Mode[],
   selection: Set<number>,
   errors: Set<number>,
   undoStates: PersistentGameState[],
@@ -166,7 +167,7 @@ function modeReducer(draft: GameState, action: ModeAction) {
     }
   }
 
-  let newMode
+  let newMode: Mode
   if (draft.modeGroup === 0) {
     newMode = MODE_NORMAL
   } else {

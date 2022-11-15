@@ -1,4 +1,5 @@
 import { Data } from "../types/Data"
+import { Mode } from "./Modes"
 
 export const TYPE_MODE = "mode"
 export const TYPE_MODE_GROUP = "modeGroup"
@@ -29,7 +30,7 @@ export interface ModeAction {
   readonly type: typeof TYPE_MODE,
   readonly action: typeof ACTION_SET | typeof ACTION_PUSH |
     typeof ACTION_REMOVE | typeof ACTION_ROTATE,
-  readonly mode?: string
+  readonly mode?: Mode
 }
 
 export interface ModeGroupAction {

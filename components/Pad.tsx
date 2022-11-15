@@ -4,7 +4,7 @@ import GameContext from "./contexts/GameContext"
 import { TYPE_MODE, TYPE_DIGITS, TYPE_COLOURS, TYPE_UNDO, TYPE_REDO,
   TYPE_CHECK, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN,
-  getModeGroup } from "./lib/Modes"
+  Mode, getModeGroup } from "./lib/Modes"
 import { useContext, useEffect, useRef, useState } from "react"
 import { Check, Delete, Redo, Undo } from "lucide-react"
 import Color from "color"
@@ -82,7 +82,7 @@ const Pad = () => {
     })
   }
 
-  function onMode(mode: string) {
+  function onMode(mode: Mode) {
     updateGame({
       type: TYPE_MODE,
       action: ACTION_SET,
