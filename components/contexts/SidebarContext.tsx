@@ -1,11 +1,11 @@
 import { createContext, ReactNode, useState } from "react"
 import { produce } from "immer"
-import { ID_SETTINGS } from "../lib/SidebarTabs"
+import { ID_SETTINGS, SidebarTab } from "../lib/SidebarTabs"
 
 interface SidebarState {
   visible: boolean,
   expanded: boolean,
-  activeTabId: string
+  activeTabId: SidebarTab
 }
 
 const DEFAULT_SIDEBAR_STATE: SidebarState = {
@@ -19,7 +19,7 @@ const DEFAULT_SIDEBAR_STATE: SidebarState = {
 }
 
 const State = createContext(DEFAULT_SIDEBAR_STATE)
-const OnTabClick = createContext((_: string) => {})
+const OnTabClick = createContext((_: SidebarTab) => {})
 
 interface ProviderProps {
   children: ReactNode
@@ -34,7 +34,7 @@ const Provider = ({ children }: ProviderProps) => {
     }))
   }
 
-  function onTabClick(id: string) {
+  function onTabClick(id: SidebarTab) {
     setState(produce(draft => {
       if (!draft.visible) {
         draft.visible = true

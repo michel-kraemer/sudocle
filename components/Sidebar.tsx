@@ -7,11 +7,11 @@ import SidebarContext from "./contexts/SidebarContext"
 import classNames from "classnames"
 import { BookOpen, HelpCircle, Info, Sliders, X } from "lucide-react"
 import { ReactNode, useContext } from "react"
-import { ID_RULES, ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
+import { ID_RULES, ID_SETTINGS, ID_HELP, ID_ABOUT, SidebarTab } from "./lib/SidebarTabs"
 import styles from "./Sidebar.scss"
 
 interface Tab {
-  id: string,
+  id: SidebarTab,
   icon: ReactNode,
   y: number
 }
