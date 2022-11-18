@@ -42,6 +42,11 @@ export interface Overlay {
   rotation?: number
 }
 
+export interface FogLight {
+  center: [number, number],
+  size: 1 | 3
+}
+
 export interface Data {
   cellSize: number,
   cells: DataCell[][],
@@ -53,7 +58,7 @@ export interface Data {
   underlays: Overlay[],
   overlays: Overlay[],
   solution?: (number | undefined)[][],
-  fogLights?: [number, number][],
+  fogLights?: FogLight[],
   title?: string,
   author?: string,
   rules?: string,

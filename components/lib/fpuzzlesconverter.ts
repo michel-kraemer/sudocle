@@ -1,5 +1,6 @@
 import { chunk, mean, isString } from "lodash"
-import { Arrow, Cage, Data, DataCell, ExtraRegion, Line, Overlay } from "../types/Data"
+import { Arrow, Cage, Data, DataCell, ExtraRegion, FogLight, Line,
+  Overlay } from "../types/Data"
 
 interface FPuzzlesCell {
   value?: number | string,
@@ -311,7 +312,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     }
   }))
 
-  let fogLights: [number, number][] | undefined = undefined
+  let fogLights: FogLight[] | undefined = undefined
   let cages: Cage[] = []
   let killercages = [...(puzzle.killercage ?? []), ...(puzzle.cage ?? [])]
   for (let cage of killercages) {
@@ -321,7 +322,10 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           fogLights = []
         }
         for (let c of cage.cells) {
-          fogLights.push(cellToCell(c, 0, 0))
+          fogLights.push({
+            center: cellToCell(c, 0, 0),
+            size: 3
+          })
         }
     } else {
       let r: Cage = {

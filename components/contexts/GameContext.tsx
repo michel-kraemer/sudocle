@@ -5,7 +5,7 @@ import { Action, ColoursAction, DigitsAction, ModeAction, ModeGroupAction,
   ACTION_LEFT, ACTION_UP, ACTION_DOWN, TYPE_MODE, TYPE_MODE_GROUP,
   TYPE_DIGITS, TYPE_COLOURS, TYPE_PENLINES, TYPE_SELECTION, TYPE_UNDO,
   TYPE_REDO, TYPE_INIT, TYPE_CHECK, TYPE_PAUSE } from "../lib/Actions"
-import { Data, DataCell } from "../types/Data"
+import { Data, DataCell, FogLight } from "../types/Data"
 import { Digit } from "../types/Game"
 import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN, Mode,
   getModeGroup } from "../lib/Modes"
@@ -96,6 +96,19 @@ function makeGivenMarks<T extends (string | number)[]>(data: Data | undefined,
     }
     return digits
   })
+}
+
+function parseFogLights(str: string): FogLight[] {
+  let result: FogLight[] = []
+  let parts = str.split(/\s*,\s*/)
+  for (let cell of parts) {
+    let m = cell.match(/r([0-9]+)c([0-9]+)/i)!
+    result.push({
+      center: [+m[1] - 1, +m[2] - 1],
+      size: 1
+    })
+  }
+  return result
 }
 
 function makeEmptyState(data?: Data): GameState {
@@ -545,7 +558,7 @@ function gameReducer(state: GameState, action: Action) {
         canonicalData.underlays = canonicalData.underlays || []
         canonicalData.overlays = canonicalData.overlays || []
 
-        // look for title, author, and rules
+        // look for title, author, rules, and foglights
         for (let cage of canonicalData.cages) {
           if (cage.cells === undefined || !Array.isArray(cage.cells) ||
               cage.cells.length === 0) {
@@ -556,6 +569,9 @@ function gameReducer(state: GameState, action: Action) {
                 canonicalData.author = canonicalData.author ?? cage.value.substring(7).trim()
               } else if (cage.value.startsWith("rules:")) {
                 canonicalData.rules = canonicalData.rules ?? cage.value.substring(6).trim()
+              } else if (cage.value.startsWith("foglight:")) {
+                let str = cage.value.substring(9).trim()
+                canonicalData.fogLights = canonicalData.fogLights ?? parseFogLights(str)
               }
             }
           }

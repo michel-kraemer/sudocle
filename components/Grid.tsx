@@ -3,7 +3,7 @@ import SettingsContext from "./contexts/SettingsContext"
 import { PenLinesAction, SelectionAction, ACTION_CLEAR, ACTION_SET, ACTION_PUSH,
   ACTION_REMOVE, TYPE_DIGITS, TYPE_PENLINES, TYPE_SELECTION } from "./lib/Actions"
 import { Digit } from "./types/Game"
-import { Arrow, Data, DataCell, Line, Overlay } from "./types/Data"
+import { Arrow, Data, DataCell, FogLight, Line, Overlay } from "./types/Data"
 import { MODE_PEN } from "./lib/Modes"
 import { ktoxy, xytok, pltok } from "./lib/utils"
 import Color from "color"
@@ -563,8 +563,8 @@ function penWaypointsToKey(wp1: number, wp2: number,
   return undefined
 }
 
-function getFogLights(data: Data, currentDigits: Map<number, Digit> | undefined): [number, number][] {
-  let r = []
+function getFogLights(data: Data, currentDigits: Map<number, Digit> | undefined): FogLight[] {
+  let r: FogLight[] = []
   if (data.fogLights !== undefined) {
     r.push(...data.fogLights)
   }
@@ -573,7 +573,10 @@ function getFogLights(data: Data, currentDigits: Map<number, Digit> | undefined)
       let [x, y] = ktoxy(k)
       let expected = data.solution![y][x]
       if (v.digit === expected) {
-        r.push([y, x])
+        r.push({
+          center: [y, x],
+          size: 3
+        })
       }
     })
   }
@@ -1122,28 +1125,32 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
 
           let lights = getFogLights(game.data, currentDigits)
           for (let light of lights) {
-            let y = light[0]
-            let x = light[1]
-            if (y > 0) {
-              if (x > 0) {
-                cells[y - 1][x - 1] = 0
+            let y = light.center[0]
+            let x = light.center[1]
+            if (light.size === 3) {
+              if (y > 0) {
+                if (x > 0) {
+                  cells[y - 1][x - 1] = 0
+                }
+                cells[y - 1][x] = 0
+                if (x < cells[y - 1].length - 1) {
+                  cells[y - 1][x + 1] = 0
+                }
               }
-              cells[y - 1][x] = 0
-              if (x < cells[y - 1].length - 1) {
-                cells[y - 1][x + 1] = 0
+              cells[y][x - 1] = 0
+              cells[y][x] = 0
+              cells[y][x + 1] = 0
+              if (y < cells.length - 1) {
+                if (x > 0) {
+                  cells[y + 1][x - 1] = 0
+                }
+                cells[y + 1][x] = 0
+                if (x < cells[y + 1].length - 1) {
+                  cells[y + 1][x + 1] = 0
+                }
               }
-            }
-            cells[y][x - 1] = 0
-            cells[y][x] = 0
-            cells[y][x + 1] = 0
-            if (y < cells.length - 1) {
-              if (x > 0) {
-                cells[y + 1][x - 1] = 0
-              }
-              cells[y + 1][x] = 0
-              if (x < cells[y + 1].length - 1) {
-                cells[y + 1][x + 1] = 0
-              }
+            } else if (light.size === 1) {
+              cells[y][x] = 0
             }
           }
 
@@ -1190,9 +1197,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           fogMask!.beginFill(0)
           let lights = getFogLights(game.data, currentDigits)
           for (let light of lights) {
-            let y = light[0]
-            let x = light[1]
-            fogMask!.drawRect((x - 1) * cellSize, (y - 1) * cellSize, cellSize * 3, cellSize * 3)
+            let y = light.center[0]
+            let x = light.center[1]
+            if (light.size === 3) {
+              fogMask!.drawRect((x - 1) * cellSize, (y - 1) * cellSize, cellSize * 3, cellSize * 3)
+            } else {
+              fogMask!.drawRect(x * cellSize, y * cellSize, cellSize, cellSize)
+            }
           }
           fogMask!.endFill()
         }
