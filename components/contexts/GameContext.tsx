@@ -111,6 +111,32 @@ function parseFogLights(str: string): FogLight[] {
   return result
 }
 
+function parseSolution(data: Data, str: string): (number | undefined)[][] {
+  let solution: (number | undefined)[][] = []
+  let i = 0
+  for (let row of data.cells) {
+    let srow: (number | undefined)[] = []
+    solution!.push(srow)
+    for (let _ of row) {
+      let v = str[i++]
+      let n: number | undefined
+      if (v !== undefined && isString(v)) {
+        n = +v
+        if (isNaN(n)) {
+          n = undefined
+        }
+      } else {
+        n = v
+      }
+      if (n === 0) {
+        n = undefined
+      }
+      srow.push(n)
+    }
+  }
+  return solution
+}
+
 function makeEmptyState(data?: Data): GameState {
   return {
     data: data ?? EmptyData,
@@ -558,7 +584,7 @@ function gameReducer(state: GameState, action: Action) {
         canonicalData.underlays = canonicalData.underlays || []
         canonicalData.overlays = canonicalData.overlays || []
 
-        // look for title, author, rules, and foglights
+        // look for additional embedded attributew
         for (let cage of canonicalData.cages) {
           if (cage.cells === undefined || !Array.isArray(cage.cells) ||
               cage.cells.length === 0) {
@@ -572,6 +598,9 @@ function gameReducer(state: GameState, action: Action) {
               } else if (cage.value.startsWith("foglight:")) {
                 let str = cage.value.substring(9).trim()
                 canonicalData.fogLights = canonicalData.fogLights ?? parseFogLights(str)
+              } else if (cage.value.startsWith("solution:")) {
+                let str = cage.value.substring(9).trim()
+                canonicalData.solution = canonicalData.solution ?? parseSolution(canonicalData, str)
               }
             }
           }
