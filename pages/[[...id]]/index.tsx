@@ -106,9 +106,11 @@ const Index = () => {
     }
 
     async function load(url: string, fallbackUrl: string) {
+      let fallbackUsed = false
       let response = await fetch(url)
       if (response.status !== 200) {
         response = await fetch(fallbackUrl)
+        fallbackUsed = true
       }
       if (response.status === 404) {
         setError(`The puzzle with the ID ‘${id}’ does not exist`)
@@ -116,7 +118,17 @@ const Index = () => {
         setError(<>Failed to load puzzle with ID ‘{id}’.<br />
           Received HTTP status code {response.status} from server.</>)
       } else {
-        let json = await response.json()
+        let json
+        try {
+          json = await response.json()
+        } catch (e) {
+          if (fallbackUsed && e instanceof Error && e.message.includes("<!DOCTYPE")) {
+            setError(`The puzzle with the ID ‘${id}’ does not exist`)
+            return
+          }
+          setError(<>Failed to load puzzle with ID ‘{id}’. Parse error.</>)
+          throw e
+        }
         if (json.error === undefined) {
           updateGame({
             type: TYPE_INIT,
