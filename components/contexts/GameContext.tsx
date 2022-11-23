@@ -100,7 +100,7 @@ function makeGivenMarks<T extends (string | number)[]>(data: Data | undefined,
 
 function parseFogLights(str: string): FogLight[] {
   let result: FogLight[] = []
-  let parts = str.split(/\s*,\s*/)
+  let parts = str.split(/\s*[^a-z0-9]\s*/i)
   for (let cell of parts) {
     let m = cell.match(/r([0-9]+)c([0-9]+)/i)!
     result.push({
