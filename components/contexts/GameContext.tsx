@@ -584,7 +584,8 @@ function gameReducer(state: GameState, action: Action) {
         canonicalData.underlays = canonicalData.underlays || []
         canonicalData.overlays = canonicalData.overlays || []
 
-        // look for additional embedded attributew
+        // look for additional embedded attributes
+        let possibleTitles: string[] = []
         for (let cage of canonicalData.cages) {
           if (cage.cells === undefined || !Array.isArray(cage.cells) ||
               cage.cells.length === 0) {
@@ -601,9 +602,14 @@ function gameReducer(state: GameState, action: Action) {
               } else if (cage.value.startsWith("solution:")) {
                 let str = cage.value.substring(9).trim()
                 canonicalData.solution = canonicalData.solution ?? parseSolution(canonicalData, str)
+              } else {
+                possibleTitles.push(cage.value)
               }
             }
           }
+        }
+        if (canonicalData.title === undefined && possibleTitles.length > 0) {
+          canonicalData.title = possibleTitles[0]
         }
       }
 
