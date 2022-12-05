@@ -572,7 +572,7 @@ function getFogLights(data: Data, currentDigits: Map<number, Digit> | undefined)
     currentDigits.forEach((v, k) => {
       let [x, y] = ktoxy(k)
       let expected = data.solution![y][x]
-      if (v.digit === expected) {
+      if (!v.given && v.digit === expected) {
         r.push({
           center: [y, x],
           size: 3
