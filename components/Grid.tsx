@@ -11,7 +11,7 @@ import polygonClipping, { Polygon } from "polygon-clipping"
 import styles from "./Grid.scss"
 import { MouseEvent, useCallback, useContext, useEffect, useMemo, useRef } from "react"
 import * as PIXI from "pixi.js-legacy"
-import { flatten } from "lodash"
+import { flatten, isEqual } from "lodash"
 import { DropShadowFilter } from "@pixi/filter-drop-shadow"
 
 const SCALE_FACTOR = 1.2
@@ -307,9 +307,57 @@ function isGrey(nColour: number): boolean {
   return r === g && r === b
 }
 
+function isReverseEqual(a: [number, number][], b: [number, number][]): boolean {
+  if (a.length !== b.length) {
+    return false
+  }
+  let ai = 0
+  let bi = b.length - 1
+  while (ai < a.length) {
+    if (a[ai][0] !== b[bi][0] || a[ai][1] !== b[bi][1]) {
+      return false
+    }
+    ai++
+    bi--
+  }
+  return true
+}
+
+// do not shorten connected lines of same colour and thickness
+function needsLineShortening(line: Line, allLines: Line[]):
+    { shortenStart: boolean, shortenEnd: boolean } {
+  if (line.wayPoints.length < 2) {
+    return { shortenStart: false, shortenEnd: false }
+  }
+  let shortenStart = true
+  let shortenEnd = true
+  let first = line.wayPoints[0]
+  let last = line.wayPoints[line.wayPoints.length - 1]
+  for (let o of allLines) {
+    if (isEqual(o.wayPoints, line.wayPoints) ||
+        isReverseEqual(o.wayPoints, line.wayPoints) || o.wayPoints.length === 0 ||
+        line.thickness !== o.thickness || line.color !== o.color) {
+      continue
+    }
+    if (shortenStart && o.wayPoints.some(p => isEqual(first, p))) {
+      shortenStart = false
+    }
+    if (shortenEnd && o.wayPoints.some(p => isEqual(last, p))) {
+      shortenEnd = false
+    }
+    if (!shortenStart && !shortenEnd) {
+      break
+    }
+  }
+  return { shortenStart, shortenEnd }
+}
+
 // PIXI makes lines with round cap slightly longer. This function shortens them.
-function shortenLine(points: number[], delta = 3): number[] {
+function shortenLine(points: number[], shortenStart: boolean, shortenEnd: boolean, delta = 3): number[] {
   if (points.length <= 2) {
+    return points
+  }
+  if (!shortenStart && !shortenEnd) {
     return points
   }
 
@@ -327,24 +375,28 @@ function shortenLine(points: number[], delta = 3): number[] {
     return points
   }
 
-  let dx = secondPointX - firstPointX
-  let dy = secondPointY - firstPointY
-  let l = Math.sqrt(dx * dx + dy * dy)
-  if (l > delta * 2.5) {
-    dx /= l
-    dy /= l
-    firstPointX = firstPointX + dx * delta
-    firstPointY = firstPointY + dy * delta
+  if (shortenStart) {
+    let dx = secondPointX - firstPointX
+    let dy = secondPointY - firstPointY
+    let l = Math.sqrt(dx * dx + dy * dy)
+    if (shortenStart && l > delta * 2.5) {
+      dx /= l
+      dy /= l
+      firstPointX = firstPointX + dx * delta
+      firstPointY = firstPointY + dy * delta
+    }
   }
 
-  dx = secondToLastX - lastPointX
-  dy = secondToLastY - lastPointY
-  l = Math.sqrt(dx * dx + dy * dy)
-  if (l > delta * 2.5) {
-    dx /= l
-    dy /= l
-    lastPointX = lastPointX + dx * delta
-    lastPointY = lastPointY + dy * delta
+  if (shortenEnd) {
+    let dx = secondToLastX - lastPointX
+    let dy = secondToLastY - lastPointY
+    let l = Math.sqrt(dx * dx + dy * dy)
+    if (l > delta * 2.5) {
+      dx /= l
+      dy /= l
+      lastPointX = lastPointX + dx * delta
+      lastPointY = lastPointY + dy * delta
+    }
   }
 
   return [firstPointX, firstPointY, ...points.slice(2, points.length - 2),
@@ -1336,9 +1388,18 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     }
 
     // sort lines and arrows by thickness
-    let lines: ((Line | Arrow) & { isArrow: boolean })[] = [
-      ...game.data.lines.map(l => ({ ...l, isArrow: false })),
-      ...game.data.arrows.map(a => ({ ...a, isArrow: true }))
+    let lines: ((Line | Arrow) & { isArrow: boolean, shortenStart: boolean, shortenEnd: boolean })[] = [
+      ...game.data.lines.map(l => ({
+        ...l,
+        isArrow: false,
+        ...needsLineShortening(l, game.data.lines)
+      })),
+      ...game.data.arrows.map(a => ({
+        ...a,
+        isArrow: true,
+        shortenStart: true,
+        shortenEnd: true
+      }))
     ]
     lines.sort((a, b) => b.thickness - a.thickness)
 
@@ -1350,7 +1411,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       poly.data = {
         draw: function (cellSize) {
           let points = shortenLine(filterDuplicatePoints(flatten(line.wayPoints.map(wp =>
-              cellToScreenCoords(wp, grid.x, grid.y, cellSize)))))
+              cellToScreenCoords(wp, grid.x, grid.y, cellSize)))),
+              line.shortenStart, line.shortenEnd)
           poly.lineStyle({
             width: line.thickness * SCALE_FACTOR,
             color: getRGBColor(line.color),
@@ -1395,7 +1457,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         head.data = {
           draw: function (cellSize) {
             let points = shortenLine(filterDuplicatePoints(flatten(arrow.wayPoints.map(wp =>
-                cellToScreenCoords(wp, grid.x, grid.y, cellSize)))))
+                cellToScreenCoords(wp, grid.x, grid.y, cellSize)))),
+                line.shortenStart, line.shortenEnd)
             let lastPointX = points[points.length - 2]
             let lastPointY = points[points.length - 1]
             let secondToLastX = points[points.length - 4]
