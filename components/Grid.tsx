@@ -647,7 +647,10 @@ function drawOverlay(overlay: Overlay, mx: number, my: number, zIndex: number): 
           if (w === h) {
             r.drawEllipse(0, 0, w / 2, h / 2)
           } else {
-            r.drawRoundedRect(-w / 2, -h / 2, w, h, Math.min(w, h) / 2 - 1)
+            // we divide by 2.27 instead of 2 here because we want the same
+            // look as we had with Pixi 6, which wasn't able to correctly round
+            // the rectangle
+            r.drawRoundedRect(-w / 2, -h / 2, w, h, Math.min(w, h) / 2.27 - 1)
           }
         } else {
           r.drawRect(-w / 2, -h / 2, w, h)
@@ -759,7 +762,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     }
   }, [game.data])
 
-  const selectCell = useCallback((k: number, evt: PIXI.InteractionEvent | TouchEvent,
+  const selectCell = useCallback((k: number, evt: PIXI.FederatedPointerEvent | TouchEvent,
       append = false) => {
     if (currentMode.current === MODE_PEN) {
       // do nothing in pen mode
@@ -767,10 +770,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     }
 
     let action: SelectionAction["action"] = append ? ACTION_PUSH : ACTION_SET
-    if (evt instanceof PIXI.InteractionEvent) {
-      let oe = evt.data.originalEvent
-      if (oe.metaKey || oe.ctrlKey) {
-        if (oe.shiftKey) {
+    if (evt instanceof PIXI.FederatedPointerEvent) {
+      let oe = evt.originalEvent
+      if (oe.nativeEvent.metaKey || oe.nativeEvent.ctrlKey) {
+        if (oe.nativeEvent.shiftKey) {
           action = ACTION_REMOVE
         } else {
           action = ACTION_PUSH
@@ -808,19 +811,19 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     }
   }, [])
 
-  const onPenMove = useCallback((e: PIXI.InteractionEvent, cellSize: number) => {
+  const onPenMove = useCallback((e: PIXI.FederatedPointerEvent, cellSize: number) => {
     if (e.target === null) {
       // pointer is not over the hit area
       return
     }
-    if (e.data.buttons !== 1) {
+    if (e.buttons !== 1) {
       // let mouse button is not pressed
       return
     }
 
     let gridBounds = gridElement.current!.getBounds()
-    let x = e.data.global.x - gridBounds.x
-    let y = e.data.global.y - gridBounds.y
+    let x = e.global.x - gridBounds.x
+    let y = e.global.y - gridBounds.y
 
     let fCellX = x / cellSize
     let fCellY = y / cellSize
@@ -972,19 +975,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     }
   }
 
-  const onTouchMove = useCallback((e: TouchEvent) => {
-    let touch = e.touches[0]
-    let x = touch.pageX
-    let y = touch.pageY
-    let interactionManager: PIXI.InteractionManager = app.current!.renderer.plugins.interaction
-    let p = new PIXI.Point()
-    interactionManager.mapPositionToPoint(p, x, y)
-    let hit = interactionManager.hitTest(p, cellsElement.current) as PIXI.WithGraphicsExData
-    if (hit?.data?.k !== undefined) {
-      selectCell(hit.data.k, e, true)
-    }
-  }, [selectCell])
-
   const onPointerUp = useCallback(() => {
     let pwc = penCurrentWaypoints.current
     if (pwc.length > 0) {
@@ -1020,9 +1010,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
 
     if (app.current !== undefined) {
       if (game.mode === MODE_PEN) {
-        app.current.renderer.plugins.interaction.cursorStyles.pointer = "crosshair"
+        app.current.renderer.events.setCursor("crosshair")
       } else {
-        app.current.renderer.plugins.interaction.cursorStyles.pointer = "pointer"
+        app.current.renderer.events.setCursor("pointer")
       }
     }
     penHitareaElements.current.forEach(e => e.visible = game.mode === MODE_PEN)
@@ -1043,7 +1033,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       autoDensity: true,
       autoStart: false
     })
-    ref.current!.appendChild(newApp.view)
+    ref.current!.appendChild(newApp.view as any)
     app.current = newApp
 
     // it seems we don't need the system ticker, so stop it
@@ -1060,11 +1050,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     }
 
     // register touch handler
-    newApp.view.addEventListener("touchmove", onTouchMove)
     document.addEventListener("pointerup", onPointerUp, false)
     document.addEventListener("pointercancel", onPointerUp, false)
-    document.addEventListener("touchend", onPointerUp, false)
-    document.addEventListener("touchcancel", onPointerUp, false)
 
     let themeColours = getThemeColours(ref.current!)
 
@@ -1217,7 +1204,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       row.forEach((col, x) => {
         let cell: PIXI.GraphicsEx = new PIXI.Graphics()
         cell.interactive = true
-        cell.buttonMode = true
         cell.cursor = "pointer"
 
         cell.data = {
@@ -1235,14 +1221,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           }
         }
 
-        cell.on("pointerdown", function (e: PIXI.InteractionEvent) {
+        cell.on("pointerdown", function (e: PIXI.FederatedPointerEvent) {
           selectCell(cell!.data!.k!, e)
           e.stopPropagation()
-          e.data.originalEvent.preventDefault()
+          e.originalEvent.preventDefault()
         })
 
-        cell.on("pointerover", function (e: PIXI.InteractionEvent) {
-          if (e.data.buttons === 1) {
+        cell.on("pointerover", function (e: PIXI.FederatedPointerEvent) {
+          if (e.buttons === 1) {
             selectCell(cell!.data!.k!, e, true)
           }
           e.stopPropagation()
@@ -1729,7 +1715,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     // add invisible hit area for pen tool
     let penHitArea: PIXI.GraphicsEx = new PIXI.Graphics()
     penHitArea.interactive = true
-    penHitArea.buttonMode = true
     penHitArea.cursor = "crosshair"
     penHitArea.zIndex = 80
     penHitArea.visible = false
@@ -1774,16 +1759,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       penHitareaElements.current = []
       penLineElements.current = []
 
-      document.removeEventListener("touchcancel", onPointerUp)
-      document.removeEventListener("touchend", onPointerUp)
       document.removeEventListener("pointercancel", onPointerUp)
       document.removeEventListener("pointerup", onPointerUp)
-      newApp.view.removeEventListener("touchmove", onTouchMove)
       newApp.destroy(true, true)
       app.current = undefined
     }
   }, [game.data, cellSize, regions, cages, extraRegions, selectCell, onPenMove,
-    updateGame, onFinishRender, onTouchMove, onPointerUp])
+    updateGame, onFinishRender, onPointerUp])
 
   useEffect(() => {
     let cs = cellSize * (settings.zoom + ZOOM_DELTA)
@@ -1882,17 +1864,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     } else {
       ref.current!.style.marginLeft = `${additionalMarginX}px`
       ref.current!.style.marginRight = "0"
-    }
-
-    // check if we're currently hovering over an element that has a custom cursor
-    let interactionManager = app.current!.renderer.plugins.interaction
-    let pos = interactionManager.mouse.global
-    let hit = interactionManager.hitTest(pos, allElement.current)
-    if (hit?.cursor !== undefined) {
-      // reset cursor mode before setting the new one - otherwise, the cursor
-      // will not change at all
-      interactionManager.setCursorMode("default")
-      interactionManager.setCursorMode(hit.cursor)
     }
   }, [cellSize, maxWidth, maxHeight, portrait, settings.zoom, game.mode])
 
