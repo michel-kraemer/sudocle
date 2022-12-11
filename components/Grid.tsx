@@ -403,6 +403,100 @@ function shortenLine(points: number[], shortenStart: boolean, shortenEnd: boolea
     lastPointX, lastPointY]
 }
 
+function lineLength(line: [number, number][]): number {
+  let r = 0
+  for (let i = 0; i < line.length - 1; ++i) {
+    let dx = line[i + 1][0] - line[i][0]
+    let dy = line[i + 1][1] - line[i][1]
+    r += Math.sqrt(dx * dx + dy * dy)
+  }
+  return r
+}
+
+// see https://mathworld.wolfram.com/Circle-LineIntersection.html
+function closestLineCircleIntersection(p1: [number, number], p2: [number, number],
+    center: [number, number], radius: number): [number, number] | undefined {
+  let p1x = p1[0] - center[0]
+  let p1y = p1[1] - center[1]
+  let p2x = p2[0] - center[0]
+  let p2y = p2[1] - center[1]
+
+  let dx = p2x - p1x
+  let dy = p2y - p1y
+  let dr = dx * dx + dy * dy
+  let D = p1x * p2y - p1y * p2x
+
+  let delta = Math.sqrt(radius * radius * dr - D * D)
+  if (delta < 0) {
+    // no intersection
+    return undefined
+  }
+
+  let sgndy = dy < 0 ? -1 : 1
+  let ix1 = (D * dy + sgndy * dx * delta) / dr
+  let iy1 = (-D * dx + Math.abs(dy) * delta) / dr
+
+  if (delta > 0) {
+    let ix2 = (D * dy - sgndy * dx * delta) / dr
+    let iy2 = (-D * dx - Math.abs(dy) * delta) / dr
+
+    let dix1 = p1x - ix1
+    let diy1 = p1y - iy1
+    let dix2 = p1x - ix2
+    let diy2 = p1y - iy2
+    if (dix1 * dix1 + diy1 * diy1 > dix2 * dix2 + diy2 * diy2) {
+      ix1 = ix2
+      iy1 = iy2
+    }
+  }
+
+  return [ix1 + center[0], iy1 + center[1]]
+}
+
+function snapArrowToCircle(a: Arrow, overlays: Overlay[]): Arrow {
+  if (a.wayPoints.length < 2) {
+    return a
+  }
+
+  let arrowLength = lineLength(a.wayPoints)
+
+  let first = a.wayPoints[0]
+  let second = a.wayPoints[1]
+  for (let o of overlays) {
+    if (!o.rounded || o.width !== o.height) {
+      // only consider circles
+      continue
+    }
+    if (o.center[0] - Math.floor(o.center[0]) !== 0.5 ||
+        o.center[1] - Math.floor(o.center[1]) !== 0.5) {
+      // circle must be in the center of a cell
+      continue
+    }
+
+    let radius = o.width / 2
+    if (arrowLength < radius) {
+      // only snap arrow if it is longer than the circle's radius
+      continue
+    }
+
+    let dx = first[0] - o.center[0]
+    let dy = first[1] - o.center[1]
+    let dist = Math.sqrt(dx * dx + dy * dy)
+
+    if (Math.abs(dist - radius) < 0.1) { // 10% tolerance
+      let i = closestLineCircleIntersection(first, second, o.center, radius + a.thickness / 200)
+      if (i !== undefined) {
+        return {
+          ...a,
+          wayPoints: [i, ...a.wayPoints.slice(1)]
+        }
+      }
+    }
+  }
+
+  return a
+}
+
 function euclidianBresenhamInterpolate(x0: number, y0: number,
     x1: number, y1: number): [number, number][] {
   let dx = Math.abs(x1 - x0)
@@ -1394,12 +1488,15 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         isArrow: false,
         ...needsLineShortening(l, game.data.lines)
       })),
-      ...game.data.arrows.map(a => ({
-        ...a,
-        isArrow: true,
-        shortenStart: true,
-        shortenEnd: true
-      }))
+      ...game.data.arrows.map(a => {
+        let snappedArrow = snapArrowToCircle(a, [...game.data.underlays, ...game.data.overlays])
+        return {
+          ...snappedArrow,
+          isArrow: true,
+          shortenStart: snappedArrow === a,
+          shortenEnd: true
+        }
+      })
     ]
     lines.sort((a, b) => b.thickness - a.thickness)
 
