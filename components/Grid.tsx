@@ -403,16 +403,6 @@ function shortenLine(points: number[], shortenStart: boolean, shortenEnd: boolea
     lastPointX, lastPointY]
 }
 
-function lineLength(line: [number, number][]): number {
-  let r = 0
-  for (let i = 0; i < line.length - 1; ++i) {
-    let dx = line[i + 1][0] - line[i][0]
-    let dy = line[i + 1][1] - line[i][1]
-    r += Math.sqrt(dx * dx + dy * dy)
-  }
-  return r
-}
-
 // see https://mathworld.wolfram.com/Circle-LineIntersection.html
 function closestLineCircleIntersection(p1: [number, number], p2: [number, number],
     center: [number, number], radius: number): [number, number] | undefined {
@@ -453,20 +443,32 @@ function closestLineCircleIntersection(p1: [number, number], p2: [number, number
   return [ix1 + center[0], iy1 + center[1]]
 }
 
-function snapArrowToCircle(a: Arrow, overlays: Overlay[]): Arrow {
+function snapLineToCircle<T extends Arrow | Line>(a: T, overlays: Overlay[],
+    snapAt: "start" | "end"): T {
   if (a.wayPoints.length < 2) {
     return a
   }
 
-  let arrowLength = lineLength(a.wayPoints)
+  let first
+  let second
+  if (snapAt === "start") {
+    first = a.wayPoints[0]
+    second = a.wayPoints[1]
+  } else {
+    first = a.wayPoints[a.wayPoints.length - 1]
+    second = a.wayPoints[a.wayPoints.length - 2]
+  }
 
-  let first = a.wayPoints[0]
-  let second = a.wayPoints[1]
+  let dx = second[0] - first[0]
+  let dy = second[1] - first[1]
+  let segmentLength = Math.sqrt(dx * dx + dy * dy)
+
   for (let o of overlays) {
     if (!o.rounded || o.width !== o.height) {
       // only consider circles
       continue
     }
+
     if (o.center[0] - Math.floor(o.center[0]) !== 0.5 ||
         o.center[1] - Math.floor(o.center[1]) !== 0.5) {
       // circle must be in the center of a cell
@@ -474,8 +476,8 @@ function snapArrowToCircle(a: Arrow, overlays: Overlay[]): Arrow {
     }
 
     let radius = o.width / 2
-    if (arrowLength < radius) {
-      // only snap arrow if it is longer than the circle's radius
+    if (segmentLength < radius) {
+      // only snap line segment if it's longer than the circle's radius
       continue
     }
 
@@ -484,11 +486,22 @@ function snapArrowToCircle(a: Arrow, overlays: Overlay[]): Arrow {
     let dist = Math.sqrt(dx * dx + dy * dy)
 
     if (Math.abs(dist - radius) < 0.1) { // 10% tolerance
-      let i = closestLineCircleIntersection(first, second, o.center, radius + a.thickness / 200)
+      let i = closestLineCircleIntersection(first, second, o.center, radius)
       if (i !== undefined) {
-        return {
-          ...a,
-          wayPoints: [i, ...a.wayPoints.slice(1)]
+        // shorten just a little bit to accomodate for rounded line ends
+        let si = shortenLine([...i, ...second], true, false, a.thickness / 200)
+        i = [si[0], si[1]]
+
+        if (snapAt === "start") {
+          return {
+            ...a,
+            wayPoints: [i, ...a.wayPoints.slice(1)]
+          }
+        } else {
+          return {
+            ...a,
+            wayPoints: [...a.wayPoints.slice(0, a.wayPoints.length - 1), i]
+          }
         }
       }
     }
@@ -1483,13 +1496,27 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
 
     // sort lines and arrows by thickness
     let lines: ((Line | Arrow) & { isArrow: boolean, shortenStart: boolean, shortenEnd: boolean })[] = [
-      ...game.data.lines.map(l => ({
-        ...l,
-        isArrow: false,
-        ...needsLineShortening(l, game.data.lines)
-      })),
+      ...game.data.lines.map(l => {
+        let os = [...game.data.underlays, ...game.data.overlays]
+        let { shortenStart, shortenEnd } = needsLineShortening(l, game.data.lines)
+        let startSnappedLine = snapLineToCircle(l, os, "start")
+        if (startSnappedLine !== l) {
+          shortenStart = false
+        }
+        let endSnappedLine = snapLineToCircle(startSnappedLine, os, "end")
+        if (endSnappedLine !== startSnappedLine) {
+          shortenEnd = false
+        }
+        return {
+          ...endSnappedLine,
+          isArrow: false,
+          shortenStart,
+          shortenEnd
+        }
+      }),
       ...game.data.arrows.map(a => {
-        let snappedArrow = snapArrowToCircle(a, [...game.data.underlays, ...game.data.overlays])
+        let snappedArrow = snapLineToCircle(a,
+          [...game.data.underlays, ...game.data.overlays], "start")
         return {
           ...snappedArrow,
           isArrow: true,
