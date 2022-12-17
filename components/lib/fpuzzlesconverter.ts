@@ -145,6 +145,11 @@ interface FPuzzlesData {
   solution?: (number | string | undefined)[]
 }
 
+interface CustomStyle {
+  arrow: Arrow,
+  bulb: Line
+}
+
 const MIN_GRID_SIZE = 3
 const MAX_GRID_SIZE = 16
 const GRID_SIZES = [undefined, undefined, undefined,
@@ -315,18 +320,21 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   let fogLights: FogLight[] | undefined = undefined
   let cages: Cage[] = []
   let killercages = [...(puzzle.killercage ?? []), ...(puzzle.cage ?? [])]
+  let customStyle: CustomStyle | undefined = undefined
   for (let cage of killercages) {
     if (isString(cage.value) && (cage.value.toLowerCase() === "fow" ||
         cage.value.toLowerCase() === "foglight")) {
-        if (fogLights === undefined) {
-          fogLights = []
-        }
-        for (let c of cage.cells) {
-          fogLights.push({
-            center: cellToCell(c, 0, 0),
-            size: 3
-          })
-        }
+      if (fogLights === undefined) {
+        fogLights = []
+      }
+      for (let c of cage.cells) {
+        fogLights.push({
+          center: cellToCell(c, 0, 0),
+          size: 3
+        })
+      }
+    } else if (isString(cage.value) && cage.value.toLowerCase().startsWith("customstyle:")) {
+      customStyle = JSON.parse(cage.value.substring(12).trim())
     } else {
       let r: Cage = {
         cells: cage.cells.map(c => cellToCell(c, 0, 0)),
@@ -502,18 +510,19 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           center: cellsToCenter(a.cells),
           width: width + 0.7,
           height: height + 0.7,
-          borderColor: "#CFCFCF",
+          borderColor: customStyle?.bulb?.color ?? "#CFCFCF",
           backgroundColor: "#FFFFFF",
-          rounded: true
+          rounded: true,
+          thickness: customStyle?.bulb?.thickness
         })
       }
       if (a.lines !== undefined && a.lines !== null) {
         for (let l of a.lines) {
           let newArrow: Arrow = {
             wayPoints: l.map(c => cellToCell(c)),
-            color: "#CFCFCF",
-            thickness: 2,
-            headLength: 0.3
+            color: customStyle?.arrow?.color ?? "#CFCFCF",
+            thickness: customStyle?.arrow?.thickness ?? 2,
+            headLength: customStyle?.arrow?.headLength ?? 0.3
           }
           if (a.cells !== undefined && a.cells !== null && l.length > 1 && a.cells.includes(l[0])) {
             fixLineConnector(l[0], l[1], newArrow.wayPoints[0])

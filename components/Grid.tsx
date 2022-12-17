@@ -642,6 +642,10 @@ function getRGBColor(colorString: string): number {
   return Color(colorString.trim()).rgbNumber()
 }
 
+function getAlpha(colorString: string): number {
+  return Color(colorString.trim()).alpha()
+}
+
 function getThemeColour(style: CSSStyleDeclaration, color: string): number {
   return getRGBColor(style.getPropertyValue(color))
 }
@@ -793,7 +797,7 @@ function drawOverlay(overlay: Overlay, mx: number, my: number, zIndex: number): 
           if (nBorderColour !== nBackgroundColour &&
               !(overlay.width === 1 && overlay.height === 1 && !overlay.rounded && isGrey(nBorderColour))) {
             r.lineStyle({
-              width: 2,
+              width: overlay.thickness ?? 2,
               color: nBorderColour,
               alpha: isGrey(nBorderColour) ? 1 : 0.5,
               alignment: 0
@@ -1532,6 +1536,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       let poly: PIXI.GraphicsEx = new PIXI.Graphics()
       poly.zIndex = -10
       poly.mask = fogMask
+      poly.alpha = getAlpha(line.color)
       poly.data = {
         draw: function (cellSize) {
           let points = shortenLine(filterDuplicatePoints(flatten(line.wayPoints.map(wp =>
@@ -1600,6 +1605,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
             let ex2 = ex + dy * f
             let ey2 = ey - dx * f
             head.lineStyle({
+              alpha: getAlpha(arrow.color),
               width: arrow.thickness * SCALE_FACTOR,
               color: getRGBColor(arrow.color),
               cap: PIXI.LINE_CAP.ROUND,

@@ -39,7 +39,8 @@ export interface Overlay {
   fontSize?: number,
   fontColor?: string,
   text?: string | number,
-  rotation?: number
+  rotation?: number,
+  thickness?: number
 }
 
 export interface FogLight {
