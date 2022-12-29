@@ -57,7 +57,7 @@
     "npm-check-updates": "^16.5.6",
     "odiff-bin": "^2.5.1",
     "start-server-and-test": "^1.15.2",
-    "stylelint": "^14.16.0",
+    "stylelint": "^14.16.1",
     "stylelint-config-standard-scss": "^6.1.0"
   }
 }
