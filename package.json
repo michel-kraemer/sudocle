@@ -27,7 +27,7 @@
     "favicons": "^7.0.2",
     "fontfaceobserver": "^2.3.0",
     "image-webpack-loader": "^8.1.0",
-    "immer": "^9.0.16",
+    "immer": "^9.0.17",
     "lodash": "^4.17.21",
     "lucide-react": "^0.104.1",
     "mini-svg-data-uri": "^1.4.4",
