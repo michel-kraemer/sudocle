@@ -51,7 +51,7 @@
     "@typescript-eslint/eslint-plugin": "^5.46.0",
     "@typescript-eslint/parser": "^5.46.0",
     "eslint": "^8.29.0",
-    "eslint-config-next": "^13.0.6",
+    "eslint-config-next": "^13.1.2",
     "eslint-webpack-plugin": "^3.2.0",
     "html-webpack-plugin": "^5.5.0",
     "npm-check-updates": "^16.5.6",
