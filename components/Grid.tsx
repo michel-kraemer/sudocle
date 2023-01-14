@@ -13,6 +13,7 @@ import { MouseEvent, useCallback, useContext, useEffect, useMemo, useRef } from 
 import * as PIXI from "pixi.js-legacy"
 import { flatten, isEqual } from "lodash"
 import { DropShadowFilter } from "@pixi/filter-drop-shadow"
+import memoizeOne from "memoize-one"
 
 const SCALE_FACTOR = 1.2
 const ZOOM_DELTA = 0.05
@@ -33,7 +34,7 @@ declare module "pixi.js-legacy" {
   interface GraphicsExData {
     k?: number,
     borderColor?: number | undefined,
-    draw: (cellSize: number, zoomFactor: number, currentDigits?: Map<number, Digit>) => void
+    draw: (cellSize: number, zoomFactor: number, currentDigits: Map<number, Digit>) => void
   }
 
   interface WithGraphicsExData {
@@ -556,7 +557,8 @@ function filterDuplicatePoints(points: number[]): number[] {
 }
 
 function makeCornerMarks(x: number, y: number, fontSize: number,
-    leaveRoom: boolean, n = 11, fontWeight: PIXI.TextStyleFontWeight = "normal"): PIXI.TextEx[] {
+    leaveRoom: boolean, data: Data, n = 11,
+    fontWeight: PIXI.TextStyleFontWeight = "normal"): PIXI.TextEx[] {
   let result = []
 
   for (let i = 0; i < n; ++i) {
@@ -567,30 +569,31 @@ function makeCornerMarks(x: number, y: number, fontSize: number,
     })
 
     text.data = {
-      draw: function (cellSize) {
+      draw: function (cellSize, _, currentDigits) {
         let cx = x * cellSize + cellSize / 2
         let cy = y * cellSize + cellSize / 2 - 0.5
         let mx = cellSize / 3.2
         let my = cellSize / 3.4
 
+        let fogCells = makeFogRaster(data, currentDigits)
+        let hasFog = fogCells[x][y] === 1
+
         switch (i) {
           case 0:
-            if (leaveRoom) {
+            if (leaveRoom && !hasFog) {
               text.x = cx - mx / 3
-              text.y = cy - my
             } else {
               text.x = cx - mx
-              text.y = cy - my
             }
+            text.y = cy - my
             break
           case 4:
-            if (leaveRoom) {
+            if (leaveRoom && !hasFog) {
               text.x = cx + mx / 3
-              text.y = cy - my
             } else {
               text.x = cx
-              text.y = cy - my
             }
+            text.y = cy - my
             break
           case 1:
             text.x = cx + mx
@@ -726,12 +729,12 @@ function penWaypointsToKey(wp1: number, wp2: number,
   return undefined
 }
 
-function getFogLights(data: Data, currentDigits: Map<number, Digit> | undefined): FogLight[] {
+function getFogLights(data: Data, currentDigits: Map<number, Digit>): FogLight[] {
   let r: FogLight[] = []
   if (data.fogLights !== undefined) {
     r.push(...data.fogLights)
   }
-  if (currentDigits !== undefined && data.solution !== undefined) {
+  if (data.solution !== undefined) {
     currentDigits.forEach((v, k) => {
       let [x, y] = ktoxy(k)
       let expected = data.solution![y][x]
@@ -745,6 +748,46 @@ function getFogLights(data: Data, currentDigits: Map<number, Digit> | undefined)
   }
   return r
 }
+
+const makeFogRaster = memoizeOne((data: Data, currentDigits: Map<number, Digit>): number[][] => {
+  let cells: number[][] = Array(data.cells.length)
+  for (let i = 0; i < data.cells.length; ++i) {
+    cells[i] = Array(data.cells[0].length).fill(1)
+  }
+
+  let lights = getFogLights(data, currentDigits)
+  for (let light of lights) {
+    let y = light.center[0]
+    let x = light.center[1]
+    if (light.size === 3) {
+      if (y > 0) {
+        if (x > 0) {
+          cells[y - 1][x - 1] = 0
+        }
+        cells[y - 1][x] = 0
+        if (x < cells[y - 1].length - 1) {
+          cells[y - 1][x + 1] = 0
+        }
+      }
+      cells[y][x - 1] = 0
+      cells[y][x] = 0
+      cells[y][x + 1] = 0
+      if (y < cells.length - 1) {
+        if (x > 0) {
+          cells[y + 1][x - 1] = 0
+        }
+        cells[y + 1][x] = 0
+        if (x < cells[y + 1].length - 1) {
+          cells[y + 1][x + 1] = 0
+        }
+      }
+    } else if (light.size === 1) {
+      cells[y][x] = 0
+    }
+  }
+
+  return cells
+})
 
 function drawOverlay(overlay: Overlay, mx: number, my: number, zIndex: number): PIXI.GraphicsEx {
   let r: PIXI.GraphicsEx = new PIXI.Graphics()
@@ -1268,41 +1311,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       fog.zIndex = -1
       fog.data = {
         draw: function (cellSize, _, currentDigits) {
-          let cells: number[][] = Array(game.data.cells.length)
-          for (let i = 0; i < game.data.cells.length; ++i) {
-            cells[i] = Array(game.data.cells[0].length).fill(1)
-          }
-
-          let lights = getFogLights(game.data, currentDigits)
-          for (let light of lights) {
-            let y = light.center[0]
-            let x = light.center[1]
-            if (light.size === 3) {
-              if (y > 0) {
-                if (x > 0) {
-                  cells[y - 1][x - 1] = 0
-                }
-                cells[y - 1][x] = 0
-                if (x < cells[y - 1].length - 1) {
-                  cells[y - 1][x + 1] = 0
-                }
-              }
-              cells[y][x - 1] = 0
-              cells[y][x] = 0
-              cells[y][x + 1] = 0
-              if (y < cells.length - 1) {
-                if (x > 0) {
-                  cells[y + 1][x - 1] = 0
-                }
-                cells[y + 1][x] = 0
-                if (x < cells[y + 1].length - 1) {
-                  cells[y + 1][x + 1] = 0
-                }
-              }
-            } else if (light.size === 1) {
-              cells[y][x] = 0
-            }
-          }
+          let cells = makeFogRaster(game.data, currentDigits)
 
           let flatCells: [number, number][] = []
           cells.forEach((row, y) => {
@@ -1671,7 +1680,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
 
         let hcv = hasCageValue(x, y, cages)
         let cms = makeCornerMarks(x, y, FONT_SIZE_CORNER_MARKS_HIGH_DPI,
-            hcv, arr.length, "700")
+            hcv, game.data, arr.length, "700")
         cms.forEach((cm, i) => {
           cm.zIndex = 41
           cm.style.fill = themeColours.foregroundColor
@@ -1718,7 +1727,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
 
         let leaveRoom = hasCageValue(x, y, cages) || hasGivenCornerMarks(col)
         let cms = makeCornerMarks(x, y, FONT_SIZE_CORNER_MARKS_HIGH_DPI,
-            leaveRoom, 11)
+            leaveRoom, game.data, 11)
         for (let cm of cms) {
           cm.visible = false
           cm.zIndex = 50
@@ -1980,12 +1989,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           if (e instanceof PIXI.Graphics) {
             e.clear()
           }
-          e.data?.draw(cs, cellSizeFactor.current)
+          e.data?.draw(cs, cellSizeFactor.current, game.digits)
         }
       }
       for (let e of cornerMarkElements.current) {
         for (let ce of e.elements) {
-          ce.data?.draw(cs, cellSizeFactor.current)
+          ce.data?.draw(cs, cellSizeFactor.current, game.digits)
         }
       }
 
@@ -2058,7 +2067,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       ref.current!.style.marginLeft = `${additionalMarginX}px`
       ref.current!.style.marginRight = "0"
     }
-  }, [cellSize, maxWidth, maxHeight, portrait, settings.zoom, game.mode])
+  }, [cellSize, maxWidth, maxHeight, portrait, settings.zoom, game.mode, game.digits])
 
   // register keyboard handlers
   useEffect(() => {
@@ -2239,18 +2248,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       e.visible = game.errors.has(e.data!.k!)
     }
 
-    for (let e of fogElements.current) {
-      e.clear()
-      e.data?.draw(scaledCellSize, cellSizeFactor.current, game.digits)
-    }
-
     renderNow()
   }, [cellSize, game.digits, game.cornerMarks, game.centreMarks, game.colours,
       game.penLines, game.errors, settings.theme, settings.colourPalette,
       settings.selectionColour, settings.customColours, settings.zoom,
       settings.fontSizeFactorDigits, settings.fontSizeFactorCentreMarks,
       settings.fontSizeFactorCornerMarks, maxWidth, maxHeight, portrait,
-      renderNow, game.mode])
+      renderNow, game.mode, game.data])
 
   return (
     <div ref={ref} className="grid" onClick={onBackgroundClick} onDoubleClick={onDoubleClick}>

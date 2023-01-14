@@ -49,19 +49,19 @@ export interface FogLight {
 }
 
 export interface Data {
-  cellSize: number,
-  cells: DataCell[][],
-  regions: [number, number][][],
-  cages: Cage[],
-  lines: Line[],
-  extraRegions?: ExtraRegion[],
-  arrows: Arrow[],
-  underlays: Overlay[],
-  overlays: Overlay[],
-  solution?: (number | undefined)[][],
-  fogLights?: FogLight[],
-  title?: string,
-  author?: string,
-  rules?: string,
-  solved: boolean
+  readonly cellSize: number,
+  readonly cells: DataCell[][],
+  readonly regions: [number, number][][],
+  readonly cages: Cage[],
+  readonly lines: Line[],
+  readonly extraRegions?: ExtraRegion[],
+  readonly arrows: Arrow[],
+  readonly underlays: Overlay[],
+  readonly overlays: Overlay[],
+  readonly solution?: (number | undefined)[][],
+  readonly fogLights?: FogLight[],
+  readonly title?: string,
+  readonly author?: string,
+  readonly rules?: string,
+  readonly solved: boolean
 }

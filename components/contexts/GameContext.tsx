@@ -38,7 +38,7 @@ interface PersistentGameState {
 }
 
 interface GameState extends PersistentGameState {
-  data: Data,
+  readonly data: Data,
   mode: Mode,
   modeGroup: number,
   enabledModes0: Mode[],
