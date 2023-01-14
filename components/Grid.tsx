@@ -919,7 +919,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
   const currentMode = useRef(game.mode)
 
   const cellSize = game.data.cellSize * SCALE_FACTOR
-  const cellSizeFactor = useRef(1)
+  const cellSizeFactor = useRef(-1)
 
   const regions = useMemo(() => flatten(game.data.regions.map(region => {
     return flatten(unionCells(region))
@@ -1878,8 +1878,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     penWaypoints.zIndex = 70
     penWaypoints.data = {
       draw: function (cellSize) {
-        this.cellSize = cellSize ?? this.cellSize
-        if (this.cellSize === undefined) {
+        let that = penWaypoints.data!
+        that.cellSize = cellSize ?? that.cellSize
+        if (that.cellSize === undefined) {
           return
         }
 
@@ -1903,10 +1904,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
             join: PIXI.LINE_JOIN.ROUND
           })
           let p0 = ktoxy(wps[0])
-          penWaypoints.moveTo((p0[0] + d) * this.cellSize, (p0[1] + d) * this.cellSize)
+          penWaypoints.moveTo((p0[0] + d) * that.cellSize, (p0[1] + d) * that.cellSize)
           for (let i = 0; i < wps.length - 1; ++i) {
             let p = ktoxy(wps[i + 1])
-            penWaypoints.lineTo((p[0] + d) * this.cellSize, (p[1] + d) * this.cellSize)
+            penWaypoints.lineTo((p[0] + d) * that.cellSize, (p[1] + d) * that.cellSize)
           }
         }
       }
@@ -1931,6 +1932,43 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     }
     all.addChild(penHitArea)
     penHitareaElements.current.push(penHitArea)
+
+    // memoize draw calls to improve performance
+    const wrapDraw =
+      (
+        e: PIXI.Container,
+        draw: (
+          cellSize: number,
+          zoomFactor: number,
+          currentDigits: Map<number, Digit>
+        ) => void
+      ) =>
+      (cellSize: number, zoomFactor: number, currentDigits: Map<number, Digit>) => {
+        if (e instanceof PIXI.Graphics) {
+          e.clear()
+        }
+        draw(cellSize, zoomFactor, currentDigits)
+      }
+    let elementsToMemoize = [cellElements, regionElements, cageElements,
+      cageLabelTextElements, cageLabelBackgroundElements, lineElements,
+      extraRegionElements, underlayElements, overlayElements, fogElements,
+      givenCornerMarkElements, digitElements, centreMarkElements, colourElements,
+      selectionElements, errorElements, penCurrentWaypointsElements,
+      penLineElements, penHitareaElements]
+    for (let r of elementsToMemoize) {
+      for (let e of r.current) {
+        if (e.data?.draw !== undefined) {
+          e.data.draw = memoizeOne(wrapDraw(e, e.data.draw))
+        }
+      }
+    }
+    for (let e of cornerMarkElements.current) {
+      for (let ce of e.elements) {
+        if (ce.data?.draw !== undefined) {
+          ce.data.draw = memoizeOne(wrapDraw(ce, ce.data.draw))
+        }
+      }
+    }
 
     if (onFinishRender) {
       onFinishRender()
@@ -1970,11 +2008,18 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     updateGame, onFinishRender, onPointerUp])
 
   useEffect(() => {
-    let cs = cellSize * (settings.zoom + ZOOM_DELTA)
+    // reset cell size on next draw
+    cellSizeFactor.current = -1
+  }, [maxWidth, maxHeight, portrait, settings.zoom])
+
+  useEffect(() => {
+    if (cellSizeFactor.current === -1) {
+      cellSizeFactor.current = settings.zoom + ZOOM_DELTA
+    }
+    let cs = Math.floor(cellSize * cellSizeFactor.current)
     let allBounds: PIXI.Rectangle
     let gridBounds: PIXI.Rectangle
 
-    cellSizeFactor.current = settings.zoom + ZOOM_DELTA
     allElement.current!.x = allElement.current!.y = 0
 
     for (let i = 0; i < 10; ++i) {
@@ -1986,9 +2031,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         penLineElements, penHitareaElements]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
-          if (e instanceof PIXI.Graphics) {
-            e.clear()
-          }
           e.data?.draw(cs, cellSizeFactor.current, game.digits)
         }
       }
