@@ -575,8 +575,11 @@ function makeCornerMarks(x: number, y: number, fontSize: number,
         let mx = cellSize / 3.2
         let my = cellSize / 3.4
 
-        let fogCells = makeFogRaster(data, currentDigits)
-        let hasFog = fogCells[x][y] === 1
+        let hasFog = false
+        if (data.fogLights !== undefined) {
+          let fogCells = makeFogRaster(data, currentDigits)
+          hasFog = fogCells[x]?.[y] === 1
+        }
 
         switch (i) {
           case 0:
