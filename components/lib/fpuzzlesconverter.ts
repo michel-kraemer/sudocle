@@ -142,7 +142,8 @@ interface FPuzzlesData {
   circle?: FPuzzlesCircle[],
   thermometer?: FPuzzlesThermometer[],
   text?: FPuzzlesText[],
-  solution?: (number | string | undefined)[]
+  solution?: (number | string | undefined)[],
+  fogofwar?: string[]
 }
 
 interface CustomStyle {
@@ -318,6 +319,16 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   }))
 
   let fogLights: FogLight[] | undefined = undefined
+  if (puzzle.fogofwar !== undefined) {
+    fogLights = []
+    for (let c of puzzle.fogofwar) {
+      fogLights.push({
+        center: cellToCell(c, 0, 0),
+        size: 3
+      })
+    }
+  }
+
   let cages: Cage[] = []
   let killercages = [...(puzzle.killercage ?? []), ...(puzzle.cage ?? [])]
   let customStyle: CustomStyle | undefined = undefined
