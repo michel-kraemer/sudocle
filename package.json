@@ -16,7 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "@datapunt/matomo-tracker-js": "^0.5.1",
-    "@fontsource/baloo-2": "^4.5.11",
+    "@fontsource/baloo-2": "^4.5.12",
     "@fontsource/roboto": "^4.5.8",
     "@fontsource/roboto-condensed": "^4.5.9",
     "@pixi/filter-drop-shadow": "^5.1.1",
