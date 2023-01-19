@@ -121,7 +121,7 @@ Then, open <http://localhost/sudocle/>.
 
 ## What does “Sudocle” mean?
 
-The name *Sudoko* is an abbreviation of the Japanese expression “Sūji wa
+The name *Sudoku* is an abbreviation of the Japanese expression “Sūji wa
 dokushin ni kagiru” (数字は独身に限る), which can be translated to “the digits
 must be single” [[Wikipedia](https://en.wikipedia.org/wiki/Sudoku)]. *Sūji*
 means *digits*.
