@@ -5,7 +5,10 @@ const config = {
     launchOptions: {
       // force GPU hardware acceleration (even in headless mode)
       // without hardware acceleration, our tests will be much slower
-      args: ["--use-gl=egl"]
+      // (see the following link for a list of all `--use-gl` and `--use-angle`
+      // flags: https://chromium.googlesource.com/chromium/src/+/master/ui/gl/gl_switches.cc)
+      // args: ["--use-gl=egl"]
+      args: ["--use-angle=gles-egl"]
     }
   }
 }
