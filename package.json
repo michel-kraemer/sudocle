@@ -34,7 +34,7 @@
     "mini-svg-data-uri": "^1.4.4",
     "next": "^13.1.2",
     "normalize.css": "^8.0.1",
-    "pixi.js-legacy": "^7.1.0",
+    "pixi.js-legacy": "^7.1.1",
     "polygon-clipping": "^0.15.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
