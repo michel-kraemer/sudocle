@@ -318,6 +318,13 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     }
   }))
 
+  // make sure all regions are initialized
+  for (let i = 0; i < regions.length; ++i) {
+    if (regions[i] === undefined) {
+      regions[i] = []
+    }
+  }
+
   let fogLights: FogLight[] | undefined = undefined
   if (puzzle.fogofwar !== undefined) {
     fogLights = []
