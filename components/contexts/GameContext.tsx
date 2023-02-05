@@ -586,6 +586,7 @@ function gameReducer(state: GameState, action: Action) {
 
         // look for additional embedded attributes
         let possibleTitles: string[] = []
+        let needToFilterFogLights = false
         for (let cage of canonicalData.cages) {
           if (cage.cells === undefined || !Array.isArray(cage.cells) ||
               cage.cells.length === 0) {
@@ -606,10 +607,20 @@ function gameReducer(state: GameState, action: Action) {
                 possibleTitles.push(cage.value)
               }
             }
+          } else if (typeof cage.value === "string" && cage.value.toLowerCase() === "foglight") {
+            canonicalData.fogLights = canonicalData.fogLights ?? cage.cells.map(c => ({
+              center: c,
+              size: 1
+            }))
+            needToFilterFogLights = true
           }
         }
         if (canonicalData.title === undefined && possibleTitles.length > 0) {
           canonicalData.title = possibleTitles[0]
+        }
+        if (needToFilterFogLights) {
+          canonicalData.cages = canonicalData.cages.filter(
+            c => typeof c.value !== "string" || c.value.toLowerCase() !== "foglight")
         }
       }
 
