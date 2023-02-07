@@ -467,8 +467,8 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       }
       underlays.push({
         center: cellsToCenter(r.cells),
-        width: width * (r.width ?? 0.5),
-        height: height * (r.height ?? 0.5),
+        width: r.width ?? (0.5 * width),
+        height: r.height ?? (0.5 * height),
         borderColor: r.outlineC ?? "#000000",
         backgroundColor: r.baseC ?? "#FFFFFF",
         rounded: false,
