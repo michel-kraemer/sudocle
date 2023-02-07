@@ -456,27 +456,6 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     }
   }
 
-  if (puzzle.rectangle !== undefined && puzzle.rectangle !== null) {
-    for (let r of puzzle.rectangle) {
-      let [minX, minY, maxX, maxY] = cellsToBoundingBox(r.cells)
-      let width = 1 + (maxX - minX)
-      let height = 1 + (maxY - minY)
-      let rotation
-      if (r.angle !== undefined) {
-        rotation = r.angle * (2 * Math.PI) / 360
-      }
-      underlays.push({
-        center: cellsToCenter(r.cells),
-        width: r.width ?? (0.5 * width),
-        height: r.height ?? (0.5 * height),
-        borderColor: r.outlineC ?? "#000000",
-        backgroundColor: r.baseC ?? "#FFFFFF",
-        rounded: false,
-        rotation
-      })
-    }
-  }
-
   if (puzzle.odd !== undefined && puzzle.odd !== null) {
     for (let e of puzzle.odd) {
       underlays.push({
@@ -552,6 +531,27 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   }
 
   let overlays: Overlay[] = []
+
+  if (puzzle.rectangle !== undefined && puzzle.rectangle !== null) {
+    for (let r of puzzle.rectangle) {
+      let [minX, minY, maxX, maxY] = cellsToBoundingBox(r.cells)
+      let width = 1 + (maxX - minX)
+      let height = 1 + (maxY - minY)
+      let rotation
+      if (r.angle !== undefined) {
+        rotation = r.angle * (2 * Math.PI) / 360
+      }
+      overlays.push({
+        center: cellsToCenter(r.cells),
+        width: r.width ?? (0.5 * width),
+        height: r.height ?? (0.5 * height),
+        borderColor: r.outlineC ?? "#000000",
+        backgroundColor: r.baseC ?? "#FFFFFF",
+        rounded: false,
+        rotation
+      })
+    }
+  }
 
   if (puzzle.littlekillersum !== undefined && puzzle.littlekillersum !== null) {
     for (let l of puzzle.littlekillersum) {
