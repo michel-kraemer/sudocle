@@ -39,8 +39,10 @@ const FONT_SIZE_CORNER_MARKS_LOW_DPI = 28
 const FONT_SIZE_CENTRE_MARKS_HIGH_DPI = 29
 const FONT_SIZE_CENTRE_MARKS_LOW_DPI = 29
 const MAX_RENDER_LOOP_TIME = 500
+
+/* prettier-ignore */
 const DEFAULT_FONT_FAMILY =
-  'Roboto, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Ubuntu, "Helvetica Neue", Oxygen, Cantarell, sans-serif'
+  "Roboto, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ubuntu, \"Helvetica Neue\", Oxygen, Cantarell, sans-serif"
 
 const PENLINE_TYPE_CENTER_RIGHT = 0
 const PENLINE_TYPE_CENTER_DOWN = 1
