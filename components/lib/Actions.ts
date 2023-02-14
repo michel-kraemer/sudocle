@@ -27,41 +27,51 @@ export const ACTION_UP = "up"
 export const ACTION_DOWN = "down"
 
 export interface ModeAction {
-  readonly type: typeof TYPE_MODE,
-  readonly action: typeof ACTION_SET | typeof ACTION_PUSH |
-    typeof ACTION_REMOVE | typeof ACTION_ROTATE,
+  readonly type: typeof TYPE_MODE
+  readonly action:
+    | typeof ACTION_SET
+    | typeof ACTION_PUSH
+    | typeof ACTION_REMOVE
+    | typeof ACTION_ROTATE
   readonly mode?: Mode
 }
 
 export interface ModeGroupAction {
-  readonly type: typeof TYPE_MODE_GROUP,
+  readonly type: typeof TYPE_MODE_GROUP
   readonly action: typeof ACTION_ROTATE
 }
 
 export interface DigitsAction {
-  readonly type: typeof TYPE_DIGITS,
-  readonly action: typeof ACTION_SET | typeof ACTION_REMOVE,
+  readonly type: typeof TYPE_DIGITS
+  readonly action: typeof ACTION_SET | typeof ACTION_REMOVE
   readonly digit?: number
 }
 
 export interface ColoursAction {
-  readonly type: typeof TYPE_COLOURS,
-  readonly action: typeof ACTION_SET | typeof ACTION_REMOVE,
+  readonly type: typeof TYPE_COLOURS
+  readonly action: typeof ACTION_SET | typeof ACTION_REMOVE
   readonly digit?: number
 }
 
 export interface PenLinesAction {
-  readonly type: typeof TYPE_PENLINES,
-  readonly action: typeof ACTION_PUSH | typeof ACTION_REMOVE,
+  readonly type: typeof TYPE_PENLINES
+  readonly action: typeof ACTION_PUSH | typeof ACTION_REMOVE
   readonly k: number | number[]
 }
 
 export interface SelectionAction {
-  readonly type: typeof TYPE_SELECTION,
-  readonly action: typeof ACTION_ALL | typeof ACTION_CLEAR | typeof ACTION_SET |
-    typeof ACTION_PUSH | typeof ACTION_REMOVE | typeof ACTION_RIGHT |
-    typeof ACTION_LEFT | typeof ACTION_UP | typeof ACTION_DOWN,
-  readonly k?: number | number[],
+  readonly type: typeof TYPE_SELECTION
+  readonly action:
+    | typeof ACTION_ALL
+    | typeof ACTION_CLEAR
+    | typeof ACTION_SET
+    | typeof ACTION_PUSH
+    | typeof ACTION_REMOVE
+    | typeof ACTION_RIGHT
+    | typeof ACTION_LEFT
+    | typeof ACTION_UP
+    | typeof ACTION_DOWN
+  readonly k?: number | number[]
   readonly append?: boolean
 }
 
@@ -74,7 +84,7 @@ export interface RedoAction {
 }
 
 export interface InitAction {
-  readonly type: typeof TYPE_INIT,
+  readonly type: typeof TYPE_INIT
   readonly data?: Data
 }
 
@@ -86,6 +96,15 @@ export interface PauseAction {
   readonly type: typeof TYPE_PAUSE
 }
 
-export type Action = ModeAction | ModeGroupAction | DigitsAction |
-  ColoursAction | PenLinesAction | SelectionAction | UndoAction | RedoAction |
-  InitAction | CheckAction | PauseAction
+export type Action =
+  | ModeAction
+  | ModeGroupAction
+  | DigitsAction
+  | ColoursAction
+  | PenLinesAction
+  | SelectionAction
+  | UndoAction
+  | RedoAction
+  | InitAction
+  | CheckAction
+  | PauseAction

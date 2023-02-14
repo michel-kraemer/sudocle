@@ -71,7 +71,10 @@
   &::-webkit-slider-thumb {
     width: $form-range-thumb-width;
     height: $form-range-thumb-height;
-    margin-top: math.div($form-range-track-height - $form-range-thumb-height, 2); // Webkit specific
+    margin-top: math.div(
+      $form-range-track-height - $form-range-thumb-height,
+      2
+    ); // Webkit specific
     background-color: $form-range-thumb-bg;
     border: $form-range-thumb-border;
     border-radius: $form-range-thumb-border-radius;

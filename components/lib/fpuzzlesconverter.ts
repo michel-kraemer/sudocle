@@ -1,19 +1,27 @@
 import { chunk, mean, isString } from "lodash"
-import { Arrow, Cage, Data, DataCell, ExtraRegion, FogLight, Line,
-  Overlay } from "../types/Data"
+import {
+  Arrow,
+  Cage,
+  Data,
+  DataCell,
+  ExtraRegion,
+  FogLight,
+  Line,
+  Overlay
+} from "../types/Data"
 
 interface FPuzzlesCell {
-  value?: number | string,
-  cornerPencilMarks?: (number | string)[],
-  centerPencilMarks?: (number | string)[],
-  given?: boolean,
-  region?: number,
+  value?: number | string
+  cornerPencilMarks?: (number | string)[]
+  centerPencilMarks?: (number | string)[]
+  given?: boolean
+  region?: number
   c?: string
 }
 
 interface FPuzzlesCage {
   cells: string[]
-  value: number | string,
+  value: number | string
   outlineC?: string
 }
 
@@ -22,23 +30,23 @@ interface FPuzzlesMinMax {
 }
 
 interface FPuzzlesLine {
-  lines: string[][],
+  lines: string[][]
   outlineC?: string
   width?: number
 }
 
 interface FPuzzlesClone {
-  cells?: string[],
+  cells?: string[]
   cloneCells?: string[]
 }
 
 interface FPuzzlesRectangle {
-  cells: string[],
-  baseC?: string,
-  outlineC?: string,
-  fontC?: string,
-  width?: number,
-  height?: number,
+  cells: string[]
+  baseC?: string
+  outlineC?: string
+  fontC?: string
+  width?: number
+  height?: number
   angle?: number
 }
 
@@ -51,19 +59,19 @@ interface FPuzzlesExtraRegion {
 }
 
 interface FPuzzlesArrow {
-  lines?: string[][],
+  lines?: string[][]
   cells?: string[]
 }
 
 interface FPuzzlesLittleKillerSum {
-  cell: string,
-  cells?: string[],
-  direction?: string,
+  cell: string
+  cells?: string[]
+  direction?: string
   value?: number | string
 }
 
 interface FPuzzlesQuadruple {
-  cells: string[],
+  cells: string[]
   values: (number | string)[]
 }
 
@@ -76,27 +84,27 @@ interface FPuzzlesBetweenLine {
 }
 
 interface FPuzzlesDifferenceRatio {
-  cells: string[],
+  cells: string[]
   value: number | string
 }
 
 interface FPuzzlesXV {
-  cells: string[],
+  cells: string[]
   value: string
 }
 
 interface FPuzzlesSandwichSum {
-  cell: string,
+  cell: string
   value: number | string
 }
 
 interface FPuzzlesCircle {
-  cells: string[],
-  baseC?: string,
-  outlineC?: string,
-  fontC?: string,
-  width: number,
-  height: number,
+  cells: string[]
+  baseC?: string
+  outlineC?: string
+  fontC?: string
+  width: number
+  height: number
   value?: number | string
 }
 
@@ -105,55 +113,58 @@ interface FPuzzlesThermometer {
 }
 
 interface FPuzzlesText {
-  cells: string[],
-  value?: string,
-  fontC?: string,
-  size?: number,
+  cells: string[]
+  value?: string
+  fontC?: string
+  size?: number
   angle?: number
 }
 
 interface FPuzzlesData {
-  size?: number,
-  grid: FPuzzlesCell[][],
-  title?: string,
-  author?: string,
-  ruleset?: string,
+  size?: number
+  grid: FPuzzlesCell[][]
+  title?: string
+  author?: string
+  ruleset?: string
   cage?: FPuzzlesCage[]
-  killercage?: FPuzzlesCage[],
-  minimum?: FPuzzlesMinMax[],
-  maximum?: FPuzzlesMinMax[],
-  ["diagonal+"]: boolean,
-  ["diagonal-"]: boolean,
-  line?: FPuzzlesLine[],
-  clone?: FPuzzlesClone[],
-  rectangle?: FPuzzlesRectangle[],
-  odd?: FPuzzlesOddEven[],
-  even?: FPuzzlesOddEven[],
-  extraregion?: FPuzzlesExtraRegion[],
-  arrow?: FPuzzlesArrow[],
-  littlekillersum?: FPuzzlesLittleKillerSum[],
-  quadruple?: FPuzzlesQuadruple[],
-  palindrome?: FPuzzlesPalindrome[],
-  betweenline?: FPuzzlesBetweenLine[],
+  killercage?: FPuzzlesCage[]
+  minimum?: FPuzzlesMinMax[]
+  maximum?: FPuzzlesMinMax[]
+  ["diagonal+"]: boolean
+  ["diagonal-"]: boolean
+  line?: FPuzzlesLine[]
+  clone?: FPuzzlesClone[]
+  rectangle?: FPuzzlesRectangle[]
+  odd?: FPuzzlesOddEven[]
+  even?: FPuzzlesOddEven[]
+  extraregion?: FPuzzlesExtraRegion[]
+  arrow?: FPuzzlesArrow[]
+  littlekillersum?: FPuzzlesLittleKillerSum[]
+  quadruple?: FPuzzlesQuadruple[]
+  palindrome?: FPuzzlesPalindrome[]
+  betweenline?: FPuzzlesBetweenLine[]
   difference?: FPuzzlesDifferenceRatio[]
   ratio?: FPuzzlesDifferenceRatio[]
-  xv?: FPuzzlesXV[],
-  sandwichsum?: FPuzzlesSandwichSum[],
-  circle?: FPuzzlesCircle[],
-  thermometer?: FPuzzlesThermometer[],
-  text?: FPuzzlesText[],
-  solution?: (number | string | undefined)[],
+  xv?: FPuzzlesXV[]
+  sandwichsum?: FPuzzlesSandwichSum[]
+  circle?: FPuzzlesCircle[]
+  thermometer?: FPuzzlesThermometer[]
+  text?: FPuzzlesText[]
+  solution?: (number | string | undefined)[]
   fogofwar?: string[]
 }
 
 interface CustomStyle {
-  arrow: Arrow,
+  arrow: Arrow
   bulb: Line
 }
 
 const MIN_GRID_SIZE = 3
 const MAX_GRID_SIZE = 16
-const GRID_SIZES = [undefined, undefined, undefined,
+const GRID_SIZES = [
+  undefined,
+  undefined,
+  undefined,
   { width: 3, height: 1 },
   { width: 2, height: 2 },
   { width: 5, height: 1 },
@@ -170,7 +181,11 @@ const GRID_SIZES = [undefined, undefined, undefined,
   { width: 4, height: 4 }
 ]
 
-function cellToCell(cell: string, offsetX = 0.5, offsetY = 0.5): [number, number] {
+function cellToCell(
+  cell: string,
+  offsetX = 0.5,
+  offsetY = 0.5
+): [number, number] {
   let m = cell.match(/R([0-9]+)C([0-9]+)/)!
   return [+m[1] - 1 + offsetX, +m[2] - 1 + offsetY]
 }
@@ -218,8 +233,12 @@ function fixLineConnector(l0: string, l1: string, wp: [number, number]) {
   }
 }
 
-function convertMinMax(m: FPuzzlesMinMax, isMax: boolean, arrows: Arrow[],
-    underlays: Overlay[]) {
+function convertMinMax(
+  m: FPuzzlesMinMax,
+  isMax: boolean,
+  arrows: Arrow[],
+  underlays: Overlay[]
+) {
   let center = cellToCell(m.cell)
   let newArrows: Arrow[] = []
   newArrows.push({
@@ -306,17 +325,22 @@ function makeDefaultRegions(puzzle: FPuzzlesData): number[][] {
 export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   let defaultRegions = makeDefaultRegions(puzzle)
   let regions: [number, number][][] = []
-  let cells: DataCell[][] = puzzle.grid.map((row, y) => row.map((col, x) => {
-    let r = col.region === undefined || isNaN(col.region) ? defaultRegions[y][x] : col.region
-    regions[r] ||= []
-    regions[r].push([y, x])
+  let cells: DataCell[][] = puzzle.grid.map((row, y) =>
+    row.map((col, x) => {
+      let r =
+        col.region === undefined || isNaN(col.region)
+          ? defaultRegions[y][x]
+          : col.region
+      regions[r] ||= []
+      regions[r].push([y, x])
 
-    return {
-      value: col.given ? col.value : undefined,
-      centremarks: col.centerPencilMarks,
-      cornermarks: col.cornerPencilMarks
-    }
-  }))
+      return {
+        value: col.given ? col.value : undefined,
+        centremarks: col.centerPencilMarks,
+        cornermarks: col.cornerPencilMarks
+      }
+    })
+  )
 
   // make sure all regions are initialized
   for (let i = 0; i < regions.length; ++i) {
@@ -340,8 +364,11 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   let killercages = [...(puzzle.killercage ?? []), ...(puzzle.cage ?? [])]
   let customStyle: CustomStyle | undefined = undefined
   for (let cage of killercages) {
-    if (isString(cage.value) && (cage.value.toLowerCase() === "fow" ||
-        cage.value.toLowerCase() === "foglight")) {
+    if (
+      isString(cage.value) &&
+      (cage.value.toLowerCase() === "fow" ||
+        cage.value.toLowerCase() === "foglight")
+    ) {
       if (fogLights === undefined) {
         fogLights = []
       }
@@ -351,7 +378,10 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           size: 3
         })
       }
-    } else if (isString(cage.value) && cage.value.toLowerCase().startsWith("customstyle:")) {
+    } else if (
+      isString(cage.value) &&
+      cage.value.toLowerCase().startsWith("customstyle:")
+    ) {
       customStyle = JSON.parse(cage.value.substring(12).trim())
     } else {
       let r: Cage = {
@@ -391,8 +421,8 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   if (puzzle["diagonal+"]) {
     lines.push({
       wayPoints: [
-          [0, 9],
-          [9, 0]
+        [0, 9],
+        [9, 0]
       ],
       color: "#34BBE6",
       thickness: 1
@@ -402,8 +432,8 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   if (puzzle["diagonal-"]) {
     lines.push({
       wayPoints: [
-          [0, 0],
-          [9, 9]
+        [0, 0],
+        [9, 9]
       ],
       color: "#34BBE6",
       thickness: 1
@@ -521,7 +551,12 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
             thickness: customStyle?.arrow?.thickness ?? 2,
             headLength: customStyle?.arrow?.headLength ?? 0.3
           }
-          if (a.cells !== undefined && a.cells !== null && l.length > 1 && a.cells.includes(l[0])) {
+          if (
+            a.cells !== undefined &&
+            a.cells !== null &&
+            l.length > 1 &&
+            a.cells.includes(l[0])
+          ) {
             fixLineConnector(l[0], l[1], newArrow.wayPoints[0])
           }
           arrows.push(newArrow)
@@ -539,12 +574,12 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       let height = 1 + (maxY - minY)
       let rotation
       if (r.angle !== undefined) {
-        rotation = r.angle * (2 * Math.PI) / 360
+        rotation = (r.angle * (2 * Math.PI)) / 360
       }
       overlays.push({
         center: cellsToCenter(r.cells),
-        width: r.width ?? (0.5 * width),
-        height: r.height ?? (0.5 * height),
+        width: r.width ?? 0.5 * width,
+        height: r.height ?? 0.5 * height,
         borderColor: r.outlineC ?? "#000000",
         backgroundColor: r.baseC ?? "#FFFFFF",
         rounded: false,
@@ -559,28 +594,40 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       let arrow: Arrow | undefined = undefined
       if (l.direction === "UR") {
         arrow = {
-          wayPoints: [[center[0] - 0.05, center[1] + 0.05], [center[0] - 0.5, center[1] + 0.5]],
+          wayPoints: [
+            [center[0] - 0.05, center[1] + 0.05],
+            [center[0] - 0.5, center[1] + 0.5]
+          ],
           color: "#CFCFCF",
           thickness: 5,
           headLength: 0.3
         }
       } else if (l.direction === "DR") {
         arrow = {
-          wayPoints: [[center[0] + 0.05, center[1] + 0.05], [center[0] + 0.5, center[1] + 0.5]],
+          wayPoints: [
+            [center[0] + 0.05, center[1] + 0.05],
+            [center[0] + 0.5, center[1] + 0.5]
+          ],
           color: "#CFCFCF",
           thickness: 5,
           headLength: 0.3
         }
       } else if (l.direction === "UL") {
         arrow = {
-          wayPoints: [[center[0] - 0.05, center[1] - 0.05], [center[0] - 0.5, center[1] - 0.5]],
+          wayPoints: [
+            [center[0] - 0.05, center[1] - 0.05],
+            [center[0] - 0.5, center[1] - 0.5]
+          ],
           color: "#CFCFCF",
           thickness: 5,
           headLength: 0.3
         }
       } else if (l.direction === "DL") {
         arrow = {
-          wayPoints: [[center[0] + 0.05, center[1] - 0.05], [center[0] + 0.5, center[1] - 0.5]],
+          wayPoints: [
+            [center[0] + 0.05, center[1] - 0.05],
+            [center[0] + 0.5, center[1] - 0.5]
+          ],
           color: "#CFCFCF",
           thickness: 5,
           headLength: 0.3
@@ -661,7 +708,11 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           }
 
           fixLineConnector(l[0], l[1], newLine.wayPoints[0])
-          fixLineConnector(l[l.length - 1], l[l.length - 2], newLine.wayPoints[l.length - 1])
+          fixLineConnector(
+            l[l.length - 1],
+            l[l.length - 2],
+            newLine.wayPoints[l.length - 1]
+          )
 
           lines.push(newLine)
 
@@ -805,7 +856,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       let center = cellsToCenter(t.cells)
       let rotation
       if (t.angle !== undefined) {
-        rotation = t.angle * (2 * Math.PI) / 360
+        rotation = (t.angle * (2 * Math.PI)) / 360
       }
       overlays.push({
         center,
@@ -823,7 +874,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   if (puzzle.solution !== undefined) {
     let i = 0
     solution = []
-    cells.forEach((row) => {
+    cells.forEach(row => {
       let srow: (number | undefined)[] = []
       solution!.push(srow)
       row.forEach(() => {

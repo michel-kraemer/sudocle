@@ -47,86 +47,135 @@ const Help = () => {
   let tab = isApple ? <>&#x21e5;</> : "Tab"
   let shift = <>&#x21e7;</>
 
-  return (<>
-    <h2>Help</h2>
+  return (
+    <>
+      <h2>Help</h2>
 
-    <h3>Mouse</h3>
-    <div className="shortcuts">
-      <div className="key"><kbd>Click</kbd></div>
-      <div className="desc">Select cell</div>
+      <h3>Mouse</h3>
+      <div className="shortcuts">
+        <div className="key">
+          <kbd>Click</kbd>
+        </div>
+        <div className="desc">Select cell</div>
 
-      <div className="key"><kbd>Click</kbd> + <kbd>Drag</kbd></div>
-      <div className="desc">Select multiple cells</div>
+        <div className="key">
+          <kbd>Click</kbd> + <kbd>Drag</kbd>
+        </div>
+        <div className="desc">Select multiple cells</div>
 
-      <div className="key"><kbd>{meta}</kbd> + <kbd>Click</kbd></div>
-      <div className="desc">Add cell(s) to selection</div>
+        <div className="key">
+          <kbd>{meta}</kbd> + <kbd>Click</kbd>
+        </div>
+        <div className="desc">Add cell(s) to selection</div>
 
-      <div className="key"><kbd>{meta}</kbd> + <kbd>{shift}</kbd> + <kbd>Click</kbd></div>
-      <div className="desc">Deselect cell(s)</div>
+        <div className="key">
+          <kbd>{meta}</kbd> + <kbd>{shift}</kbd> + <kbd>Click</kbd>
+        </div>
+        <div className="desc">Deselect cell(s)</div>
 
-      <div className="key"><kbd>{alt}</kbd> + <kbd>Double click</kbd></div>
-      <div className="desc">Select cells with same colour</div>
-    </div>
+        <div className="key">
+          <kbd>{alt}</kbd> + <kbd>Double click</kbd>
+        </div>
+        <div className="desc">Select cells with same colour</div>
+      </div>
 
-    <h3>Keyboard shortcuts</h3>
-    <div className="shortcuts">
-      <div className="key"><kbd>0</kbd> &ndash; <kbd>9</kbd></div>
-      <div className="desc">Enter digit</div>
+      <h3>Keyboard shortcuts</h3>
+      <div className="shortcuts">
+        <div className="key">
+          <kbd>0</kbd> &ndash; <kbd>9</kbd>
+        </div>
+        <div className="desc">Enter digit</div>
 
-      <div className="key"><kbd>{shift}</kbd> + ( <kbd>0</kbd> &ndash; <kbd>9</kbd> )</div>
-      <div className="desc">Enter corner mark</div>
+        <div className="key">
+          <kbd>{shift}</kbd> + ( <kbd>0</kbd> &ndash; <kbd>9</kbd> )
+        </div>
+        <div className="desc">Enter corner mark</div>
 
-      <div className="key"><kbd>{meta}</kbd> + ( <kbd>0</kbd> &ndash; <kbd>9</kbd> )</div>
-      <div className="desc">Enter centre mark</div>
+        <div className="key">
+          <kbd>{meta}</kbd> + ( <kbd>0</kbd> &ndash; <kbd>9</kbd> )
+        </div>
+        <div className="desc">Enter centre mark</div>
 
-      <div className="key"><kbd>{del}</kbd></div>
-      <div className="desc">Delete digit/mark/colour</div>
+        <div className="key">
+          <kbd>{del}</kbd>
+        </div>
+        <div className="desc">Delete digit/mark/colour</div>
 
-      <div className="divider"></div>
+        <div className="divider"></div>
 
-      <div className="key"><kbd>{meta}</kbd> + <kbd>Z</kbd></div>
-      <div className="desc">Undo</div>
+        <div className="key">
+          <kbd>{meta}</kbd> + <kbd>Z</kbd>
+        </div>
+        <div className="desc">Undo</div>
 
-      <div className="key"><kbd>{meta}</kbd> + <kbd>{shift}</kbd> + <kbd>Z</kbd><br />
-        <div className="alt-key"><kbd>{meta}</kbd> + <kbd>Y</kbd></div></div>
-      <div className="desc">Redo</div>
+        <div className="key">
+          <kbd>{meta}</kbd> + <kbd>{shift}</kbd> + <kbd>Z</kbd>
+          <br />
+          <div className="alt-key">
+            <kbd>{meta}</kbd> + <kbd>Y</kbd>
+          </div>
+        </div>
+        <div className="desc">Redo</div>
 
-      <div className="divider"></div>
+        <div className="divider"></div>
 
-      <div className="key"><kbd>Space</kbd></div>
-      <div className="desc">Switch to next mode in group</div>
+        <div className="key">
+          <kbd>Space</kbd>
+        </div>
+        <div className="desc">Switch to next mode in group</div>
 
-      <div className="key"><kbd>{tab}</kbd></div>
-      <div className="desc">Toggle mode group</div>
+        <div className="key">
+          <kbd>{tab}</kbd>
+        </div>
+        <div className="desc">Toggle mode group</div>
 
-      <div className="key"><kbd>{keyZ.toUpperCase()}</kbd></div>
-      <div className="desc">Digit mode (Group 1)</div>
+        <div className="key">
+          <kbd>{keyZ.toUpperCase()}</kbd>
+        </div>
+        <div className="desc">Digit mode (Group 1)</div>
 
-      <div className="key"><kbd>{keyX.toUpperCase()}</kbd></div>
-      <div className="desc">Corner mark mode (Group 1)</div>
+        <div className="key">
+          <kbd>{keyX.toUpperCase()}</kbd>
+        </div>
+        <div className="desc">Corner mark mode (Group 1)</div>
 
-      <div className="key"><kbd>{keyC.toUpperCase()}</kbd></div>
-      <div className="desc">Centre mark mode (Group 1)</div>
+        <div className="key">
+          <kbd>{keyC.toUpperCase()}</kbd>
+        </div>
+        <div className="desc">Centre mark mode (Group 1)</div>
 
-      <div className="key"><kbd>{keyV.toUpperCase()}</kbd></div>
-      <div className="desc">Colour mode (Group 1)</div>
+        <div className="key">
+          <kbd>{keyV.toUpperCase()}</kbd>
+        </div>
+        <div className="desc">Colour mode (Group 1)</div>
 
-      <div className="key"><kbd>{keyP.toUpperCase()}</kbd></div>
-      <div className="desc">Pen mode (Group 2)</div>
+        <div className="key">
+          <kbd>{keyP.toUpperCase()}</kbd>
+        </div>
+        <div className="desc">Pen mode (Group 2)</div>
 
-      <div className="divider"></div>
+        <div className="divider"></div>
 
-      <div className="key"><kbd>{meta}</kbd> + <kbd>A</kbd></div>
-      <div className="desc">Select all cells</div>
+        <div className="key">
+          <kbd>{meta}</kbd> + <kbd>A</kbd>
+        </div>
+        <div className="desc">Select all cells</div>
 
-      <div className="key"><kbd>&#x2190;</kbd>, <kbd>&#x2191;</kbd>, <kbd>&#x2192;</kbd>, <kbd>&#x2193;</kbd></div>
-      <div className="desc">Move selection</div>
+        <div className="key">
+          <kbd>&#x2190;</kbd>, <kbd>&#x2191;</kbd>, <kbd>&#x2192;</kbd>,{" "}
+          <kbd>&#x2193;</kbd>
+        </div>
+        <div className="desc">Move selection</div>
 
-      <div className="key"><kbd>{meta}</kbd> + ( <kbd>&#x2190;</kbd> &ndash; <kbd>&#x2193;</kbd> )</div>
-      <div className="desc">Add to selection</div>
-    </div>
-    <style jsx>{styles}</style>
-  </>)
+        <div className="key">
+          <kbd>{meta}</kbd> + ( <kbd>&#x2190;</kbd> &ndash; <kbd>&#x2193;</kbd>{" "}
+          )
+        </div>
+        <div className="desc">Add to selection</div>
+      </div>
+      <style jsx>{styles}</style>
+    </>
+  )
 }
 
 export default Help

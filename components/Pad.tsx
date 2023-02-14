@@ -1,10 +1,25 @@
 import Button from "./Button"
 import SettingsContext from "./contexts/SettingsContext"
 import GameContext from "./contexts/GameContext"
-import { TYPE_MODE, TYPE_DIGITS, TYPE_COLOURS, TYPE_UNDO, TYPE_REDO,
-  TYPE_CHECK, ACTION_SET, ACTION_REMOVE } from "./lib/Actions"
-import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN,
-  Mode, getModeGroup } from "./lib/Modes"
+import {
+  TYPE_MODE,
+  TYPE_DIGITS,
+  TYPE_COLOURS,
+  TYPE_UNDO,
+  TYPE_REDO,
+  TYPE_CHECK,
+  ACTION_SET,
+  ACTION_REMOVE
+} from "./lib/Actions"
+import {
+  MODE_NORMAL,
+  MODE_CORNER,
+  MODE_CENTRE,
+  MODE_COLOUR,
+  MODE_PEN,
+  Mode,
+  getModeGroup
+} from "./lib/Modes"
 import { useContext, useEffect, useRef, useState } from "react"
 import { Check, Delete, Redo, Undo } from "lucide-react"
 import Color from "color"
@@ -12,8 +27,8 @@ import classNames from "classnames"
 import styles from "./Pad.scss"
 
 interface Colour {
-  colour: string,
-  digit: number,
+  colour: string
+  digit: number
   light: boolean
 }
 
@@ -125,9 +140,7 @@ const Pad = () => {
         digitButtons.push(
           <Button key={i} noPadding onClick={() => onDigit(digit)}>
             <div className={classNames("digit-container", `digit-${digit}`)}>
-              <div>
-                {digit}
-              </div>
+              <div>{digit}</div>
             </div>
             <style jsx>{styles}</style>
           </Button>
@@ -140,9 +153,10 @@ const Pad = () => {
         }
         digitButtons.push(
           <Button key={c.digit} noPadding onClick={() => onColour(c.digit)}>
-            <div className={classNames("colour-container", { light: c.light })}
-              style={{ backgroundColor: c.colour }}>
-            </div>
+            <div
+              className={classNames("colour-container", { light: c.light })}
+              style={{ backgroundColor: c.colour }}
+            ></div>
             <style jsx>{styles}</style>
           </Button>
         )
@@ -153,7 +167,11 @@ const Pad = () => {
     }
   } else {
     while (digitButtons.length < 12) {
-      digitButtons.push(<div className="placeholder"><style jsx>{styles}</style></div>)
+      digitButtons.push(
+        <div className="placeholder">
+          <style jsx>{styles}</style>
+        </div>
+      )
     }
   }
 
@@ -170,57 +188,77 @@ const Pad = () => {
       <Button noPadding onClick={onRedo}>
         <Redo size="1.05rem" />
       </Button>
-      {modeGroup === 0 && (
-        <Button active={game.mode === MODE_NORMAL}
-            noPadding onClick={() => onMode(MODE_NORMAL)}>
+      {(modeGroup === 0 && (
+        <Button
+          active={game.mode === MODE_NORMAL}
+          noPadding
+          onClick={() => onMode(MODE_NORMAL)}
+        >
           <div className="label-container">Normal</div>
         </Button>
-      ) || (
-        <Button active={game.mode === MODE_PEN}
-            noPadding onClick={() => onMode(MODE_PEN)}>
+      )) || (
+        <Button
+          active={game.mode === MODE_PEN}
+          noPadding
+          onClick={() => onMode(MODE_PEN)}
+        >
           <div className="label-container">Pen</div>
         </Button>
       )}
       {digitButtons[0]}
       {digitButtons[1]}
       {digitButtons[2]}
-      {modeGroup === 0 && (
-        <Button active={game.mode === MODE_CORNER} noPadding
-            onClick={() => onMode(MODE_CORNER)}>
+      {(modeGroup === 0 && (
+        <Button
+          active={game.mode === MODE_CORNER}
+          noPadding
+          onClick={() => onMode(MODE_CORNER)}
+        >
           <div className="label-container">Corner</div>
         </Button>
-      ) || <div className="placeholder"></div>}
+      )) || <div className="placeholder"></div>}
       {digitButtons[3]}
       {digitButtons[4]}
       {digitButtons[5]}
-      {modeGroup === 0 && (
-        <Button active={game.mode === MODE_CENTRE} noPadding
-            onClick={() => onMode(MODE_CENTRE)}>
+      {(modeGroup === 0 && (
+        <Button
+          active={game.mode === MODE_CENTRE}
+          noPadding
+          onClick={() => onMode(MODE_CENTRE)}
+        >
           <div className="label-container">Centre</div>
         </Button>
-      ) || <div className="placeholder"></div>}
+      )) || <div className="placeholder"></div>}
       {digitButtons[6]}
       {digitButtons[7]}
       {digitButtons[8]}
-      {modeGroup === 0 && (
-        <Button active={game.mode === MODE_COLOUR} noPadding
-            onClick={() => onMode(MODE_COLOUR)}>
+      {(modeGroup === 0 && (
+        <Button
+          active={game.mode === MODE_COLOUR}
+          noPadding
+          onClick={() => onMode(MODE_COLOUR)}
+        >
           <div className="label-container">Colour</div>
         </Button>
-      ) || <div className="placeholder"></div>}
-      {game.mode !== MODE_COLOUR && (<>
-        <div className="zero-button">
+      )) || <div className="placeholder"></div>}
+      {game.mode !== MODE_COLOUR && (
+        <>
+          <div className="zero-button">{digitButtons[9]}</div>
+          <div className="placeholder"></div>
+        </>
+      )}
+      {game.mode === MODE_COLOUR && (
+        <>
           {digitButtons[9]}
-        </div>
-        <div className="placeholder">
-        </div>
-      </>)}
-      {game.mode === MODE_COLOUR && (<>
-        {digitButtons[9]}
-        {digitButtons[10]}
-        {digitButtons[11]}
-      </>)}
-      <Button noPadding onClick={onCheck} pulsating={!game.solved && checkReady}>
+          {digitButtons[10]}
+          {digitButtons[11]}
+        </>
+      )}
+      <Button
+        noPadding
+        onClick={onCheck}
+        pulsating={!game.solved && checkReady}
+      >
         <Check size="1.05rem" />
       </Button>
       <style jsx>{styles}</style>

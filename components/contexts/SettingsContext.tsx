@@ -2,13 +2,13 @@ import { createContext, ReactNode, useEffect, useReducer } from "react"
 import { produce } from "immer"
 
 interface Settings {
-  colourPalette: string,
-  theme: string,
-  selectionColour: "yellow" | "red" | "green" | "blue",
-  customColours: string[],
-  zoom: number,
-  fontSizeFactorDigits: number,
-  fontSizeFactorCornerMarks: number,
+  colourPalette: string
+  theme: string
+  selectionColour: "yellow" | "red" | "green" | "blue"
+  customColours: string[]
+  zoom: number
+  fontSizeFactorDigits: number
+  fontSizeFactorCornerMarks: number
   fontSizeFactorCentreMarks: number
 }
 
@@ -28,34 +28,46 @@ const LOCAL_STORAGE_KEY = "SudocleSettings"
 const State = createContext(DEFAULT_SETTINGS)
 const Dispatch = createContext((_: Partial<Settings>) => {})
 
-const reducer = produce((draft: Settings, { colourPalette, theme, selectionColour,
-    customColours, zoom, fontSizeFactorDigits, fontSizeFactorCornerMarks,
-    fontSizeFactorCentreMarks }: Partial<Settings>) => {
-  if (colourPalette !== undefined) {
-    draft.colourPalette = colourPalette
+const reducer = produce(
+  (
+    draft: Settings,
+    {
+      colourPalette,
+      theme,
+      selectionColour,
+      customColours,
+      zoom,
+      fontSizeFactorDigits,
+      fontSizeFactorCornerMarks,
+      fontSizeFactorCentreMarks
+    }: Partial<Settings>
+  ) => {
+    if (colourPalette !== undefined) {
+      draft.colourPalette = colourPalette
+    }
+    if (theme !== undefined) {
+      draft.theme = theme
+    }
+    if (selectionColour !== undefined) {
+      draft.selectionColour = selectionColour
+    }
+    if (customColours !== undefined) {
+      draft.customColours = customColours
+    }
+    if (zoom !== undefined) {
+      draft.zoom = zoom
+    }
+    if (fontSizeFactorDigits !== undefined) {
+      draft.fontSizeFactorDigits = fontSizeFactorDigits
+    }
+    if (fontSizeFactorCornerMarks !== undefined) {
+      draft.fontSizeFactorCornerMarks = fontSizeFactorCornerMarks
+    }
+    if (fontSizeFactorCentreMarks !== undefined) {
+      draft.fontSizeFactorCentreMarks = fontSizeFactorCentreMarks
+    }
   }
-  if (theme !== undefined) {
-    draft.theme = theme
-  }
-  if (selectionColour !== undefined) {
-    draft.selectionColour = selectionColour
-  }
-  if (customColours !== undefined) {
-    draft.customColours = customColours
-  }
-  if (zoom !== undefined) {
-    draft.zoom = zoom
-  }
-  if (fontSizeFactorDigits !== undefined) {
-    draft.fontSizeFactorDigits = fontSizeFactorDigits
-  }
-  if (fontSizeFactorCornerMarks !== undefined) {
-    draft.fontSizeFactorCornerMarks = fontSizeFactorCornerMarks
-  }
-  if (fontSizeFactorCentreMarks !== undefined) {
-    draft.fontSizeFactorCentreMarks = fontSizeFactorCentreMarks
-  }
-})
+)
 
 interface ProviderProps {
   children: ReactNode

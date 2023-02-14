@@ -98,73 +98,143 @@ const Settings = () => {
     setColoursDefault(defaultColours)
     setColoursCTC(makeColours(refPlaceholderCTC.current!))
     setColoursWong(makeColours(refPlaceholderWong.current!))
-    setColoursCustom(old => old.length === 0 ? defaultColours : old)
+    setColoursCustom(old => (old.length === 0 ? defaultColours : old))
   }, [])
 
-  return (<>
-    <h2>Settings</h2>
+  return (
+    <>
+      <h2>Settings</h2>
 
-    <h3>Theme</h3>
-    <RadioGroup name="theme" value={themeInternal} options={[{
-      id: "default",
-      label: "Sudocle"
-    }, {
-      id: "dark",
-      label: "Dark"
-    }]} onChange={onChangeTheme} />
+      <h3>Theme</h3>
+      <RadioGroup
+        name="theme"
+        value={themeInternal}
+        options={[
+          {
+            id: "default",
+            label: "Sudocle"
+          },
+          {
+            id: "dark",
+            label: "Dark"
+          }
+        ]}
+        onChange={onChangeTheme}
+      />
 
-    <h3>Colour Palette</h3>
-    <div className="palette-placeholder" data-colour-palette="ctc" ref={refPlaceholderCTC} />
-    <div className="palette-placeholder" data-colour-palette="wong" ref={refPlaceholderWong} />
-    <RadioGroup name="colourPalette" value={settings.colourPalette} options={[{
-      id: "default",
-      label: <div className="palette-label"><div>Sudocle</div>
-        <Palette colours={coloursDefault} /></div>
-    }, {
-      id: "ctc",
-      label: <div className="palette-label"><div>Cracking the Cryptic</div>
-        <Palette colours={coloursCTC} /></div>
-    }, {
-      id: "wong",
-      label: <div className="palette-label"><div>Wong (optimised for colour-blindness)</div>
-        <Palette colours={coloursWong} /></div>
-    }, {
-      id: "custom",
-      label: <div className="palette-label"><div>Custom</div>
-        <Palette colours={coloursCustom} customisable={true}
-        updatePalette={onUpdateCustomColours} /></div>
-    }]} onChange={(colourPalette) => updateSettings({ colourPalette })} />
+      <h3>Colour Palette</h3>
+      <div
+        className="palette-placeholder"
+        data-colour-palette="ctc"
+        ref={refPlaceholderCTC}
+      />
+      <div
+        className="palette-placeholder"
+        data-colour-palette="wong"
+        ref={refPlaceholderWong}
+      />
+      <RadioGroup
+        name="colourPalette"
+        value={settings.colourPalette}
+        options={[
+          {
+            id: "default",
+            label: (
+              <div className="palette-label">
+                <div>Sudocle</div>
+                <Palette colours={coloursDefault} />
+              </div>
+            )
+          },
+          {
+            id: "ctc",
+            label: (
+              <div className="palette-label">
+                <div>Cracking the Cryptic</div>
+                <Palette colours={coloursCTC} />
+              </div>
+            )
+          },
+          {
+            id: "wong",
+            label: (
+              <div className="palette-label">
+                <div>Wong (optimised for colour-blindness)</div>
+                <Palette colours={coloursWong} />
+              </div>
+            )
+          },
+          {
+            id: "custom",
+            label: (
+              <div className="palette-label">
+                <div>Custom</div>
+                <Palette
+                  colours={coloursCustom}
+                  customisable={true}
+                  updatePalette={onUpdateCustomColours}
+                />
+              </div>
+            )
+          }
+        ]}
+        onChange={colourPalette => updateSettings({ colourPalette })}
+      />
 
-    <h3>Zoom</h3>
-    <div className="slider">
-      <RangeSlider id="range-zoom"
-        min={0.9} max={1.25} step={0.05} value={settings.zoom}
-        onChange={onChangeZoom}
-        valueToDescription={zoomValueToDescription} />
-    </div>
+      <h3>Zoom</h3>
+      <div className="slider">
+        <RangeSlider
+          id="range-zoom"
+          min={0.9}
+          max={1.25}
+          step={0.05}
+          value={settings.zoom}
+          onChange={onChangeZoom}
+          valueToDescription={zoomValueToDescription}
+        />
+      </div>
 
-    <h3>Font sizes</h3>
-    <div className="slider">
-      <RangeSlider id="range-digits" label="Digits"
-        min={0.75} max={1.5} step={0.125} value={settings.fontSizeFactorDigits}
-        onChange={onChangeFontSizeDigits}
-        valueToDescription={fontSizeValueToDescription} />
-    </div>
-    <div className="slider">
-      <RangeSlider id="range-corner-marks" label="Corner marks"
-        min={0.75} max={1.5} step={0.125} value={settings.fontSizeFactorCornerMarks}
-        onChange={onChangeFontSizeCornerMarks}
-        valueToDescription={fontSizeValueToDescription} />
-    </div>
-    <div className="slider">
-      <RangeSlider id="range-centre-marks" label="Centre marks"
-        min={0.75} max={1.5} step={0.125} value={settings.fontSizeFactorCentreMarks}
-        onChange={onChangeFontSizeCentreMarks}
-        valueToDescription={fontSizeValueToDescription} />
-    </div>
+      <h3>Font sizes</h3>
+      <div className="slider">
+        <RangeSlider
+          id="range-digits"
+          label="Digits"
+          min={0.75}
+          max={1.5}
+          step={0.125}
+          value={settings.fontSizeFactorDigits}
+          onChange={onChangeFontSizeDigits}
+          valueToDescription={fontSizeValueToDescription}
+        />
+      </div>
+      <div className="slider">
+        <RangeSlider
+          id="range-corner-marks"
+          label="Corner marks"
+          min={0.75}
+          max={1.5}
+          step={0.125}
+          value={settings.fontSizeFactorCornerMarks}
+          onChange={onChangeFontSizeCornerMarks}
+          valueToDescription={fontSizeValueToDescription}
+        />
+      </div>
+      <div className="slider">
+        <RangeSlider
+          id="range-centre-marks"
+          label="Centre marks"
+          min={0.75}
+          max={1.5}
+          step={0.125}
+          value={settings.fontSizeFactorCentreMarks}
+          onChange={onChangeFontSizeCentreMarks}
+          valueToDescription={fontSizeValueToDescription}
+        />
+      </div>
 
-    <style jsx>{styles}</style>
-  </>)
+      <style jsx>{styles}</style>
+    </>
+  )
 }
 
 export default Settings

@@ -3,19 +3,28 @@ import classNames from "classnames"
 import styles from "./RangeSlider.scss"
 
 interface RangeSliderProps {
-  id: string,
-  min?: number,
-  max?: number,
-  step?: number,
-  label?: ReactNode,
-  value: number,
-  onChange: (value: number) => void,
-  valueChangeOnMouseUp?: boolean,
+  id: string
+  min?: number
+  max?: number
+  step?: number
+  label?: ReactNode
+  value: number
+  onChange: (value: number) => void
+  valueChangeOnMouseUp?: boolean
   valueToDescription: (value: number) => string | undefined
 }
 
-const RangeSlider = ({ id, min = 0, max = 10, step = 1, label, value, onChange,
-    valueChangeOnMouseUp = false, valueToDescription }: RangeSliderProps) => {
+const RangeSlider = ({
+  id,
+  min = 0,
+  max = 10,
+  step = 1,
+  label,
+  value,
+  onChange,
+  valueChangeOnMouseUp = false,
+  valueToDescription
+}: RangeSliderProps) => {
   const [currentValue, setCurrentValue] = useState(value)
 
   const [description, setDescription] = useState<string>()
@@ -35,7 +44,7 @@ const RangeSlider = ({ id, min = 0, max = 10, step = 1, label, value, onChange,
     } else {
       setDescription(`${v}`)
     }
-    setDescriptionPosition((v - min) * 100 / (max - min))
+    setDescriptionPosition(((v - min) * 100) / (max - min))
   }
 
   function onMouseDownInternal() {
@@ -49,19 +58,40 @@ const RangeSlider = ({ id, min = 0, max = 10, step = 1, label, value, onChange,
     setDescriptionVisible(false)
   }
 
-  return (<>
-    <div className="range-slider">
-      <label htmlFor={id} className="form-label">{label}</label>
-      <input type="range" id={id} className="form-range" min={min} max={max} step={step}
-        value={currentValue} onChange={onChangeInternal}
-        onMouseDown={onMouseDownInternal} onMouseUp={onMouseUpInternal} />
-      <div className="description-container">
-        {description && <div className={classNames("description", { visible: descriptionVisible })}
-          style={{ left: `${descriptionPosition}%` }}>{description}</div>}
+  return (
+    <>
+      <div className="range-slider">
+        <label htmlFor={id} className="form-label">
+          {label}
+        </label>
+        <input
+          type="range"
+          id={id}
+          className="form-range"
+          min={min}
+          max={max}
+          step={step}
+          value={currentValue}
+          onChange={onChangeInternal}
+          onMouseDown={onMouseDownInternal}
+          onMouseUp={onMouseUpInternal}
+        />
+        <div className="description-container">
+          {description && (
+            <div
+              className={classNames("description", {
+                visible: descriptionVisible
+              })}
+              style={{ left: `${descriptionPosition}%` }}
+            >
+              {description}
+            </div>
+          )}
+        </div>
       </div>
-    </div>
-    <style jsx>{styles}</style>
-  </>)
+      <style jsx>{styles}</style>
+    </>
+  )
 }
 
 export default RangeSlider

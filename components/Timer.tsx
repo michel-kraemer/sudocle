@@ -79,21 +79,30 @@ const Timer = ({ solved }: TimerProps) => {
     }, next - now)
   }, [s, m, h, start, end, next, game.paused, pausedElapsed])
 
-  return <>
-    <div className="timer">
-      {h > 0 && <>{("" + h).padStart(2, "0")}:</>}{("" + m).padStart(2, "0")}:{("" + s).padStart(2, "0")}
-      <div className="pause-button" onClick={onPause}><Pause /></div>
-    </div>
-    {continueVisible && <div className="timer-pause-overlay">
-      <div className="continue-area">
-        <div className="title"><Pause size="1.5em" /> Game paused</div>
-        <div className="button-area">
-          <Button onClick={onContinue}>Continue</Button>
+  return (
+    <>
+      <div className="timer">
+        {h > 0 && <>{("" + h).padStart(2, "0")}:</>}
+        {("" + m).padStart(2, "0")}:{("" + s).padStart(2, "0")}
+        <div className="pause-button" onClick={onPause}>
+          <Pause />
         </div>
       </div>
-    </div>}
-    <style jsx>{styles}</style>
-  </>
+      {continueVisible && (
+        <div className="timer-pause-overlay">
+          <div className="continue-area">
+            <div className="title">
+              <Pause size="1.5em" /> Game paused
+            </div>
+            <div className="button-area">
+              <Button onClick={onContinue}>Continue</Button>
+            </div>
+          </div>
+        </div>
+      )}
+      <style jsx>{styles}</style>
+    </>
+  )
 }
 
 export default Timer

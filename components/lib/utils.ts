@@ -1,5 +1,5 @@
 interface Cell {
-  row: number,
+  row: number
   col: number
 }
 
@@ -12,7 +12,7 @@ export function ctok(c: Cell): number {
 }
 
 export function xytok(x: number, y: number): number {
-  return x << 24 | y
+  return (x << 24) | y
 }
 
 export function ktoxy(c: number): [number, number] {
@@ -20,5 +20,5 @@ export function ktoxy(c: number): [number, number] {
 }
 
 export function pltok(x: number, y: number, type: number): number {
-  return x << 20 | y << 8 | type
+  return (x << 20) | (y << 8) | type
 }

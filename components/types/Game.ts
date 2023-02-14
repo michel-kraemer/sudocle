@@ -1,4 +1,4 @@
 export interface Digit {
-  digit: number | string,
+  digit: number | string
   given: boolean
 }

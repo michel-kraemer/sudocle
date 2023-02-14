@@ -5,19 +5,49 @@ import Modal from "../../components/Modal"
 import Pad from "../../components/Pad"
 import Sidebar from "../../components/Sidebar"
 import StatusBar from "../../components/StatusBar"
-import { TYPE_MODE, TYPE_MODE_GROUP, TYPE_SELECTION, TYPE_UNDO, TYPE_REDO, TYPE_INIT,
-  ACTION_ALL, ACTION_SET, ACTION_PUSH, ACTION_CLEAR, ACTION_REMOVE, ACTION_ROTATE,
-  ACTION_RIGHT, ACTION_LEFT, ACTION_UP, ACTION_DOWN } from "../../components/lib/Actions"
-import { MODE_NORMAL, MODE_CORNER, MODE_CENTRE, MODE_COLOUR, MODE_PEN } from "../../components/lib/Modes"
+import {
+  TYPE_MODE,
+  TYPE_MODE_GROUP,
+  TYPE_SELECTION,
+  TYPE_UNDO,
+  TYPE_REDO,
+  TYPE_INIT,
+  ACTION_ALL,
+  ACTION_SET,
+  ACTION_PUSH,
+  ACTION_CLEAR,
+  ACTION_REMOVE,
+  ACTION_ROTATE,
+  ACTION_RIGHT,
+  ACTION_LEFT,
+  ACTION_UP,
+  ACTION_DOWN
+} from "../../components/lib/Actions"
+import {
+  MODE_NORMAL,
+  MODE_CORNER,
+  MODE_CENTRE,
+  MODE_COLOUR,
+  MODE_PEN
+} from "../../components/lib/Modes"
 import { Data } from "../../components/types/Data"
 import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter"
-import { MouseEvent, ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react"
+import {
+  MouseEvent,
+  ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState
+} from "react"
 import FontFaceObserver from "fontfaceobserver"
 import { Frown, ThumbsUp } from "lucide-react"
 import Head from "next/head"
 import styles from "./index.scss"
 
-const DATABASE_URL = "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
+const DATABASE_URL =
+  "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
 const FALLBACK_URL = `${process.env.basePath}/puzzles/{}.json`
 
 const Index = () => {
@@ -40,7 +70,8 @@ const Index = () => {
 
   function onMouseDown(e: MouseEvent<HTMLDivElement>) {
     // check if we hit a target that would clear the selction
-    let shouldClearSelection = e.target === appRef.current ||
+    let shouldClearSelection =
+      e.target === appRef.current ||
       e.target === gameContainerRef.current ||
       e.target === gridContainerRef.current ||
       e.target === padContainerRef.current ||
@@ -89,7 +120,11 @@ const Index = () => {
       let s = new URLSearchParams(window.location.search)
       let puzzleId = s.get("puzzleid")
       let fpuzzlesId = s.get("fpuzzles")
-      if (fpuzzlesId === null && puzzleId !== null && puzzleId.startsWith("fpuzzles")) {
+      if (
+        fpuzzlesId === null &&
+        puzzleId !== null &&
+        puzzleId.startsWith("fpuzzles")
+      ) {
         fpuzzlesId = puzzleId
       }
       if (fpuzzlesId !== null) {
@@ -115,14 +150,23 @@ const Index = () => {
       if (response.status === 404) {
         setError(`The puzzle with the ID ‘${id}’ does not exist`)
       } else if (response.status !== 200) {
-        setError(<>Failed to load puzzle with ID ‘{id}’.<br />
-          Received HTTP status code {response.status} from server.</>)
+        setError(
+          <>
+            Failed to load puzzle with ID ‘{id}’.
+            <br />
+            Received HTTP status code {response.status} from server.
+          </>
+        )
       } else {
         let json
         try {
           json = await response.json()
         } catch (e) {
-          if (fallbackUsed && e instanceof Error && e.message.includes("<!DOCTYPE")) {
+          if (
+            fallbackUsed &&
+            e instanceof Error &&
+            e.message.includes("<!DOCTYPE")
+          ) {
             setError(`The puzzle with the ID ‘${id}’ does not exist`)
             return
           }
@@ -182,7 +226,7 @@ const Index = () => {
 
     async function loadTest() {
       let w = window as any
-      w.initTestGrid = function(json: any) {
+      w.initTestGrid = function (json: any) {
         if (json.fpuzzles !== undefined) {
           json = convertFPuzzle(json.fpuzzles)
         }
@@ -192,7 +236,7 @@ const Index = () => {
           data: json
         })
       }
-      w.resetTestGrid = function() {
+      w.resetTestGrid = function () {
         setFontsLoaded(false) // make sure fonts for the next grid will be loaded
         updateGame({
           type: TYPE_INIT,
@@ -234,12 +278,18 @@ const Index = () => {
       weight: 700
     })
     let textToLoad = collectTextToLoad(game.data)
-    Promise.all([fontRoboto300.load(textToLoad), fontRoboto700.load(textToLoad)]).then(() => {
-      setFontsLoaded(true)
-    }, () => {
-      console.warn("Roboto font is not available. Using fallback font.")
-      setFontsLoaded(true)
-    })
+    Promise.all([
+      fontRoboto300.load(textToLoad),
+      fontRoboto700.load(textToLoad)
+    ]).then(
+      () => {
+        setFontsLoaded(true)
+      },
+      () => {
+        console.warn("Roboto font is not available. Using fallback font.")
+        setFontsLoaded(true)
+      }
+    )
   }, [game.data])
 
   // register keyboard handlers
@@ -255,7 +305,12 @@ const Index = () => {
           action: ACTION_ROTATE
         })
         e.preventDefault()
-      } else if (e.key === "Tab" && !metaPressed && !shiftPressed && !altPressed) {
+      } else if (
+        e.key === "Tab" &&
+        !metaPressed &&
+        !shiftPressed &&
+        !altPressed
+      ) {
         updateGame({
           type: TYPE_MODE_GROUP,
           action: ACTION_ROTATE
@@ -340,28 +395,28 @@ const Index = () => {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_RIGHT,
-          append: (e.metaKey || e.ctrlKey)
+          append: e.metaKey || e.ctrlKey
         })
         e.preventDefault()
       } else if (e.key === "ArrowLeft") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_LEFT,
-          append: (e.metaKey || e.ctrlKey)
+          append: e.metaKey || e.ctrlKey
         })
         e.preventDefault()
       } else if (e.key === "ArrowUp") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_UP,
-          append: (e.metaKey || e.ctrlKey)
+          append: e.metaKey || e.ctrlKey
         })
         e.preventDefault()
       } else if (e.key === "ArrowDown") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_DOWN,
-          append: (e.metaKey || e.ctrlKey)
+          append: e.metaKey || e.ctrlKey
         })
         e.preventDefault()
       }
@@ -438,8 +493,14 @@ const Index = () => {
 
     function onResize() {
       let style = window.getComputedStyle(gameContainerRef.current!)
-      let w = gameContainerRef.current!.clientWidth - parseInt(style.paddingLeft) - parseInt(style.paddingRight)
-      let h = gameContainerRef.current!.clientHeight - parseInt(style.paddingTop) - parseInt(style.paddingBottom)
+      let w =
+        gameContainerRef.current!.clientWidth -
+        parseInt(style.paddingLeft) -
+        parseInt(style.paddingRight)
+      let h =
+        gameContainerRef.current!.clientHeight -
+        parseInt(style.paddingTop) -
+        parseInt(style.paddingBottom)
       let portrait = window.innerHeight > window.innerWidth
       let newW
       let newH
@@ -469,8 +530,11 @@ const Index = () => {
 
   // register beforeunload handler
   useEffect(() => {
-    if (typeof process !== "undefined" && process.env !== undefined &&
-        process.env.NODE_ENV === "development") {
+    if (
+      typeof process !== "undefined" &&
+      process.env !== undefined &&
+      process.env.NODE_ENV === "development"
+    ) {
       // disable this feature in development mode
       return
     }
@@ -502,68 +566,156 @@ const Index = () => {
     }
   }, [game.errors.size, game.solved, game.checkCounter])
 
-  return (<>
-    <Head>
-      <meta httpEquiv="X-UA-Compatible" content="IE=edge"/>
-      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-      <meta name="description" content="A modern web app for Sudoku inspired by Cracking the Cryptic"/>
-      <meta name="robots" content="index,follow"/>
-      <link rel="preconnect" href="https://fonts.gstatic.com"/>
+  return (
+    <>
+      <Head>
+        <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no"
+        />
+        <meta
+          name="description"
+          content="A modern web app for Sudoku inspired by Cracking the Cryptic"
+        />
+        <meta name="robots" content="index,follow" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" />
 
-      <link rel="shortcut icon" href={`${process.env.basePath}/favicons/favicon.ico`}/>
-      <link rel="icon" type="image/png" sizes="16x16" href={`${process.env.basePath}/favicons/favicon-16x16.png`}/>
-      <link rel="icon" type="image/png" sizes="32x32" href={`${process.env.basePath}/favicons/favicon-32x32.png`}/>
-      <link rel="icon" type="image/png" sizes="48x48" href={`${process.env.basePath}/favicons/favicon-48x48.png`}/>
-      <link rel="apple-touch-icon" sizes="57x57" href={`${process.env.basePath}/favicons/apple-touch-icon-57x57.png`}/>
-      <link rel="apple-touch-icon" sizes="60x60" href={`${process.env.basePath}/favicons/apple-touch-icon-60x60.png`}/>
-      <link rel="apple-touch-icon" sizes="72x72" href={`${process.env.basePath}/favicons/apple-touch-icon-72x72.png`}/>
-      <link rel="apple-touch-icon" sizes="76x76" href={`${process.env.basePath}/favicons/apple-touch-icon-76x76.png`}/>
-      <link rel="apple-touch-icon" sizes="114x114" href={`${process.env.basePath}/favicons/apple-touch-icon-114x114.png`}/>
-      <link rel="apple-touch-icon" sizes="120x120" href={`${process.env.basePath}/favicons/apple-touch-icon-120x120.png`}/>
-      <link rel="apple-touch-icon" sizes="144x144" href={`${process.env.basePath}/favicons/apple-touch-icon-144x144.png`}/>
-      <link rel="apple-touch-icon" sizes="152x152" href={`${process.env.basePath}/favicons/apple-touch-icon-152x152.png`}/>
-      <link rel="apple-touch-icon" sizes="167x167" href={`${process.env.basePath}/favicons/apple-touch-icon-167x167.png`}/>
-      <link rel="apple-touch-icon" sizes="180x180" href={`${process.env.basePath}/favicons/apple-touch-icon-180x180.png`}/>
-      <link rel="apple-touch-icon" sizes="1024x1024" href={`${process.env.basePath}/favicons/apple-touch-icon-1024x1024.png`}/>
-      <meta name="apple-mobile-web-app-capable" content="yes"/>
-      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-      <meta name="apple-mobile-web-app-title" content="Sudocle"/>
+        <link
+          rel="shortcut icon"
+          href={`${process.env.basePath}/favicons/favicon.ico`}
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href={`${process.env.basePath}/favicons/favicon-16x16.png`}
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href={`${process.env.basePath}/favicons/favicon-32x32.png`}
+        />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="48x48"
+          href={`${process.env.basePath}/favicons/favicon-48x48.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="57x57"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-57x57.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="60x60"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-60x60.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="72x72"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-72x72.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="76x76"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-76x76.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="114x114"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-114x114.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="120x120"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-120x120.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="144x144"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-144x144.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="152x152"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-152x152.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="167x167"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-167x167.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-180x180.png`}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="1024x1024"
+          href={`${process.env.basePath}/favicons/apple-touch-icon-1024x1024.png`}
+        />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="Sudocle" />
 
-      <title>Sudocle</title>
-    </Head>
-    <div className="app" data-theme={settings.theme} data-colour-palette={settings.colourPalette}
-        onMouseDown={onMouseDown} ref={appRef}>
-      {!isTest && <StatusBar />}
-      <div className="game-container" ref={gameContainerRef}>
-        <div className="grid-container" ref={gridContainerRef}>
-          {(game.data && game.data.cells.length > 0 && fontsLoaded) &&
-            <Grid portrait={portrait} maxWidth={gridMaxWidth}
-              maxHeight={gridMaxHeight} onFinishRender={onFinishRender} />}
+        <title>Sudocle</title>
+      </Head>
+      <div
+        className="app"
+        data-theme={settings.theme}
+        data-colour-palette={settings.colourPalette}
+        onMouseDown={onMouseDown}
+        ref={appRef}
+      >
+        {!isTest && <StatusBar />}
+        <div className="game-container" ref={gameContainerRef}>
+          <div className="grid-container" ref={gridContainerRef}>
+            {game.data && game.data.cells.length > 0 && fontsLoaded && (
+              <Grid
+                portrait={portrait}
+                maxWidth={gridMaxWidth}
+                maxHeight={gridMaxHeight}
+                onFinishRender={onFinishRender}
+              />
+            )}
+          </div>
+          {rendering && !error && <div className="loading">Loading ...</div>}
+          {error && <div className="error">{error}</div>}
+          <div className="pad-container" ref={padContainerRef}>
+            {rendering || <Pad />}
+          </div>
+          <Sidebar />
         </div>
-        {rendering && !error && <div className="loading">
-          Loading ...
-        </div>}
-        {error && <div className="error">
-          {error}
-        </div>}
-        <div className="pad-container" ref={padContainerRef}>
-          {rendering || <Pad />}
-        </div>
-        <Sidebar />
+
+        <Modal
+          isOpen={solvedModalOpen}
+          title="Congratulations!"
+          icon={<ThumbsUp size="3.25em" />}
+          onOK={() => setSolvedModalOpen(false)}
+        >
+          You have solved the puzzle
+        </Modal>
+        <Modal
+          isOpen={errorModalOpen}
+          title="Sorry"
+          alert
+          icon={<Frown size="3.25em" />}
+          onOK={() => setErrorModalOpen(false)}
+        >
+          Something seems to be wrong
+        </Modal>
+
+        <style jsx>{styles}</style>
       </div>
-
-      <Modal isOpen={solvedModalOpen} title="Congratulations!"
-          icon={<ThumbsUp size="3.25em" />} onOK={() => setSolvedModalOpen(false)}>
-        You have solved the puzzle
-      </Modal>
-      <Modal isOpen={errorModalOpen} title="Sorry" alert
-          icon={<Frown size="3.25em" />} onOK={() => setErrorModalOpen(false)}>
-        Something seems to be wrong
-      </Modal>
-
-      <style jsx>{styles}</style>
-    </div>
-  </>)
+    </>
+  )
 }
 
 export default Index

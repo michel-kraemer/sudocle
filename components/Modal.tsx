@@ -8,15 +8,18 @@ import { MouseEventHandler, ReactNode } from "react"
 ReactModal.setAppElement("#__next")
 
 interface ModalProps extends ReactModal.Props {
-  alert?: boolean,
-  icon: ReactNode,
-  title: string,
+  alert?: boolean
+  icon: ReactNode
+  title: string
   onOK: MouseEventHandler
 }
 
 const Modal = (props: ModalProps) => (
-  <ReactModal {...props} className={classNames(resolvedStyles.className, "modal")}
-      overlayClassName={classNames(resolvedStyles.className, "modal-overlay")}>
+  <ReactModal
+    {...props}
+    className={classNames(resolvedStyles.className, "modal")}
+    overlayClassName={classNames(resolvedStyles.className, "modal-overlay")}
+  >
     <div className={classNames("modal-top-area", { alert: props.alert })}>
       <div className="modal-icon">{props.icon}</div>
       <div className="modal-title">{props.title}</div>

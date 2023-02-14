@@ -18,7 +18,10 @@ enableAllPlugins()
 
 const App = ({ Component, pageProps }: AppProps) => {
   useEffect(() => {
-    if (process.env.matomoUrl !== undefined && process.env.matomoSiteId !== undefined) {
+    if (
+      process.env.matomoUrl !== undefined &&
+      process.env.matomoSiteId !== undefined
+    ) {
       let tracker = new MatomoTracker({
         urlBase: process.env.matomoUrl,
         siteId: +process.env.matomoSiteId
@@ -27,25 +30,27 @@ const App = ({ Component, pageProps }: AppProps) => {
     }
   }, [])
 
-  return (<>
-    <style jsx global>{`
-      ${roboto400}
-      ${roboto400italic}
+  return (
+    <>
+      <style jsx global>{`
+        ${roboto400}
+        ${roboto400italic}
       ${roboto500}
       ${roboto500italic}
       ${roboto700}
       ${robotoCondensed400}
       ${baloo700}
-    `}</style>
-    <GameContext.Provider>
-      <SettingsContext.Provider>
-        <SidebarContext.Provider>
-          <Component {...pageProps} />
-        </SidebarContext.Provider>
-      </SettingsContext.Provider>
-    </GameContext.Provider>
-    <style jsx>{styles}</style>
-  </>)
+      `}</style>
+      <GameContext.Provider>
+        <SettingsContext.Provider>
+          <SidebarContext.Provider>
+            <Component {...pageProps} />
+          </SidebarContext.Provider>
+        </SettingsContext.Provider>
+      </GameContext.Provider>
+      <style jsx>{styles}</style>
+    </>
+  )
 }
 
 export default App

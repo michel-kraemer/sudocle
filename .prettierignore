@@ -1,0 +1,7 @@
+.next/
+node_modules/
+tests/fixtures/
+out/
+public/puzzles/
+*.md
+*.mdx

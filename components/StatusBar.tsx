@@ -10,26 +10,28 @@ const StatusBar = () => {
   const game = useContext(GameContext.State)
   const onTabClick = useContext(SidebarContext.OnTabClick)
 
-  return <div className="status-bar">
-    <Timer solved={game.solved} />
-    <div className="menu">
-      {game.data.title !== undefined && game.data.rules !== undefined && (
-        <div className="menu-item" onClick={() => onTabClick(ID_RULES)}>
-          <BookOpen />
+  return (
+    <div className="status-bar">
+      <Timer solved={game.solved} />
+      <div className="menu">
+        {game.data.title !== undefined && game.data.rules !== undefined && (
+          <div className="menu-item" onClick={() => onTabClick(ID_RULES)}>
+            <BookOpen />
+          </div>
+        )}
+        <div className="menu-item" onClick={() => onTabClick(ID_SETTINGS)}>
+          <Sliders />
         </div>
-      )}
-      <div className="menu-item" onClick={() => onTabClick(ID_SETTINGS)}>
-        <Sliders />
+        <div className="menu-item" onClick={() => onTabClick(ID_HELP)}>
+          <HelpCircle />
+        </div>
+        <div className="menu-item" onClick={() => onTabClick(ID_ABOUT)}>
+          <Info />
+        </div>
       </div>
-      <div className="menu-item" onClick={() => onTabClick(ID_HELP)}>
-        <HelpCircle />
-      </div>
-      <div className="menu-item" onClick={() => onTabClick(ID_ABOUT)}>
-        <Info />
-      </div>
+      <style jsx>{styles}</style>
     </div>
-    <style jsx>{styles}</style>
-  </div>
+  )
 }
 
 export default StatusBar

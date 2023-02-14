@@ -3,8 +3,8 @@ import { produce } from "immer"
 import { ID_SETTINGS, SidebarTab } from "../lib/SidebarTabs"
 
 interface SidebarState {
-  visible: boolean,
-  expanded: boolean,
+  visible: boolean
+  expanded: boolean
   activeTabId: SidebarTab
 }
 
@@ -29,23 +29,27 @@ const Provider = ({ children }: ProviderProps) => {
   const [state, setState] = useState(DEFAULT_SIDEBAR_STATE)
 
   function setExpanded(expanded: boolean) {
-    setState(produce(draft => {
-      draft.expanded = expanded
-    }))
+    setState(
+      produce(draft => {
+        draft.expanded = expanded
+      })
+    )
   }
 
   function onTabClick(id: SidebarTab) {
-    setState(produce(draft => {
-      if (!draft.visible) {
-        draft.visible = true
-        draft.expanded = true
-      } else if (id === draft.activeTabId) {
-        draft.visible = false
-        setTimeout(() => setExpanded(false), 300)
-      }
+    setState(
+      produce(draft => {
+        if (!draft.visible) {
+          draft.visible = true
+          draft.expanded = true
+        } else if (id === draft.activeTabId) {
+          draft.visible = false
+          setTimeout(() => setExpanded(false), 300)
+        }
 
-      draft.activeTabId = id
-    }))
+        draft.activeTabId = id
+      })
+    )
   }
 
   return (

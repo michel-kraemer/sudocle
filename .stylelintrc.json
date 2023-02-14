@@ -5,9 +5,12 @@
     "scss/at-rule-no-unknown": true,
     "selector-list-comma-newline-after": "always-multi-line",
     "no-descending-specificity": null,
-    "selector-pseudo-class-no-unknown": [true, {
-      "ignorePseudoClasses": ["global"]
-    }],
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": ["global"]
+      }
+    ],
     "shorthand-property-no-redundant-values": null,
     "scss/dollar-variable-empty-line-before": null
   }

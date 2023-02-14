@@ -2,9 +2,12 @@ const ESLintPlugin = require("eslint-webpack-plugin")
 const svgToMiniDataURI = require("mini-svg-data-uri")
 const version = require("./package.json").version
 
-const basePath = process.env.SUDOCLE_BASE_PATH === undefined ?
-  (process.env.NODE_ENV === "production" ? "/sudocle" : "") :
-  process.env.SUDOCLE_BASE_PATH
+const basePath =
+  process.env.SUDOCLE_BASE_PATH === undefined
+    ? process.env.NODE_ENV === "production"
+      ? "/sudocle"
+      : ""
+    : process.env.SUDOCLE_BASE_PATH
 const eslintDirs = ["components", "cypress/plugins", "cypress/support", "pages"]
 
 const config = {
@@ -33,9 +36,7 @@ const config = {
     config.module.rules.push({
       test: /\.css$/,
       include: /@fontsource/,
-      use: [
-        "css-loader"
-      ]
+      use: ["css-loader"]
     })
 
     config.module.rules.push({
@@ -72,9 +73,11 @@ const config = {
     })
 
     if (dev) {
-      config.plugins.push(new ESLintPlugin({
-        extensions: ["js", "jsx"]
-      }))
+      config.plugins.push(
+        new ESLintPlugin({
+          extensions: ["js", "jsx"]
+        })
+      )
     }
 
     return config
