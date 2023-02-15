@@ -30,6 +30,7 @@ import * as PIXI from "pixi.js-legacy"
 import { flatten, isEqual } from "lodash"
 import { DropShadowFilter } from "@pixi/filter-drop-shadow"
 import memoizeOne from "memoize-one"
+import { produce } from "immer"
 
 const SCALE_FACTOR = 1.2
 const ZOOM_DELTA = 0.05
@@ -71,7 +72,10 @@ declare module "pixi.js-legacy" {
   type PenWaypointGraphics = PIXI.Graphics & {
     data?: {
       cellSize?: number
-      draw: (cellSize?: number) => void
+      draw: (
+        cellSize: number | undefined,
+        penCurrentWaypoints: number[]
+      ) => void
     }
   }
 }
@@ -1220,57 +1224,61 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         // nothing to do
         return
       } else {
-        let pcw = penCurrentWaypoints.current
-        let toAdd = []
-        if (pcw.length > 0) {
-          let fp = pcw[pcw.length - 1]
-          let fpp = ktoxy(fp)
-          let dx = Math.abs(cellX - fpp[0])
-          let dy = Math.abs(cellY - fpp[1])
-          if (dx + dy !== 1) {
-            // cursor was moved diagonally or jumped to a distant cell
-            // interpolate between the last cell and the new one
-            let interpolated = euclidianBresenhamInterpolate(
-              fpp[0],
-              fpp[1],
-              cellX,
-              cellY
-            )
-            for (let ip of interpolated) {
-              toAdd.push(xytok(ip[0], ip[1]))
+        penCurrentWaypoints.current = produce(
+          penCurrentWaypoints.current,
+          pcw => {
+            let toAdd = []
+            if (pcw.length > 0) {
+              let fp = pcw[pcw.length - 1]
+              let fpp = ktoxy(fp)
+              let dx = Math.abs(cellX - fpp[0])
+              let dy = Math.abs(cellY - fpp[1])
+              if (dx + dy !== 1) {
+                // cursor was moved diagonally or jumped to a distant cell
+                // interpolate between the last cell and the new one
+                let interpolated = euclidianBresenhamInterpolate(
+                  fpp[0],
+                  fpp[1],
+                  cellX,
+                  cellY
+                )
+                for (let ip of interpolated) {
+                  toAdd.push(xytok(ip[0], ip[1]))
+                }
+              }
+            }
+            toAdd.push(k)
+
+            // check if we've moved backwards and, if so, how much
+            let matched = 0
+            for (
+              let a = pcw.length - 2, b = 0;
+              a >= 0 && b < toAdd.length;
+              --a, ++b
+            ) {
+              if (pcw[a] === toAdd[b]) {
+                matched++
+              } else {
+                break
+              }
+            }
+            if (matched > 0) {
+              // remove as many waypoints as we've moved back
+              pcw.splice(-matched)
+            } else {
+              // we did not move backwards - just add the new waypoints
+              for (let ap of toAdd) {
+                pcw.push(ap)
+              }
             }
           }
-        }
-        toAdd.push(k)
-
-        // check if we've moved backwards and, if so, how much
-        let matched = 0
-        for (
-          let a = pcw.length - 2, b = 0;
-          a >= 0 && b < toAdd.length;
-          --a, ++b
-        ) {
-          if (pcw[a] === toAdd[b]) {
-            matched++
-          } else {
-            break
-          }
-        }
-        if (matched > 0) {
-          // remove as many waypoints as we've moved back
-          pcw.splice(-matched)
-        } else {
-          // we did not move backwards - just add the new waypoints
-          for (let ap of toAdd) {
-            pcw.push(ap)
-          }
-        }
+        )
 
         // check if we are adding a pen line or removing it
-        if (pcw.length > 1) {
+        if (penCurrentWaypoints.current.length > 1) {
           let firstKey = penWaypointsToKey(
-            pcw[0],
-            pcw[1],
+            penCurrentWaypoints.current[0],
+            penCurrentWaypoints.current[1],
             penCurrentDrawEdge.current
           )
           let visible = penLineElements.current.some(
@@ -1281,7 +1289,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       }
 
       // render waypoints
-      penCurrentWaypointsElements.current.forEach(e => e.data?.draw())
+      penCurrentWaypointsElements.current.forEach(e =>
+        e.data?.draw(undefined, penCurrentWaypoints.current)
+      )
       renderNow()
     },
     [renderNow]
@@ -1354,13 +1364,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
   }
 
   const onPointerUp = useCallback(() => {
-    let pwc = penCurrentWaypoints.current
-    if (pwc.length > 0) {
+    if (penCurrentWaypoints.current.length > 0) {
       let penLines = []
-      for (let i = 0; i < pwc.length - 1; ++i) {
+      for (let i = 0; i < penCurrentWaypoints.current.length - 1; ++i) {
         let k = penWaypointsToKey(
-          pwc[i],
-          pwc[i + 1],
+          penCurrentWaypoints.current[i],
+          penCurrentWaypoints.current[i + 1],
           penCurrentDrawEdge.current
         )
         if (k !== undefined) {
@@ -1382,7 +1391,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       penCurrentDrawEdge.current = false
 
       // render waypoints (this will basically remove them from the grid)
-      penCurrentWaypointsElements.current.forEach(e => e.data?.draw())
+      penCurrentWaypointsElements.current.forEach(e =>
+        e.data?.draw(undefined, penCurrentWaypoints.current)
+      )
       renderNow()
     }
   }, [updateGame, renderNow])
@@ -2124,16 +2135,15 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     let penWaypoints: PIXI.PenWaypointGraphics = new PIXI.Graphics()
     penWaypoints.zIndex = 70
     penWaypoints.data = {
-      draw: function (cellSize) {
+      draw: function (cellSize, penCurrentWaypoints) {
         let that = penWaypoints.data!
         that.cellSize = cellSize ?? that.cellSize
         if (that.cellSize === undefined) {
           return
         }
 
-        let wps = penCurrentWaypoints.current
         penWaypoints.clear()
-        if (wps.length > 1) {
+        if (penCurrentWaypoints.length > 1) {
           let color
           if (penCurrentWaypointsAdd.current) {
             color = 0x009e73
@@ -2150,13 +2160,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
             cap: PIXI.LINE_CAP.ROUND,
             join: PIXI.LINE_JOIN.ROUND
           })
-          let p0 = ktoxy(wps[0])
+          let p0 = ktoxy(penCurrentWaypoints[0])
           penWaypoints.moveTo(
             (p0[0] + d) * that.cellSize,
             (p0[1] + d) * that.cellSize
           )
-          for (let i = 0; i < wps.length - 1; ++i) {
-            let p = ktoxy(wps[i + 1])
+          for (let i = 0; i < penCurrentWaypoints.length - 1; ++i) {
+            let p = ktoxy(penCurrentWaypoints[i + 1])
             penWaypoints.lineTo(
               (p[0] + d) * that.cellSize,
               (p[1] + d) * that.cellSize
@@ -2192,22 +2202,25 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     // memoize draw calls to improve performance
     const wrapDraw =
       (
-        e: PIXI.Container,
-        draw: (
-          cellSize: number,
-          zoomFactor: number,
-          currentDigits: Map<number, Digit>
-        ) => void
-      ) =>
-      (
-        cellSize: number,
-        zoomFactor: number,
-        currentDigits: Map<number, Digit>
-      ) => {
+        e: PIXI.GraphicsEx | PIXI.TextEx,
+        draw: NonNullable<(PIXI.GraphicsEx | PIXI.TextEx)["data"]>["draw"]
+      ): NonNullable<(PIXI.GraphicsEx | PIXI.TextEx)["data"]>["draw"] =>
+      (cellSize, zoomFactor, currentDigits) => {
         if (e instanceof PIXI.Graphics) {
           e.clear()
         }
         draw(cellSize, zoomFactor, currentDigits)
+      }
+    const wrapDrawWaypoints =
+      (
+        e: PIXI.PenWaypointGraphics,
+        draw: NonNullable<PIXI.PenWaypointGraphics["data"]>["draw"]
+      ): NonNullable<PIXI.PenWaypointGraphics["data"]>["draw"] =>
+      (cellSize, penCurrentWaypoints) => {
+        if (e instanceof PIXI.Graphics) {
+          e.clear()
+        }
+        draw(cellSize, penCurrentWaypoints)
       }
     let elementsToMemoize = [
       cellElements,
@@ -2226,7 +2239,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       colourElements,
       selectionElements,
       errorElements,
-      penCurrentWaypointsElements,
       penLineElements,
       penHitareaElements
     ]
@@ -2242,6 +2254,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         if (ce.data?.draw !== undefined) {
           ce.data.draw = memoizeOne(wrapDraw(ce, ce.data.draw))
         }
+      }
+    }
+    for (let e of penCurrentWaypointsElements.current) {
+      if (e.data?.draw !== undefined) {
+        e.data.draw = memoizeOne(wrapDrawWaypoints(e, e.data.draw))
       }
     }
 
@@ -2325,7 +2342,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         colourElements,
         selectionElements,
         errorElements,
-        penCurrentWaypointsElements,
         penLineElements,
         penHitareaElements
       ]
@@ -2338,6 +2354,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         for (let ce of e.elements) {
           ce.data?.draw(cs, cellSizeFactor.current, game.digits)
         }
+      }
+      for (let e of penCurrentWaypointsElements.current) {
+        e.data?.draw(cs, penCurrentWaypoints.current)
       }
 
       allElement.current!.calculateBounds()
