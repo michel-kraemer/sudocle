@@ -31,7 +31,7 @@
     "lucide-react": "^0.109.0",
     "memoize-one": "^6.0.0",
     "mini-svg-data-uri": "^1.4.4",
-    "next": "^13.1.6",
+    "next": "^13.2.0",
     "normalize.css": "^8.0.1",
     "pixi.js-legacy": "^7.1.2",
     "polygon-clipping": "^0.15.3",
