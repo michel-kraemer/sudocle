@@ -23,7 +23,7 @@
     "classnames": "^2.3.2",
     "color": "^4.2.3",
     "css-loader": "^6.7.3",
-    "favicons": "^7.1.0",
+    "favicons": "^7.1.1",
     "fontfaceobserver": "^2.3.0",
     "image-webpack-loader": "^8.1.0",
     "immer": "^9.0.19",
