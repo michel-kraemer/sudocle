@@ -916,7 +916,7 @@ function drawOverlay(
 
   let text: PIXI.Text
   let fontSize = overlay.fontSize ?? 20
-  if (overlay.text !== undefined) {
+  if (overlay.text !== undefined && overlay.text !== "") {
     fontSize *= SCALE_FACTOR
     if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
       fontSize *= 1 / 0.75
@@ -927,6 +927,18 @@ function drawOverlay(
     })
     if (overlay.fontColor) {
       text.style.fill = overlay.fontColor
+    }
+    if (overlay.backgroundColor !== undefined) {
+      let bgc = Color(overlay.backgroundColor)
+      if (Color(overlay.fontColor ?? "#000").contrast(bgc) < 2) {
+        // text would be invisible on top of background
+        if (bgc.isDark()) {
+          text.style.stroke = "#fff"
+        } else {
+          text.style.stroke = "#000"
+        }
+        text.style.strokeThickness = 3
+      }
     }
     text.anchor.set(0.5)
     if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
