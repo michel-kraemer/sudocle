@@ -8,7 +8,8 @@ const config = {
       // (see the following link for a list of all `--use-gl` and `--use-angle`
       // flags: https://chromium.googlesource.com/chromium/src/+/master/ui/gl/gl_switches.cc)
       // args: ["--use-gl=egl"]
-      args: ["--use-angle=gles-egl"]
+      // args: ["--use-angle=gles-egl"]
+      args: ["--use-gl=angle"]
     }
   }
 }
