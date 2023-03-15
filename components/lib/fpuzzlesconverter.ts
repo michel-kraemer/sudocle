@@ -816,7 +816,15 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   if (puzzle.circle !== undefined && puzzle.circle !== null) {
     for (let circ of puzzle.circle) {
       let center = cellsToCenter(circ.cells)
-      overlays.push({
+      let ou = overlays
+      if ((circ.width > 1 || circ.height > 1) && circ.baseC !== undefined) {
+        // Circle will most likely cover other elements (e.g. the grid).
+        // Put it into 'underlays' instead of 'overlays'. Alternatively, if
+        // this causes other issues in the future, we could make the
+        // circle's background color slightly transparent.
+        ou = underlays
+      }
+      ou.push({
         center,
         width: circ.width,
         height: circ.height,
