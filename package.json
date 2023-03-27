@@ -39,7 +39,7 @@
     "react-dom": "^18.2.0",
     "react-modal": "^3.16.1",
     "sass": "^1.59.3",
-    "sass-loader": "^13.2.0"
+    "sass-loader": "^13.2.2"
   },
   "devDependencies": {
     "@jsdevtools/readdir-enhanced": "^6.0.4",
