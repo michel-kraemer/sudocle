@@ -1542,7 +1542,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         }
       }
       let dropShadow = new DropShadowFilter({
-        distance: 0,
+        offset: { x: 0, y: 0 },
         blur: 5,
         quality: 6,
         alpha: 0.9,
