@@ -1572,6 +1572,33 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
               fogMask!.drawRect(x * cellSize, y * cellSize, cellSize, cellSize)
             }
           }
+
+          // always show area outside of grid
+          fogMask!.drawRect(
+            -5 * cellSize,
+            -5 * cellSize,
+            cellSize * 5,
+            cellSize * (game.data.cells.length + 10)
+          )
+          fogMask!.drawRect(
+            cellSize * game.data.cells[0].length,
+            -5 * cellSize,
+            cellSize * 5,
+            cellSize * (game.data.cells.length + 10)
+          )
+          fogMask!.drawRect(
+            0,
+            -5 * cellSize,
+            cellSize * game.data.cells[0].length,
+            cellSize * 5
+          )
+          fogMask!.drawRect(
+            0,
+            game.data.cells.length,
+            cellSize * game.data.cells[0].length,
+            cellSize * 5
+          )
+
           fogMask!.endFill()
         }
       }
