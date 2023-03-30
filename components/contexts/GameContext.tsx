@@ -139,6 +139,9 @@ function makeGivenMarks<T extends (string | number)[]>(
 
 function parseFogLights(str: string): FogLight[] {
   let result: FogLight[] = []
+  if (str === "") {
+    return result
+  }
   let parts = str.split(/\s*[^a-z0-9]\s*/i)
   for (let cell of parts) {
     let m = cell.match(/r([0-9]+)c([0-9]+)/i)!
