@@ -1594,7 +1594,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           )
           fogMask!.drawRect(
             0,
-            game.data.cells.length,
+            cellSize * game.data.cells.length,
             cellSize * game.data.cells[0].length,
             cellSize * 5
           )
