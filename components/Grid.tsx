@@ -941,6 +941,7 @@ function drawOverlay(
       }
     }
     text.anchor.set(0.5)
+    text.style.align = "center"
     if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
       text.scale.x = 0.75
       text.scale.y = 0.75
