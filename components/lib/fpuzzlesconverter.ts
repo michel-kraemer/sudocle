@@ -383,6 +383,12 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       cage.value.toLowerCase().startsWith("customstyle:")
     ) {
       customStyle = JSON.parse(cage.value.substring(12).trim())
+    } else if (
+      isString(cage.value) &&
+      cage.value.toLowerCase().startsWith("msgcorrect:")
+    ) {
+      // Message to be displayed if solution is correct. This is not
+      // implemented yet. Ignore it.
     } else {
       let r: Cage = {
         cells: cage.cells.map(c => cellToCell(c, 0, 0)),

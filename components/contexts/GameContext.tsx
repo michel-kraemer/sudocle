@@ -698,6 +698,9 @@ function gameReducer(state: GameState, action: Action) {
                 let str = cage.value.substring(9).trim()
                 canonicalData.solution =
                   canonicalData.solution ?? parseSolution(canonicalData, str)
+              } else if (cage.value.startsWith("msgcorrect:")) {
+                // Message to be displayed if solution is correct. This is not
+                // implemented yet. Ignore it.
               } else {
                 possibleTitles.push(cage.value)
               }
