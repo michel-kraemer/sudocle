@@ -824,6 +824,18 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         // circle's background color slightly transparent.
         ou = underlays
       }
+      let fontSize = 20
+      if (circ.value !== undefined) {
+        let lines = `${circ.value}`.split("\n")
+        if (lines.length > 1) {
+          fontSize = 10
+        }
+        for (let l of lines) {
+          if (l.length > 2) {
+            fontSize = 10
+          }
+        }
+      }
       ou.push({
         center,
         width: circ.width,
@@ -831,7 +843,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         borderColor: circ.outlineC,
         backgroundColor: circ.baseC,
         rounded: true,
-        fontSize: 20,
+        fontSize: fontSize,
         text: circ.value
       })
     }
