@@ -142,9 +142,8 @@ function parseFogLights(str: string): FogLight[] {
   if (str === "") {
     return result
   }
-  let parts = str.split(/\s*[^a-z\-0-9]\s*/i)
-  for (let cell of parts) {
-    let m = cell.match(/r-?([0-9]+)c-?([0-9]+)/i)!
+  let matches = str.matchAll(/r(-?[0-9]+)c(-?[0-9]+)/gi)
+  for (let m of matches) {
     let r = +m[1] - 1
     let c = +m[2] - 1
     if (r >= 0 && c >= 0) {
