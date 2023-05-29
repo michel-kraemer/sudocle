@@ -727,6 +727,12 @@ function gameReducer(state: GameState, action: Action) {
               c.value.toLowerCase() !== "foglight"
           )
         }
+        if (canonicalData.rules !== undefined) {
+          // fix invalid line breaks in rules
+          console.log(canonicalData.rules)
+          canonicalData.rules = canonicalData.rules.replaceAll(/\\n/g, "\n")
+          console.log(canonicalData.rules)
+        }
       }
 
       return makeEmptyState(canonicalData)
