@@ -671,7 +671,7 @@ function makeCornerMarks(
         let hasFog = false
         if (data.fogLights !== undefined) {
           let fogCells = makeFogRaster(data, currentDigits)
-          hasFog = fogCells[x]?.[y] === 1
+          hasFog = fogCells[y]?.[x] === 1
         }
 
         switch (i) {
