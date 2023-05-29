@@ -3,7 +3,7 @@ import SettingsContext from "../components/contexts/SettingsContext"
 import SidebarContext from "../components/contexts/SidebarContext"
 import styles from "./_app.scss?type=global"
 import MatomoTracker from "@datapunt/matomo-tracker-js"
-import { enableAllPlugins } from "immer"
+import { enableMapSet } from "immer"
 import { useEffect } from "react"
 import type { AppProps } from "next/app"
 import baloo700 from "@fontsource/baloo-2/700.css"
@@ -14,7 +14,7 @@ import roboto500italic from "@fontsource/roboto/500-italic.css"
 import roboto700 from "@fontsource/roboto/700.css"
 import robotoCondensed400 from "@fontsource/roboto-condensed/400.css"
 
-enableAllPlugins()
+enableMapSet()
 
 const App = ({ Component, pageProps }: AppProps) => {
   useEffect(() => {

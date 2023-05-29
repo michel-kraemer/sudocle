@@ -41,7 +41,7 @@ import {
   getModeGroup
 } from "../lib/Modes"
 import { createContext, ReactNode, useReducer } from "react"
-import produce from "immer"
+import { produce } from "immer"
 import { isEqual, isString } from "lodash"
 
 const EmptyData: Data = {
