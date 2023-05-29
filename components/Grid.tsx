@@ -904,11 +904,9 @@ const makeFogRaster = memoizeOne(
 function drawOverlay(
   overlay: Overlay,
   mx: number,
-  my: number,
-  zIndex: number
+  my: number
 ): PIXI.GraphicsEx {
   let r: PIXI.GraphicsEx = new PIXI.Graphics()
-  r.zIndex = zIndex
 
   if (overlay.rotation !== undefined) {
     r.rotation = overlay.rotation
@@ -1662,11 +1660,18 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     }
 
     // render cages
+    let cageOutlinesContainer = new PIXI.Container()
+    cageOutlinesContainer.zIndex = 1
+    cageOutlinesContainer.mask = fogMask
+    let cageTopLeftTextContainer = new PIXI.Container()
+    cageTopLeftTextContainer.zIndex = 3
+    cageTopLeftTextContainer.mask = fogMask
+    let cageTopLeftBgContainer = new PIXI.Container()
+    cageTopLeftBgContainer.zIndex = 2
+    cageTopLeftBgContainer.mask = fogMask
     for (let cage of cages) {
       // draw outline
       let poly: PIXI.GraphicsEx = new PIXI.Graphics()
-      poly.zIndex = 1
-      poly.mask = fogMask
       poly.data = {
         borderColor: cage.borderColor
           ? getRGBColor(cage.borderColor)
@@ -1685,7 +1690,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           drawDashedPolygon(shrunkenOutline, 3, 2, poly)
         }
       }
-      grid.addChild(poly)
+      cageOutlinesContainer.addChild(poly)
       cageElements.current.push(poly)
 
       if (
@@ -1699,8 +1704,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           fontFamily: DEFAULT_FONT_FAMILY,
           fontSize: fontSizeCageLabels
         })
-        topleftText.zIndex = 3
-        topleftText.mask = fogMask
         topleftText.scale.x = 0.5
         topleftText.scale.y = 0.5
         topleftText.data = {
@@ -1709,12 +1712,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
             topleftText.y = cage.topleft[0] * cellSize + cellSize / 60
           }
         }
-        grid.addChild(topleftText)
+        cageTopLeftTextContainer.addChild(topleftText)
         cageLabelTextElements.current.push(topleftText)
 
         let topleftBg: PIXI.GraphicsEx = new PIXI.Graphics()
-        topleftBg.zIndex = 2
-        topleftBg.mask = fogMask
         topleftBg.data = {
           draw: function (cellSize) {
             topleftBg.beginFill(0xffffff)
@@ -1729,20 +1730,24 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
             topleftBg.y = cage.topleft[0] * cellSize + 0.5
           }
         }
-        grid.addChild(topleftBg)
+        cageTopLeftBgContainer.addChild(topleftBg)
         cageLabelBackgroundElements.current.push(topleftBg)
       }
     }
+    grid.addChild(cageOutlinesContainer)
+    grid.addChild(cageTopLeftTextContainer)
+    grid.addChild(cageTopLeftBgContainer)
 
     grid.addChild(cells)
     grid.zIndex = 30
     all.addChild(grid)
 
     // render extra regions
+    let extraRegionsContainer = new PIXI.Container()
+    extraRegionsContainer.zIndex = -30
+    extraRegionsContainer.mask = fogMask
     for (let r of extraRegions) {
       let poly: PIXI.GraphicsEx = new PIXI.Graphics()
-      poly.zIndex = -30
-      poly.mask = fogMask
       poly.data = {
         draw: function (cellSize) {
           let disposedOutline = disposePolygon(
@@ -1756,9 +1761,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           poly.endFill()
         }
       }
-      all.addChild(poly)
+      extraRegionsContainer.addChild(poly)
       extraRegionElements.current.push(poly)
     }
+    all.addChild(extraRegionsContainer)
 
     // sort lines and arrows by thickness
     let lines: ((Line | Arrow) & {
@@ -1804,10 +1810,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     lines.sort((a, b) => b.thickness - a.thickness)
 
     // add lines and arrows
+    let linesContainer = new PIXI.Container()
+    linesContainer.zIndex = -10
+    linesContainer.mask = fogMask
     lines.forEach(line => {
       let poly: PIXI.GraphicsEx = new PIXI.Graphics()
-      poly.zIndex = -10
-      poly.mask = fogMask
       poly.alpha = getAlpha(line.color)
       poly.data = {
         draw: function (cellSize) {
@@ -1854,15 +1861,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           }
         }
       }
-      all.addChild(poly)
+      linesContainer.addChild(poly)
       lineElements.current.push(poly)
 
       // arrow heads
       if (line.isArrow && line.wayPoints.length > 1) {
         let arrow = line as Arrow
         let head: PIXI.GraphicsEx = new PIXI.Graphics()
-        head.zIndex = -10
-        head.mask = fogMask
         head.data = {
           draw: function (cellSize) {
             let points = shortenLine(
@@ -1905,24 +1910,33 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
             head.lineTo(ex2, ey2)
           }
         }
-        all.addChild(head)
+        linesContainer.addChild(head)
         lineElements.current.push(head)
       }
     })
+    all.addChild(linesContainer)
 
-    // add underlays and overlays
+    // add underlays
+    let underlaysContainer = new PIXI.Container()
+    underlaysContainer.zIndex = -20
+    underlaysContainer.mask = fogMask
     game.data.underlays.forEach(underlay => {
-      let e = drawOverlay(underlay, grid.x, grid.y, -20)
-      e.mask = fogMask
-      all.addChild(e)
+      let e = drawOverlay(underlay, grid.x, grid.y)
+      underlaysContainer.addChild(e)
       underlayElements.current.push(e)
     })
+    all.addChild(underlaysContainer)
+
+    // add overlays
+    let overlaysContainer = new PIXI.Container()
+    overlaysContainer.zIndex = 40
+    overlaysContainer.mask = fogMask
     game.data.overlays.forEach(overlay => {
-      let e = drawOverlay(overlay, grid.x, grid.y, 40)
-      e.mask = fogMask
-      all.addChild(e)
+      let e = drawOverlay(overlay, grid.x, grid.y)
+      overlaysContainer.addChild(e)
       overlayElements.current.push(e)
     })
+    all.addChild(overlaysContainer)
 
     // draw a background that covers all elements
     let background = new PIXI.Graphics()
