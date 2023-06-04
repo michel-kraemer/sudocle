@@ -31,6 +31,7 @@ import {
   MODE_PEN
 } from "../../components/lib/Modes"
 import { Data } from "../../components/types/Data"
+import { convertCTCPuzzle } from "../../components/lib/ctcpuzzleconverter"
 import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter"
 import {
   MouseEvent,
@@ -120,6 +121,7 @@ const Index = () => {
       let s = new URLSearchParams(window.location.search)
       let puzzleId = s.get("puzzleid")
       let fpuzzlesId = s.get("fpuzzles")
+      let ctcId = s.get("ctc")
       if (
         fpuzzlesId === null &&
         puzzleId !== null &&
@@ -127,10 +129,19 @@ const Index = () => {
       ) {
         fpuzzlesId = puzzleId
       }
+      if (ctcId === null && puzzleId !== null && puzzleId.startsWith("ctc")) {
+        ctcId = puzzleId
+      }
       if (fpuzzlesId !== null) {
         id = fpuzzlesId
         if (!id.startsWith("fpuzzles")) {
           id = "fpuzzles" + id
+        }
+      }
+      if (ctcId !== null) {
+        id = ctcId
+        if (!id.startsWith("ctc")) {
+          id = "ctc" + id
         }
       }
 
@@ -182,7 +193,7 @@ const Index = () => {
       }
     }
 
-    async function loadFPuzzles() {
+    async function loadCompressedPuzzle() {
       let iframe = document.createElement("iframe")
       iframe.style.width = "0"
       iframe.style.height = "0"
@@ -194,9 +205,9 @@ const Index = () => {
           referrerpolicy="no-referrer"></script>
         <script>
           window.addEventListener("message", function (e) {
-            let puzzle = JSON.parse(compressor.decompressFromBase64(e.data))
+            let puzzle = compressor.decompressFromBase64(e.data)
             if (puzzle === null) {
-              puzzle = JSON.parse(compressor.decompressFromBase64(e.data.replace(/ /g, "+")))
+              puzzle = compressor.decompressFromBase64(e.data.replace(/ /g, "+"))
             }
             e.source.postMessage(puzzle, e.origin)
           })
@@ -207,9 +218,15 @@ const Index = () => {
         if (e.origin === "null" && e.source === iframe.contentWindow) {
           window.removeEventListener("message", responseListener)
           iframe.remove()
+          let convertedPuzzle
+          if (id.startsWith("fpuzzles")) {
+            convertedPuzzle = convertFPuzzle(JSON.parse(e.data))
+          } else if (id.startsWith("ctc")) {
+            convertedPuzzle = convertCTCPuzzle(e.data)
+          }
           updateGame({
             type: TYPE_INIT,
-            data: convertFPuzzle(e.data)
+            data: convertedPuzzle
           })
         }
       }
@@ -217,7 +234,12 @@ const Index = () => {
       window.addEventListener("message", responseListener)
 
       iframe.onload = function () {
-        let puzzle = decodeURIComponent(id.substring(8))
+        let puzzle
+        if (id.startsWith("fpuzzles")) {
+          puzzle = decodeURIComponent(id.substring(8))
+        } else if (id.startsWith("ctc")) {
+          puzzle = decodeURIComponent(id.substring(3))
+        }
         iframe.contentWindow!.postMessage(puzzle, "*")
       }
 
@@ -246,8 +268,8 @@ const Index = () => {
       }
     }
 
-    if (id.startsWith("fpuzzles")) {
-      loadFPuzzles()
+    if (id.startsWith("fpuzzles") || id.startsWith("ctc")) {
+      loadCompressedPuzzle()
     } else if (id === "test") {
       loadTest()
     } else {
