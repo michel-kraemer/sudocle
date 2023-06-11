@@ -19,6 +19,7 @@
     "@fontsource/roboto": "^5.0.2",
     "@fontsource/roboto-condensed": "^5.0.2",
     "@pixi/filter-drop-shadow": "^5.2.0",
+    "@thi.ng/bitstream": "^2.2.21",
     "@types/fontfaceobserver": "^2.1.0",
     "classnames": "^2.3.2",
     "color": "^4.2.3",

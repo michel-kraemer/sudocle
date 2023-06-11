@@ -45,6 +45,7 @@ import {
 import FontFaceObserver from "fontfaceobserver"
 import { Frown, ThumbsUp } from "lucide-react"
 import Head from "next/head"
+import lzwDecompress from "../../components/lib/lzwdecompressor"
 import styles from "./index.scss"
 
 const DATABASE_URL =
@@ -194,63 +195,54 @@ const Index = () => {
     }
 
     async function loadCompressedPuzzle() {
-      let iframe = document.createElement("iframe")
-      iframe.style.width = "0"
-      iframe.style.height = "0"
-      iframe.style.border = "0"
-      iframe.style.position = "absolute"
-      iframe.sandbox.add("allow-scripts")
-      iframe.srcdoc = `<head>
-        <script src="https://www.f-puzzles.com/Compression.js?v=1.11.2"
-          referrerpolicy="no-referrer"></script>
-        <script>
-          window.addEventListener("message", function (e) {
-            let puzzle = compressor.decompressFromBase64(e.data)
-            if (puzzle === null) {
-              puzzle = compressor.decompressFromBase64(e.data.replace(/ /g, "+"))
-            }
-            e.source.postMessage(puzzle, e.origin)
-          })
-        </script>
-      </head>`
-
-      function responseListener(e: MessageEvent) {
-        if (e.origin === "null" && e.source === iframe.contentWindow) {
-          window.removeEventListener("message", responseListener)
-          iframe.remove()
-          let convertedPuzzle
-          if (id.startsWith("fpuzzles")) {
-            convertedPuzzle = convertFPuzzle(JSON.parse(e.data))
-          } else if (id.startsWith("ctc")) {
-            convertedPuzzle = convertCTCPuzzle(e.data)
-          }
-          updateGame({
-            type: TYPE_INIT,
-            data: convertedPuzzle
-          })
-        }
+      let puzzle: string
+      if (id.startsWith("fpuzzles")) {
+        puzzle = decodeURIComponent(id.substring(8))
+      } else if (id.startsWith("ctc")) {
+        puzzle = decodeURIComponent(id.substring(3))
+      } else {
+        throw new Error("Unsupported puzzle ID")
       }
 
-      window.addEventListener("message", responseListener)
-
-      iframe.onload = function () {
-        let puzzle
-        if (id.startsWith("fpuzzles")) {
-          puzzle = decodeURIComponent(id.substring(8))
-        } else if (id.startsWith("ctc")) {
-          puzzle = decodeURIComponent(id.substring(3))
-        }
-        iframe.contentWindow!.postMessage(puzzle, "*")
+      let buf = Buffer.from(puzzle, "base64")
+      let str: string | undefined
+      try {
+        str = lzwDecompress(buf)
+      } catch (e) {
+        str = undefined
       }
 
-      document.body.appendChild(iframe)
+      if (str === undefined) {
+        let buf = Buffer.from(puzzle.replace(/ /g, "+"), "base64")
+        str = lzwDecompress(buf)
+      }
+
+      if (str === undefined) {
+        throw new Error("Puzzle ID could not be decompressed")
+      }
+
+      let convertedPuzzle: Data
+      if (id.startsWith("fpuzzles")) {
+        convertedPuzzle = convertFPuzzle(JSON.parse(str))
+      } else if (id.startsWith("ctc")) {
+        convertedPuzzle = convertCTCPuzzle(str)
+      } else {
+        throw new Error("Unsupported puzzle ID")
+      }
+
+      updateGame({
+        type: TYPE_INIT,
+        data: convertedPuzzle
+      })
     }
 
     async function loadTest() {
       let w = window as any
       w.initTestGrid = function (json: any) {
         if (json.fpuzzles !== undefined) {
-          json = convertFPuzzle(json.fpuzzles)
+          let buf = Buffer.from(json.fpuzzles, "base64")
+          let str = JSON.parse(lzwDecompress(buf)!)
+          json = convertFPuzzle(str)
         }
         setIsTest(true)
         updateGame({
