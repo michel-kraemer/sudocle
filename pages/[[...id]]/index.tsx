@@ -255,10 +255,19 @@ const Index = () => {
     async function loadTest() {
       let w = window as any
       w.initTestGrid = function (json: any) {
-        if (json.fpuzzles !== undefined) {
-          let buf = Buffer.from(json.fpuzzles, "base64")
-          let str = JSON.parse(lzwDecompress(buf)!)
-          json = convertFPuzzle(str)
+        if (
+          json.fpuzzles !== undefined ||
+          json.ctc !== undefined ||
+          json.scl !== undefined
+        ) {
+          let buf = Buffer.from(json.fpuzzles ?? json.ctc ?? json.scl, "base64")
+          let str = lzwDecompress(buf)!
+          if (json.fpuzzles !== undefined) {
+            json = convertFPuzzle(JSON.parse(str))
+          } else {
+            console.log(str)
+            json = convertCTCPuzzle(str)
+          }
         }
         setIsTest(true)
         updateGame({
