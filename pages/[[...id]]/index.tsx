@@ -123,6 +123,7 @@ const Index = () => {
       let puzzleId = s.get("puzzleid")
       let fpuzzlesId = s.get("fpuzzles")
       let ctcId = s.get("ctc")
+      let sclId = s.get("scl")
       if (
         fpuzzlesId === null &&
         puzzleId !== null &&
@@ -132,6 +133,9 @@ const Index = () => {
       }
       if (ctcId === null && puzzleId !== null && puzzleId.startsWith("ctc")) {
         ctcId = puzzleId
+      }
+      if (sclId === null && puzzleId !== null && puzzleId.startsWith("scl")) {
+        sclId = puzzleId
       }
       if (fpuzzlesId !== null) {
         id = fpuzzlesId
@@ -143,6 +147,12 @@ const Index = () => {
         id = ctcId
         if (!id.startsWith("ctc")) {
           id = "ctc" + id
+        }
+      }
+      if (sclId !== null) {
+        id = sclId
+        if (!id.startsWith("scl")) {
+          id = "scl" + id
         }
       }
 
@@ -196,9 +206,12 @@ const Index = () => {
 
     async function loadCompressedPuzzle() {
       let puzzle: string
-      if (id.startsWith("fpuzzles")) {
+      if (id.length > 16 && id.startsWith("fpuzzles")) {
         puzzle = decodeURIComponent(id.substring(8))
-      } else if (id.startsWith("ctc")) {
+      } else if (
+        id.length > 16 &&
+        (id.startsWith("ctc") || id.startsWith("scl"))
+      ) {
         puzzle = decodeURIComponent(id.substring(3))
       } else {
         throw new Error("Unsupported puzzle ID")
@@ -222,9 +235,12 @@ const Index = () => {
       }
 
       let convertedPuzzle: Data
-      if (id.startsWith("fpuzzles")) {
+      if (id.length > 16 && id.startsWith("fpuzzles")) {
         convertedPuzzle = convertFPuzzle(JSON.parse(str))
-      } else if (id.startsWith("ctc")) {
+      } else if (
+        id.length > 16 &&
+        (id.startsWith("ctc") || id.startsWith("scl"))
+      ) {
         convertedPuzzle = convertCTCPuzzle(str)
       } else {
         throw new Error("Unsupported puzzle ID")
@@ -260,7 +276,11 @@ const Index = () => {
       }
     }
 
-    if (id.startsWith("fpuzzles") || id.startsWith("ctc")) {
+    if (
+      id.startsWith("fpuzzles") ||
+      id.startsWith("ctc") ||
+      id.startsWith("scl")
+    ) {
       loadCompressedPuzzle()
     } else if (id === "test") {
       loadTest()
