@@ -964,7 +964,11 @@ function drawOverlay(
         let nBackgroundColour
         if (overlay.backgroundColor !== undefined) {
           nBackgroundColour = getRGBColor(overlay.backgroundColor)
-          r.beginFill(nBackgroundColour, isGrey(nBackgroundColour) ? 1 : 0.5)
+          let alpha = getAlpha(overlay.backgroundColor)
+          if (alpha === 1) {
+            alpha = isGrey(nBackgroundColour) ? 1 : 0.5
+          }
+          r.beginFill(nBackgroundColour, alpha)
         }
         if (overlay.borderColor !== undefined) {
           let nBorderColour = getRGBColor(overlay.borderColor)
