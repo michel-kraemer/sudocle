@@ -72,7 +72,15 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
 
   let extraRegions: ExtraRegion[] | undefined = undefined
 
-  let overlays: Overlay[] = puzzle.overlays
+  let overlays: Overlay[] = puzzle.overlays?.map((o: any) => {
+    // empirically determined values for size and center to make font look right
+    let r = { ...o }
+    if (r.fontSize !== undefined) {
+      r.fontSize = r.fontSize * 0.85
+    }
+    r.center = [r.center[0] - (r.fontSize ?? 0) / 125, r.center[1]]
+    return r
+  })
 
   let underlays: Overlay[] = puzzle.underlays
 
