@@ -48,6 +48,10 @@ export interface FogLight {
   size: 1 | 3
 }
 
+export interface Metadata {
+  bgimage?: string
+}
+
 export interface Data {
   readonly cellSize: number
   readonly cells: DataCell[][]
@@ -63,5 +67,6 @@ export interface Data {
   readonly title?: string
   readonly author?: string
   readonly rules?: string
+  readonly metadata?: Metadata
   readonly solved: boolean
 }

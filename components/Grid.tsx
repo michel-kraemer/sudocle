@@ -69,6 +69,8 @@ declare module "pixi.js-legacy" {
 
   type TextEx = PIXI.Text & WithGraphicsExData
 
+  type SpriteEx = PIXI.Sprite & WithGraphicsExData
+
   type PenWaypointGraphics = PIXI.Graphics & {
     data?: {
       cellSize?: number
@@ -1036,6 +1038,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
   const underlayElements = useRef<PIXI.GraphicsEx[]>([])
   const overlayElements = useRef<PIXI.GraphicsEx[]>([])
   const backgroundElement = useRef<PIXI.Graphics>()
+  const backgroundImageElements = useRef<PIXI.SpriteEx[]>([])
   const fogElements = useRef<PIXI.GraphicsEx[]>([])
   const givenCornerMarkElements = useRef<PIXI.TextEx[]>([])
   const digitElements = useRef<PIXI.TextEx[]>([])
@@ -1484,6 +1487,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
 
     // all                            sortable
     //   background            -1000
+    //   background image        -40
     //   extra regions           -30
     //   underlays               -20
     //   lines and arrows        -10
@@ -1955,8 +1959,25 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       }
     })
     backgroundElement.current = background
-
     app.current.stage.addChild(background)
+
+    // add background image
+    if (game.data.metadata?.bgimage !== undefined) {
+      let sprite: PIXI.SpriteEx = PIXI.Sprite.from(game.data.metadata.bgimage)
+      sprite.zIndex = -40
+      sprite.alpha = 0.2
+      sprite.data = {
+        draw: function (cellSize) {
+          sprite.x = -cellSize / 4
+          sprite.y = -cellSize / 4
+          sprite.width = cellSize * game.data.cells[0].length + cellSize / 2
+          sprite.height = cellSize * game.data.cells.length + cellSize / 2
+        }
+      }
+      backgroundImageElements.current.push(sprite)
+      all.addChild(sprite)
+    }
+
     app.current.stage.addChild(all)
 
     // ***************** draw other elements that don't contribute to the bounds
@@ -2260,9 +2281,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     // memoize draw calls to improve performance
     const wrapDraw =
       (
-        e: PIXI.GraphicsEx | PIXI.TextEx,
-        draw: NonNullable<(PIXI.GraphicsEx | PIXI.TextEx)["data"]>["draw"]
-      ): NonNullable<(PIXI.GraphicsEx | PIXI.TextEx)["data"]>["draw"] =>
+        e: PIXI.WithGraphicsExData,
+        draw: NonNullable<PIXI.WithGraphicsExData["data"]>["draw"]
+      ): NonNullable<PIXI.WithGraphicsExData["data"]>["draw"] =>
       (cellSize, zoomFactor, currentDigits) => {
         if (e instanceof PIXI.Graphics) {
           e.clear()
@@ -2298,7 +2319,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       selectionElements,
       errorElements,
       penLineElements,
-      penHitareaElements
+      penHitareaElements,
+      backgroundImageElements
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
@@ -2348,6 +2370,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       penCurrentWaypointsElements.current = []
       penHitareaElements.current = []
       penLineElements.current = []
+      backgroundImageElements.current = []
 
       document.removeEventListener("pointercancel", onPointerUp)
       document.removeEventListener("pointerup", onPointerUp)
@@ -2401,7 +2424,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         selectionElements,
         errorElements,
         penLineElements,
-        penHitareaElements
+        penHitareaElements,
+        backgroundImageElements
       ]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {

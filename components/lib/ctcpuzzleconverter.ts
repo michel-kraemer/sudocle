@@ -82,6 +82,8 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
 
   let fogLights: FogLight[] | undefined = undefined
 
+  let metadata = puzzle.metadata
+
   let result: Data = {
     cellSize: 50,
     cells,
@@ -94,6 +96,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     arrows,
     solution,
     fogLights,
+    metadata,
     solved: false
   }
 
