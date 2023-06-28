@@ -7,6 +7,7 @@ import {
   ExtraRegion,
   FogLight,
   Line,
+  Metadata,
   Overlay
 } from "../types/Data"
 
@@ -152,6 +153,7 @@ interface FPuzzlesData {
   text?: FPuzzlesText[]
   solution?: (number | string | undefined)[]
   fogofwar?: string[]
+  metadata?: Metadata
 }
 
 interface CustomStyle {
@@ -934,6 +936,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     arrows,
     solution,
     fogLights,
+    metadata: puzzle.metadata,
     solved: false
   }
 
