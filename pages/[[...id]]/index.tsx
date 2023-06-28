@@ -122,6 +122,7 @@ const Index = () => {
       let s = new URLSearchParams(window.location.search)
       let puzzleId = s.get("puzzleid")
       let fpuzzlesId = s.get("fpuzzles")
+      let fpuz = s.get("fpuz")
       let ctcId = s.get("ctc")
       let sclId = s.get("scl")
       if (
@@ -130,6 +131,9 @@ const Index = () => {
         puzzleId.startsWith("fpuzzles")
       ) {
         fpuzzlesId = puzzleId
+      }
+      if (fpuz === null && puzzleId !== null && puzzleId.startsWith("fpuz")) {
+        fpuz = puzzleId
       }
       if (ctcId === null && puzzleId !== null && puzzleId.startsWith("ctc")) {
         ctcId = puzzleId
@@ -141,6 +145,12 @@ const Index = () => {
         id = fpuzzlesId
         if (!id.startsWith("fpuzzles")) {
           id = "fpuzzles" + id
+        }
+      }
+      if (fpuz !== null) {
+        id = fpuz
+        if (!id.startsWith("fpuz")) {
+          id = "fpuz" + id
         }
       }
       if (ctcId !== null) {
@@ -208,6 +218,8 @@ const Index = () => {
       let puzzle: string
       if (id.length > 16 && id.startsWith("fpuzzles")) {
         puzzle = decodeURIComponent(id.substring(8))
+      } else if (id.length > 16 && id.startsWith("fpuz")) {
+        puzzle = decodeURIComponent(id.substring(4))
       } else if (
         id.length > 16 &&
         (id.startsWith("ctc") || id.startsWith("scl"))
@@ -235,7 +247,10 @@ const Index = () => {
       }
 
       let convertedPuzzle: Data
-      if (id.length > 16 && id.startsWith("fpuzzles")) {
+      if (
+        id.length > 16 &&
+        (id.startsWith("fpuzzles") || id.startsWith("fpuz"))
+      ) {
         convertedPuzzle = convertFPuzzle(JSON.parse(str))
       } else if (
         id.length > 16 &&
@@ -287,6 +302,7 @@ const Index = () => {
 
     if (
       id.startsWith("fpuzzles") ||
+      id.startsWith("fpuz") ||
       id.startsWith("ctc") ||
       id.startsWith("scl")
     ) {
