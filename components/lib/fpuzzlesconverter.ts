@@ -377,7 +377,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       for (let c of cage.cells) {
         fogLights.push({
           center: cellToCell(c, 0, 0),
-          size: 3
+          size: cage.value.toLowerCase() === "fow" ? 3 : 1
         })
       }
     } else if (
