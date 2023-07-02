@@ -289,6 +289,7 @@ const Index = () => {
           type: TYPE_INIT,
           data: json
         })
+        return json
       }
       w.resetTestGrid = function () {
         setFontsLoaded(false) // make sure fonts for the next grid will be loaded

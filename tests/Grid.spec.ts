@@ -52,7 +52,14 @@ test.describe.parallel("Grid", () => {
       let page = pages[testInfo.workerIndex]
 
       // load puzzle
-      await page.evaluate(json => (window as any).initTestGrid(json), data)
+      let puzzleData = await page.evaluate(
+        json => (window as any).initTestGrid(json),
+        data
+      )
+      if (puzzleData.metadata?.bgimage !== undefined) {
+        // wait for background image to be loaded
+        await page.waitForLoadState("networkidle")
+      }
 
       // take screenshot
       let grid = page.locator(".grid")
