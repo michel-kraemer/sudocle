@@ -47,7 +47,7 @@
     "@jsdevtools/readdir-enhanced": "^6.0.4",
     "@playwright/test": "^1.35.1",
     "@types/color": "^3.0.3",
-    "@types/lodash": "^4.14.195",
+    "@types/lodash": "^4.14.196",
     "@types/react": "18.2.14",
     "@types/react-modal": "^3.16.0",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
