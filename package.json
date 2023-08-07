@@ -17,7 +17,7 @@
     "@datapunt/matomo-tracker-js": "^0.5.1",
     "@fontsource/baloo-2": "^5.0.3",
     "@fontsource/roboto": "^5.0.3",
-    "@fontsource/roboto-condensed": "^5.0.3",
+    "@fontsource/roboto-condensed": "^5.0.8",
     "@pixi/filter-drop-shadow": "^5.2.0",
     "@thi.ng/bitstream": "^2.2.22",
     "@types/fontfaceobserver": "^2.1.0",
