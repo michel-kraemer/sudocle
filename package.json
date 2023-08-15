@@ -58,7 +58,7 @@
     "html-webpack-plugin": "^5.5.3",
     "npm-check-updates": "^16.10.13",
     "odiff-bin": "^2.6.1",
-    "prettier": "^2.8.8",
+    "prettier": "^3.0.2",
     "start-server-and-test": "^2.0.0"
   }
 }
