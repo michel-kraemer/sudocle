@@ -63,7 +63,10 @@ test.describe.parallel("Grid", () => {
 
       // take screenshot
       let grid = page.locator(".grid")
-      let screenshot = await grid.screenshot()
+      let screenshot = await grid.screenshot({
+        // make screenshots a little bit faster
+        caret: "initial"
+      })
 
       // write screenshot to temporary file
       let actualImage = path.join(tempScreenshotsDir, `${f}.png`)
