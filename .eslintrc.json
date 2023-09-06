@@ -1,15 +1,8 @@
 {
-  "extends": ["next/core-web-vitals", "plugin:@typescript-eslint/strict"],
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "project": ["./tsconfig.json"]
-  },
-  "plugins": ["@typescript-eslint"],
+  "extends": "next/core-web-vitals",
   "rules": {
     "@next/next/google-font-display": "off",
     "@next/next/no-img-element": "off",
-    "@typescript-eslint/no-unnecessary-condition": "off",
-    "comma-dangle": ["error", "never"],
     "comma-spacing": ["error", { "before": false, "after": true }],
     "comma-style": ["error", "last"],
     "eol-last": "error",
@@ -19,7 +12,6 @@
     "no-trailing-spaces": "error",
     "no-var": "error",
     "object-curly-spacing": ["error", "always"],
-    "prefer-const": "off",
     "quotes": ["error", "double"],
     "react/display-name": "off",
     "react/jsx-curly-spacing": ["error", "never"],
