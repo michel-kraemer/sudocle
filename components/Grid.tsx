@@ -2019,6 +2019,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     // ***************** draw invisible elements but don't call render() again!
 
     // create empty text elements for all digits
+    let digitsContainer = new PIXI.Container()
+    digitsContainer.zIndex = 50
+    digitsContainer.mask = fogMask
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let text: PIXI.TextEx = new PIXI.Text("", {
@@ -2026,7 +2029,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           fontSize: FONT_SIZE_DIGITS
         })
         text.visible = false
-        text.zIndex = 50
         text.anchor.set(0.5)
         text.data = {
           k: xytok(x, y),
@@ -2035,10 +2037,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
             text.y = y * cellSize + cellSize / 2 - 0.5
           }
         }
-        all.addChild(text)
+        digitsContainer.addChild(text)
         digitElements.current.push(text)
       })
     })
+    all.addChild(digitsContainer)
 
     // create empty text elements for corner marks
     game.data.cells.forEach((row, y) => {
