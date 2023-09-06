@@ -85,7 +85,7 @@ test.describe.parallel("Grid", () => {
       let diffImage = path.join(testResultsDir, `${f}.odiff.png`)
       let result = await compare(expectedImage, actualImage, diffImage, {
         antialiasing: true,
-        threshold: 0.1,
+        threshold: 0.01,
         outputDiffMask: true
       })
 
