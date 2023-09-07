@@ -66,6 +66,8 @@ interface PersistentGameState {
   centreMarks: Map<number, Set<number | string>>
   colours: Map<number, Colour>
   penLines: Set<number>
+  fogLights?: FogLight[]
+  fogRaster?: number[][]
 }
 
 interface GameState extends PersistentGameState {
@@ -137,6 +139,78 @@ function makeGivenMarks<T extends (string | number)[]>(
   })
 }
 
+/**
+ * Calculate all current fog lights: use the static lights from the given data
+ * object and add dynamic lights for correct digits.
+ */
+function makeFogLights(
+  data: Data,
+  digits: Map<number, Digit>
+): FogLight[] | undefined {
+  if (data.fogLights === undefined) {
+    // puzzle is not a fog puzzle
+    return undefined
+  }
+
+  let r: FogLight[] = [...data.fogLights]
+  if (data.solution !== undefined) {
+    digits.forEach((v, k) => {
+      let [x, y] = ktoxy(k)
+      let expected = data.solution![y][x]
+      if (!v.given && v.digit === expected) {
+        r.push({
+          center: [y, x],
+          size: 3
+        })
+      }
+    })
+  }
+  return r
+}
+
+function makeFogRaster(data: Data, fogLights?: FogLight[]): number[][] {
+  let cells: number[][] = Array(data.cells.length)
+  for (let i = 0; i < data.cells.length; ++i) {
+    cells[i] = Array(data.cells[0].length).fill(1)
+  }
+
+  if (fogLights === undefined) {
+    return cells
+  }
+
+  for (let light of fogLights) {
+    let y = light.center[0]
+    let x = light.center[1]
+    if (light.size === 3) {
+      if (y > 0) {
+        if (x > 0) {
+          cells[y - 1][x - 1] = 0
+        }
+        cells[y - 1][x] = 0
+        if (x < cells[y - 1].length - 1) {
+          cells[y - 1][x + 1] = 0
+        }
+      }
+      cells[y][x - 1] = 0
+      cells[y][x] = 0
+      cells[y][x + 1] = 0
+      if (y < cells.length - 1) {
+        if (x > 0) {
+          cells[y + 1][x - 1] = 0
+        }
+        cells[y + 1][x] = 0
+        if (x < cells[y + 1].length - 1) {
+          cells[y + 1][x + 1] = 0
+        }
+      }
+    } else if (light.size === 1) {
+      cells[y][x] = 0
+    }
+  }
+
+  return cells
+}
+
 function parseFogLights(str: string): FogLight[] {
   let result: FogLight[] = []
   if (str === "") {
@@ -183,13 +257,16 @@ function parseSolution(data: Data, str: string): (number | undefined)[][] {
 }
 
 function makeEmptyState(data?: Data): GameState {
+  let digits = makeGivenDigits(data)
+  let fogLights = makeFogLights(data ?? EmptyData, digits)
+
   return {
     data: data ?? EmptyData,
     mode: MODE_NORMAL,
     modeGroup: 0,
     enabledModes0: [MODE_NORMAL],
     enabledModes1: [MODE_PEN],
-    digits: makeGivenDigits(data),
+    digits,
     cornerMarks: makeGivenMarks(data, c => c.cornermarks),
     centreMarks: makeGivenMarks(data, c => c.centremarks),
     colours: new Map(),
@@ -200,7 +277,9 @@ function makeEmptyState(data?: Data): GameState {
     nextUndoState: 0,
     solved: data?.solved ?? false,
     paused: false,
-    checkCounter: 0
+    checkCounter: 0,
+    fogLights,
+    fogRaster: makeFogRaster(data ?? EmptyData, fogLights)
   }
 }
 
@@ -346,7 +425,9 @@ function digitsReducer(
   digits: Map<number, Digit>,
   action: DigitsAction,
   selection: Set<number>
-) {
+): boolean {
+  let changed = false
+
   switch (action.action) {
     case ACTION_SET: {
       if (action.digit !== undefined) {
@@ -355,6 +436,7 @@ function digitsReducer(
             digit: action.digit,
             given: false
           })
+          changed = true
         }
       }
       break
@@ -362,11 +444,13 @@ function digitsReducer(
 
     case ACTION_REMOVE: {
       for (let sc of selection) {
-        digits.delete(sc)
+        changed ||= digits.delete(sc)
       }
       break
     }
   }
+
+  return changed
 }
 
 function coloursReducer(
@@ -621,11 +705,19 @@ function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
           )
           return
       }
-      digitsReducer(
+
+      let changed = digitsReducer(
         state.digits,
         action,
         filterGivens(state.digits, state.selection)
       )
+
+      if (changed && state.data.fogLights !== undefined) {
+        // update fog lights after digits have changed
+        state.fogLights = makeFogLights(state.data, state.digits)
+        state.fogRaster = makeFogRaster(state.data, state.fogLights)
+      }
+
       return
 
     case TYPE_COLOURS:

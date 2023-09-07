@@ -57,7 +57,9 @@ declare module "pixi.js-legacy" {
     draw: (
       cellSize: number,
       zoomFactor: number,
-      currentDigits: Map<number, Digit>
+      currentDigits: Map<number, Digit>,
+      currentFogLights: FogLight[] | undefined,
+      currentFogRaster: number[][] | undefined
     ) => void
   }
 
@@ -664,16 +666,15 @@ function makeCornerMarks(
     })
 
     text.data = {
-      draw: function (cellSize, _, currentDigits) {
+      draw: function (cellSize, _, currentDigits, currentFogLights, currentFogRaster) {
         let cx = x * cellSize + cellSize / 2
         let cy = y * cellSize + cellSize / 2 - 0.5
         let mx = cellSize / 3.2
         let my = cellSize / 3.4
 
         let hasFog = false
-        if (data.fogLights !== undefined) {
-          let fogCells = makeFogRaster(data, currentDigits)
-          hasFog = fogCells[y]?.[x] === 1
+        if (currentFogRaster !== undefined) {
+          hasFog = currentFogRaster[y]?.[x] === 1
         }
 
         switch (i) {
@@ -837,71 +838,6 @@ function penWaypointsToKey(
   }
   return undefined
 }
-
-function getFogLights(
-  data: Data,
-  currentDigits: Map<number, Digit>
-): FogLight[] {
-  let r: FogLight[] = []
-  if (data.fogLights !== undefined) {
-    r.push(...data.fogLights)
-  }
-  if (data.solution !== undefined) {
-    currentDigits.forEach((v, k) => {
-      let [x, y] = ktoxy(k)
-      let expected = data.solution![y][x]
-      if (!v.given && v.digit === expected) {
-        r.push({
-          center: [y, x],
-          size: 3
-        })
-      }
-    })
-  }
-  return r
-}
-
-const makeFogRaster = memoizeOne(
-  (data: Data, currentDigits: Map<number, Digit>): number[][] => {
-    let cells: number[][] = Array(data.cells.length)
-    for (let i = 0; i < data.cells.length; ++i) {
-      cells[i] = Array(data.cells[0].length).fill(1)
-    }
-
-    let lights = getFogLights(data, currentDigits)
-    for (let light of lights) {
-      let y = light.center[0]
-      let x = light.center[1]
-      if (light.size === 3) {
-        if (y > 0) {
-          if (x > 0) {
-            cells[y - 1][x - 1] = 0
-          }
-          cells[y - 1][x] = 0
-          if (x < cells[y - 1].length - 1) {
-            cells[y - 1][x + 1] = 0
-          }
-        }
-        cells[y][x - 1] = 0
-        cells[y][x] = 0
-        cells[y][x + 1] = 0
-        if (y < cells.length - 1) {
-          if (x > 0) {
-            cells[y + 1][x - 1] = 0
-          }
-          cells[y + 1][x] = 0
-          if (x < cells[y + 1].length - 1) {
-            cells[y + 1][x + 1] = 0
-          }
-        }
-      } else if (light.size === 1) {
-        cells[y][x] = 0
-      }
-    }
-
-    return cells
-  }
-)
 
 function drawOverlay(
   overlay: Overlay,
@@ -1520,11 +1456,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       let fog: PIXI.GraphicsEx = new PIXI.Graphics()
       fog.zIndex = -1
       fog.data = {
-        draw: function (cellSize, _, currentDigits) {
-          let cells = makeFogRaster(game.data, currentDigits)
+        draw: function (cellSize, _, currentDigits, currentFogLights, currentFogRaster) {
+          if (currentFogRaster === undefined) {
+            return
+          }
 
           let flatCells: [number, number][] = []
-          cells.forEach((row, y) => {
+          currentFogRaster.forEach((row, y) => {
             row.forEach((v, x) => {
               if (v === 1) {
                 flatCells.push([y, x])
@@ -1562,21 +1500,22 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
 
       fogMask = new PIXI.Graphics()
       fogMask.data = {
-        draw: function (cellSize, _, currentDigits) {
+        draw: function (cellSize, _, currentDigits, currentFogLights) {
           fogMask!.beginFill(0)
-          let lights = getFogLights(game.data, currentDigits)
-          for (let light of lights) {
-            let y = light.center[0]
-            let x = light.center[1]
-            if (light.size === 3) {
-              fogMask!.drawRect(
-                (x - 1) * cellSize,
-                (y - 1) * cellSize,
-                cellSize * 3,
-                cellSize * 3
-              )
-            } else {
-              fogMask!.drawRect(x * cellSize, y * cellSize, cellSize, cellSize)
+          if (currentFogLights !== undefined) {
+            for (let light of currentFogLights) {
+              let y = light.center[0]
+              let x = light.center[1]
+              if (light.size === 3) {
+                fogMask!.drawRect(
+                  (x - 1) * cellSize,
+                  (y - 1) * cellSize,
+                  cellSize * 3,
+                  cellSize * 3
+                )
+              } else {
+                fogMask!.drawRect(x * cellSize, y * cellSize, cellSize, cellSize)
+              }
             }
           }
 
@@ -2284,11 +2223,11 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         e: PIXI.WithGraphicsExData,
         draw: NonNullable<PIXI.WithGraphicsExData["data"]>["draw"]
       ): NonNullable<PIXI.WithGraphicsExData["data"]>["draw"] =>
-      (cellSize, zoomFactor, currentDigits) => {
+      (cellSize, zoomFactor, currentDigits, currentFogLights, currentFogRaster) => {
         if (e instanceof PIXI.Graphics) {
           e.clear()
         }
-        draw(cellSize, zoomFactor, currentDigits)
+        draw(cellSize, zoomFactor, currentDigits, currentFogLights, currentFogRaster)
       }
     const wrapDrawWaypoints =
       (
@@ -2429,12 +2368,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       ]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
-          e.data?.draw(cs, cellSizeFactor.current, game.digits)
+          e.data?.draw(cs, cellSizeFactor.current, game.digits,
+            game.fogLights, game.fogRaster)
         }
       }
       for (let e of cornerMarkElements.current) {
         for (let ce of e.elements) {
-          ce.data?.draw(cs, cellSizeFactor.current, game.digits)
+          ce.data?.draw(cs, cellSizeFactor.current, game.digits,
+            game.fogLights, game.fogRaster)
         }
       }
       for (let e of penCurrentWaypointsElements.current) {
@@ -2517,7 +2458,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     portrait,
     settings.zoom,
     game.mode,
-    game.digits
+    game.digits,
+    game.fogLights,
+    game.fogRaster
   ])
 
   // register keyboard handlers
