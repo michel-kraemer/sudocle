@@ -14,7 +14,7 @@ import {
 import { Digit } from "./types/Game"
 import { Arrow, Data, DataCell, FogLight, Line, Overlay } from "./types/Data"
 import { MODE_PEN } from "./lib/Modes"
-import { ktoxy, xytok, pltok } from "./lib/utils"
+import { ktoxy, xytok, pltok, hasFog } from "./lib/utils"
 import Color from "color"
 import polygonClipping, { Polygon } from "polygon-clipping"
 import styles from "./Grid.scss"
@@ -672,14 +672,11 @@ function makeCornerMarks(
         let mx = cellSize / 3.2
         let my = cellSize / 3.4
 
-        let hasFog = false
-        if (currentFogRaster !== undefined) {
-          hasFog = currentFogRaster[y]?.[x] === 1
-        }
+        let fog = hasFog(currentFogRaster, x, y)
 
         switch (i) {
           case 0:
-            if (leaveRoom && !hasFog) {
+            if (leaveRoom && !fog) {
               text.x = cx - mx / 3
             } else {
               text.x = cx - mx
@@ -687,7 +684,7 @@ function makeCornerMarks(
             text.y = cy - my
             break
           case 4:
-            if (leaveRoom && !hasFog) {
+            if (leaveRoom && !fog) {
               text.x = cx + mx / 3
             } else {
               text.x = cx
@@ -2600,22 +2597,27 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     for (let e of digitElements.current) {
       let digit = game.digits.get(e.data!.k!)
       if (digit !== undefined) {
-        e.text = digit.digit
-        e.style.fill = digit.given
-          ? themeColours.foregroundColor
-          : themeColours.digitColor
-        e.visible = true
+        let [x, y] = ktoxy(e.data!.k!)
+        if (digit.given && !digit.discovered && hasFog(game.fogRaster, x, y)) {
+          e.visible = false
+        } else {
+          e.text = digit.digit
+          e.style.fill = digit.given
+            ? themeColours.foregroundColor
+            : themeColours.digitColor
+          e.visible = true
 
-        let com = cornerMarks.get(e.data!.k!)
-        if (com !== undefined) {
-          for (let ce of com.elements) {
-            ce.visible = false
+          let com = cornerMarks.get(e.data!.k!)
+          if (com !== undefined) {
+            for (let ce of com.elements) {
+              ce.visible = false
+            }
           }
-        }
 
-        let cem = centreMarks.get(e.data!.k!)
-        if (cem !== undefined) {
-          cem.visible = false
+          let cem = centreMarks.get(e.data!.k!)
+          if (cem !== undefined) {
+            cem.visible = false
+          }
         }
       } else {
         e.visible = false
@@ -2676,6 +2678,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     game.colours,
     game.penLines,
     game.errors,
+    game.fogRaster,
     settings.theme,
     settings.colourPalette,
     settings.selectionColour,

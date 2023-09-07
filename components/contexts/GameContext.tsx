@@ -1,4 +1,4 @@
-import { xytok, ktoxy } from "../lib/utils"
+import { xytok, ktoxy, hasFog } from "../lib/utils"
 import {
   Action,
   ColoursAction,
@@ -119,7 +119,8 @@ function makeGivenDigits(data: Data | undefined): Map<number, Digit> {
       }
       return {
         digit: n,
-        given: true
+        given: true,
+        discovered: false
       }
     }
   )
@@ -162,20 +163,25 @@ function makeFogLights(
           center: [y, x],
           size: 3
         })
+      } else if (v.given && v.discovered) {
+        r.push({
+          center: [y, x],
+          size: 1
+        })
       }
     })
   }
   return r
 }
 
-function makeFogRaster(data: Data, fogLights?: FogLight[]): number[][] {
+function makeFogRaster(data: Data, fogLights?: FogLight[]): number[][] | undefined {
+  if (fogLights === undefined) {
+    return undefined
+  }
+
   let cells: number[][] = Array(data.cells.length)
   for (let i = 0; i < data.cells.length; ++i) {
     cells[i] = Array(data.cells[0].length).fill(1)
-  }
-
-  if (fogLights === undefined) {
-    return cells
   }
 
   for (let light of fogLights) {
@@ -290,7 +296,7 @@ function filterGivens(
   let r = new Set<number>()
   for (let sc of selection) {
     let cell = digits.get(sc)
-    if (cell === undefined || !cell.given) {
+    if (cell === undefined || !cell.given || cell.discovered) {
       r.add(sc)
     }
   }
@@ -432,11 +438,24 @@ function digitsReducer(
     case ACTION_SET: {
       if (action.digit !== undefined) {
         for (let sc of selection) {
-          digits.set(sc, {
-            digit: action.digit,
-            given: false
-          })
-          changed = true
+          let oldDigit = digits.get(sc)
+          if (oldDigit !== undefined && oldDigit.given) {
+            if (oldDigit.digit === action.digit) {
+              digits.set(sc, {
+                digit: action.digit,
+                given: true,
+                discovered: true
+              })
+              changed = true
+            }
+          } else {
+            digits.set(sc, {
+              digit: action.digit,
+              given: false,
+              discovered: false
+            })
+            changed = true
+          }
         }
       }
       break
@@ -444,7 +463,19 @@ function digitsReducer(
 
     case ACTION_REMOVE: {
       for (let sc of selection) {
-        changed ||= digits.delete(sc)
+        let oldDigit = digits.get(sc)
+        if (oldDigit !== undefined && oldDigit.given) {
+          digits.set(sc, {
+            digit: oldDigit.digit,
+            given: true,
+            discovered: false
+          })
+          changed = true
+        } else {
+          if (digits.delete(sc)) {
+            changed = true
+          }
+        }
       }
       break
     }
@@ -688,20 +719,35 @@ function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
       modeGroupReducer(state, action)
       return
 
-    case TYPE_DIGITS:
+    case TYPE_DIGITS: {
+      let filteredDigits: Map<number, Digit>
+      if (state.data.fogLights !== undefined) {
+        // ignore given digits covered by fog
+        filteredDigits = new Map<number, Digit>()
+        state.digits.forEach((v, k) => {
+          let [x, y] = ktoxy(k)
+          if (!v.given || !hasFog(state.fogRaster, x, y)) {
+            filteredDigits.set(k, v)
+          }
+        })
+      } else {
+        // puzzle is not a fog puzzle - use all digits
+        filteredDigits = state.digits
+      }
+
       switch (mode) {
         case MODE_CORNER:
           marksReducer(
             state.cornerMarks,
             action,
-            filterGivens(state.digits, state.selection)
+            filterGivens(filteredDigits, state.selection)
           )
           return
         case MODE_CENTRE:
           marksReducer(
             state.centreMarks,
             action,
-            filterGivens(state.digits, state.selection)
+            filterGivens(filteredDigits, state.selection)
           )
           return
       }
@@ -709,7 +755,7 @@ function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
       let changed = digitsReducer(
         state.digits,
         action,
-        filterGivens(state.digits, state.selection)
+        filterGivens(filteredDigits, state.selection)
       )
 
       if (changed && state.data.fogLights !== undefined) {
@@ -719,6 +765,7 @@ function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
       }
 
       return
+    }
 
     case TYPE_COLOURS:
       coloursReducer(state.colours, action, state.selection)
@@ -744,7 +791,9 @@ function makeUndoState(state: PersistentGameState): PersistentGameState {
     cornerMarks: state.cornerMarks,
     centreMarks: state.centreMarks,
     colours: state.colours,
-    penLines: state.penLines
+    penLines: state.penLines,
+    fogLights: state.fogLights,
+    fogRaster: state.fogRaster
   }
 }
 
@@ -896,7 +945,7 @@ function gameReducer(state: GameState, action: Action) {
       if (!deleteColour) {
         for (let sc of draft.selection) {
           let digit = draft.digits.get(sc)
-          if (digit !== undefined && !digit.given) {
+          if (digit !== undefined && (!digit.given || digit.discovered)) {
             highest = MODE_NORMAL
             break
           }
