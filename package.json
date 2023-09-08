@@ -50,7 +50,7 @@
     "@types/lodash": "^4.14.198",
     "@types/react": "18.2.21",
     "@types/react-modal": "^3.16.0",
-    "eslint": "^8.48.0",
+    "eslint": "^8.49.0",
     "eslint-config-next": "^13.4.19",
     "eslint-webpack-plugin": "^4.0.1",
     "html-webpack-plugin": "^5.5.3",
