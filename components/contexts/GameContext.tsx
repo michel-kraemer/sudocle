@@ -174,7 +174,10 @@ function makeFogLights(
   return r
 }
 
-function makeFogRaster(data: Data, fogLights?: FogLight[]): number[][] | undefined {
+function makeFogRaster(
+  data: Data,
+  fogLights?: FogLight[]
+): number[][] | undefined {
   if (fogLights === undefined) {
     return undefined
   }
@@ -832,8 +835,10 @@ function gameReducer(state: GameState, action: Action) {
                   canonicalData.rules ?? cage.value.substring(6).trim()
               } else if (cage.value.startsWith("foglight:")) {
                 let str = cage.value.substring(9).trim()
-                canonicalData.fogLights =
-                  canonicalData.fogLights ?? parseFogLights(str)
+                canonicalData.fogLights = [
+                  ...(canonicalData.fogLights ?? []),
+                  ...parseFogLights(str)
+                ]
               } else if (cage.value.startsWith("solution:")) {
                 let str = cage.value.substring(9).trim()
                 canonicalData.solution =
@@ -849,12 +854,13 @@ function gameReducer(state: GameState, action: Action) {
             typeof cage.value === "string" &&
             cage.value.toLowerCase() === "foglight"
           ) {
-            canonicalData.fogLights =
-              canonicalData.fogLights ??
-              cage.cells.map(c => ({
+            canonicalData.fogLights = [
+              ...(canonicalData.fogLights ?? []),
+              ...cage.cells.map<FogLight>(c => ({
                 center: c,
                 size: 1
               }))
+            ]
             needToFilterFogLights = true
           }
         }
