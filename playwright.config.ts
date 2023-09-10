@@ -1,4 +1,6 @@
-const config = {
+import { defineConfig } from "@playwright/test"
+
+export default defineConfig({
   use: {
     channel: "chrome",
     deviceScaleFactor: 2,
@@ -12,6 +14,4 @@ const config = {
       args: ["--use-gl=angle"]
     }
   }
-}
-
-module.exports = config
+})

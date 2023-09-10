@@ -652,7 +652,6 @@ function makeCornerMarks(
   y: number,
   fontSize: number,
   leaveRoom: boolean,
-  data: Data,
   n = 11,
   fontWeight: PIXI.TextStyleFontWeight = "normal"
 ): PIXI.TextEx[] {
@@ -666,7 +665,13 @@ function makeCornerMarks(
     })
 
     text.data = {
-      draw: function (cellSize, _, currentDigits, currentFogLights, currentFogRaster) {
+      draw: function (
+        cellSize,
+        _,
+        currentDigits,
+        currentFogLights,
+        currentFogRaster
+      ) {
         let cx = x * cellSize + cellSize / 2
         let cy = y * cellSize + cellSize / 2 - 0.5
         let mx = cellSize / 3.2
@@ -1097,6 +1102,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
   // as possible (without this, there might be lags of 500ms - 1s every now
   // and then!), (2) it saves CPU cycles and therefore battery.
   const renderNow = useCallback(() => {
+    if ("_SUDOCLE_IS_TEST" in window) {
+      // don't render in tests - we will call screenshotNow() instead when
+      // we are ready
+      return
+    }
+
     function doRender() {
       let elapsed = +new Date() - renderLoopStarted.current
       if (app.current !== undefined && elapsed < MAX_RENDER_LOOP_TIME) {
@@ -1112,6 +1123,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     if (!rendering.current) {
       doRender()
     }
+  }, [])
+
+  const screenshotNow = useCallback(() => {
+    app.current!.render()
+    let url = app.current!.view.toDataURL!()
+    ;(window as any).screenshotRendered(url)
   }, [])
 
   const onPenMove = useCallback(
@@ -1240,8 +1257,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       }
 
       // render waypoints
-      penCurrentWaypointsElements.current.forEach(e =>
-        e.data?.draw(undefined, penCurrentWaypoints.current)
+      penCurrentWaypointsElements.current.forEach(
+        e => e.data?.draw(undefined, penCurrentWaypoints.current)
       )
       renderNow()
     },
@@ -1342,8 +1359,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       penCurrentDrawEdge.current = false
 
       // render waypoints (this will basically remove them from the grid)
-      penCurrentWaypointsElements.current.forEach(e =>
-        e.data?.draw(undefined, penCurrentWaypoints.current)
+      penCurrentWaypointsElements.current.forEach(
+        e => e.data?.draw(undefined, penCurrentWaypoints.current)
       )
       renderNow()
     }
@@ -1381,7 +1398,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       autoDensity: true,
       autoStart: false
     })
-    ref.current!.appendChild(newApp.view as any)
+    if (!("_SUDOCLE_IS_TEST" in window)) {
+      ref.current!.appendChild(newApp.view as any)
+    }
     app.current = newApp
 
     // it seems we don't need the system ticker, so stop it
@@ -1453,7 +1472,13 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       let fog: PIXI.GraphicsEx = new PIXI.Graphics()
       fog.zIndex = -1
       fog.data = {
-        draw: function (cellSize, _, currentDigits, currentFogLights, currentFogRaster) {
+        draw: function (
+          cellSize,
+          _,
+          currentDigits,
+          currentFogLights,
+          currentFogRaster
+        ) {
           if (currentFogRaster === undefined) {
             return
           }
@@ -1511,7 +1536,12 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
                   cellSize * 3
                 )
               } else {
-                fogMask!.drawRect(x * cellSize, y * cellSize, cellSize, cellSize)
+                fogMask!.drawRect(
+                  x * cellSize,
+                  y * cellSize,
+                  cellSize,
+                  cellSize
+                )
               }
             }
           }
@@ -1938,7 +1968,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           y,
           FONT_SIZE_CORNER_MARKS_HIGH_DPI,
           hcv,
-          game.data,
           arr.length,
           "700"
         )
@@ -1992,7 +2021,6 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           y,
           FONT_SIZE_CORNER_MARKS_HIGH_DPI,
           leaveRoom,
-          game.data,
           11
         )
         for (let cm of cms) {
@@ -2220,11 +2248,23 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         e: PIXI.WithGraphicsExData,
         draw: NonNullable<PIXI.WithGraphicsExData["data"]>["draw"]
       ): NonNullable<PIXI.WithGraphicsExData["data"]>["draw"] =>
-      (cellSize, zoomFactor, currentDigits, currentFogLights, currentFogRaster) => {
+      (
+        cellSize,
+        zoomFactor,
+        currentDigits,
+        currentFogLights,
+        currentFogRaster
+      ) => {
         if (e instanceof PIXI.Graphics) {
           e.clear()
         }
-        draw(cellSize, zoomFactor, currentDigits, currentFogLights, currentFogRaster)
+        draw(
+          cellSize,
+          zoomFactor,
+          currentDigits,
+          currentFogLights,
+          currentFogRaster
+        )
       }
     const wrapDrawWaypoints =
       (
@@ -2365,14 +2405,24 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       ]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
-          e.data?.draw(cs, cellSizeFactor.current, game.digits,
-            game.fogLights, game.fogRaster)
+          e.data?.draw(
+            cs,
+            cellSizeFactor.current,
+            game.digits,
+            game.fogLights,
+            game.fogRaster
+          )
         }
       }
       for (let e of cornerMarkElements.current) {
         for (let ce of e.elements) {
-          ce.data?.draw(cs, cellSizeFactor.current, game.digits,
-            game.fogLights, game.fogRaster)
+          ce.data?.draw(
+            cs,
+            cellSizeFactor.current,
+            game.digits,
+            game.fogLights,
+            game.fogRaster
+          )
         }
       }
       for (let e of penCurrentWaypointsElements.current) {
@@ -2670,6 +2720,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     }
 
     renderNow()
+
+    if ("_SUDOCLE_IS_TEST" in window) {
+      screenshotNow()
+    }
   }, [
     cellSize,
     game.digits,
@@ -2691,6 +2745,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     maxHeight,
     portrait,
     renderNow,
+    screenshotNow,
     game.mode,
     game.data
   ])
