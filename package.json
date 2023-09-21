@@ -40,7 +40,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-modal": "^3.16.1",
-    "sass": "^1.66.1",
+    "sass": "^1.68.0",
     "sass-loader": "^13.3.2"
   },
   "devDependencies": {
