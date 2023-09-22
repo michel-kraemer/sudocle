@@ -1078,11 +1078,14 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
       let action: SelectionAction["action"] = append ? ACTION_PUSH : ACTION_SET
       if (evt instanceof PIXI.FederatedPointerEvent) {
         let oe = evt.originalEvent
-        if (oe.nativeEvent.metaKey || oe.nativeEvent.ctrlKey) {
-          if (oe.nativeEvent.shiftKey) {
-            action = ACTION_REMOVE
-          } else {
-            action = ACTION_PUSH
+        let ne = oe.nativeEvent
+        if ("metaKey" in ne) {
+          if (ne.metaKey || ne.ctrlKey) {
+            if (ne.shiftKey) {
+              action = ACTION_REMOVE
+            } else {
+              action = ACTION_PUSH
+            }
           }
         }
       }
