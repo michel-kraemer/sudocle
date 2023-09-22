@@ -68,6 +68,15 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     (c: any) => c.hidden === undefined || c.hidden === false
   )
 
+  // map outlineC to borderColor
+  cages = cages.map((c: any) => {
+    let r = { ...c }
+    if (r.outlineC !== undefined) {
+      r.borderColor = r.outlineC
+    }
+    return r
+  })
+
   let lines: Line[] = puzzle.lines
 
   let extraRegions: ExtraRegion[] | undefined = undefined
