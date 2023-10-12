@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@jsdevtools/readdir-enhanced": "^6.0.4",
-    "@playwright/test": "^1.38.1",
+    "@playwright/test": "^1.39.0",
     "@types/color": "^3.0.4",
     "@types/lodash": "^4.14.198",
     "@types/react": "18.2.22",
