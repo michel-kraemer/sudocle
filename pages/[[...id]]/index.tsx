@@ -48,9 +48,11 @@ import Head from "next/head"
 import lzwDecompress from "../../components/lib/lzwdecompressor"
 import styles from "./index.scss"
 
-const DATABASE_URL =
-  "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
-const FALLBACK_URL = `${process.env.basePath}/puzzles/{}.json`
+const URLS = [
+  "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media",
+  "https://sudokupad.app/api/puzzle/{}",
+  `${process.env.basePath}/puzzles/{}.json`
+]
 
 const Index = () => {
   const game = useContext(GameContext.State)
@@ -101,6 +103,177 @@ const Index = () => {
     }
     return [...characters].join("")
   }
+
+  async function fetchFromApi(id: string): Promise<string> {
+    let urls
+    if (id === null || id === "") {
+      urls = [`${process.env.basePath}/empty-grid.json`]
+    } else {
+      urls = URLS.map(url => url.replace("{}", id))
+    }
+
+    let response: Response | undefined
+    for (let url of urls) {
+      response = await fetch(url)
+      if (response.status === 200) {
+        return response.text()
+      }
+    }
+
+    if (response === undefined) {
+      throw new Error("No puzzle loaded")
+    }
+
+    if (response.status === 404) {
+      throw new Error(`The puzzle with the ID \u2018${id}’ does not exist`)
+    }
+
+    throw new Error(
+      `Failed to load puzzle with ID \u2018${id}’. ` +
+        `Received HTTP status code ${response.status} from server.`
+    )
+  }
+
+  const loadCompressedPuzzleFromString = useCallback(
+    (str: string) => {
+      let puzzle: string
+      if (str.length > 16 && str.startsWith("fpuzzles")) {
+        puzzle = decodeURIComponent(str.substring(8))
+      } else if (str.length > 16 && str.startsWith("fpuz")) {
+        puzzle = decodeURIComponent(str.substring(4))
+      } else if (
+        str.length > 16 &&
+        (str.startsWith("ctc") || str.startsWith("scl"))
+      ) {
+        puzzle = decodeURIComponent(str.substring(3))
+      } else {
+        setError("Unsupported puzzle ID")
+        return
+      }
+
+      let buf = Buffer.from(puzzle, "base64")
+      let decompressedStr: string | undefined
+      try {
+        decompressedStr = lzwDecompress(buf)
+      } catch (e) {
+        decompressedStr = undefined
+      }
+
+      if (decompressedStr === undefined) {
+        let buf = Buffer.from(puzzle.replace(/ /g, "+"), "base64")
+        decompressedStr = lzwDecompress(buf)
+      }
+
+      if (decompressedStr === undefined) {
+        setError("Puzzle ID could not be decompressed")
+        return
+      }
+
+      let convertedPuzzle: Data
+      if (
+        str.length > 16 &&
+        (str.startsWith("fpuzzles") || str.startsWith("fpuz"))
+      ) {
+        convertedPuzzle = convertFPuzzle(JSON.parse(decompressedStr))
+      } else if (
+        str.length > 16 &&
+        (str.startsWith("ctc") || str.startsWith("scl"))
+      ) {
+        convertedPuzzle = convertCTCPuzzle(decompressedStr)
+      } else {
+        setError("Unsupported puzzle ID")
+        return
+      }
+
+      updateGame({
+        type: TYPE_INIT,
+        data: convertedPuzzle
+      })
+    },
+    [updateGame]
+  )
+
+  const loadFromTest = useCallback(() => {
+    let w = window as any
+    w.initTestGrid = function (json: any) {
+      if (
+        json.fpuzzles !== undefined ||
+        json.ctc !== undefined ||
+        json.scl !== undefined
+      ) {
+        let buf = Buffer.from(json.fpuzzles ?? json.ctc ?? json.scl, "base64")
+        let str = lzwDecompress(buf)!
+        if (json.fpuzzles !== undefined) {
+          json = convertFPuzzle(JSON.parse(str))
+        } else {
+          console.log(str)
+          json = convertCTCPuzzle(str)
+        }
+      }
+      setIsTest(true)
+      updateGame({
+        type: TYPE_INIT,
+        data: json
+      })
+      return json
+    }
+    w.resetTestGrid = function () {
+      setFontsLoaded(false) // make sure fonts for the next grid will be loaded
+      updateGame({
+        type: TYPE_INIT,
+        data: undefined
+      })
+      setIsTest(false)
+    }
+  }, [updateGame])
+
+  const loadFromId = useCallback(
+    async (id: string, data: string = id) => {
+      if (
+        data.startsWith("fpuzzles") ||
+        data.startsWith("fpuz") ||
+        data.startsWith("ctc") ||
+        data.startsWith("scl")
+      ) {
+        loadCompressedPuzzleFromString(data)
+      } else if (data === "test") {
+        loadFromTest()
+      } else if (data.startsWith("{")) {
+        let json
+        try {
+          json = JSON.parse(data)
+        } catch (e) {
+          try {
+            json = convertCTCPuzzle(data)
+          } catch (e) {
+            setError(
+              <>Failed to load puzzle with ID &lsquo;{id}’. Parse error.</>
+            )
+            throw e
+          }
+        }
+
+        updateGame({
+          type: TYPE_INIT,
+          data: json
+        })
+      } else {
+        let response
+        try {
+          response = await fetchFromApi(data)
+        } catch (e: any) {
+          if (e.message !== undefined) {
+            setError(e.message)
+          } else {
+            console.error(e)
+          }
+          throw e
+        }
+        await loadFromId(id, response)
+      }
+    },
+    [loadCompressedPuzzleFromString, loadFromTest, updateGame]
+  )
 
   // load game data
   useEffect(() => {
@@ -172,157 +345,8 @@ const Index = () => {
       }
     }
 
-    async function load(url: string, fallbackUrl: string) {
-      let fallbackUsed = false
-      let response = await fetch(url)
-      if (response.status !== 200) {
-        response = await fetch(fallbackUrl)
-        fallbackUsed = true
-      }
-      if (response.status === 404) {
-        setError(`The puzzle with the ID ‘${id}’ does not exist`)
-      } else if (response.status !== 200) {
-        setError(
-          <>
-            Failed to load puzzle with ID ‘{id}’.
-            <br />
-            Received HTTP status code {response.status} from server.
-          </>
-        )
-      } else {
-        let json
-        try {
-          json = await response.json()
-        } catch (e) {
-          if (
-            fallbackUsed &&
-            e instanceof Error &&
-            e.message.includes("<!DOCTYPE")
-          ) {
-            setError(`The puzzle with the ID ‘${id}’ does not exist`)
-            return
-          }
-          setError(<>Failed to load puzzle with ID ‘{id}’. Parse error.</>)
-          throw e
-        }
-        if (json.error === undefined) {
-          updateGame({
-            type: TYPE_INIT,
-            data: json
-          })
-        }
-      }
-    }
-
-    async function loadCompressedPuzzle() {
-      let puzzle: string
-      if (id.length > 16 && id.startsWith("fpuzzles")) {
-        puzzle = decodeURIComponent(id.substring(8))
-      } else if (id.length > 16 && id.startsWith("fpuz")) {
-        puzzle = decodeURIComponent(id.substring(4))
-      } else if (
-        id.length > 16 &&
-        (id.startsWith("ctc") || id.startsWith("scl"))
-      ) {
-        puzzle = decodeURIComponent(id.substring(3))
-      } else {
-        throw new Error("Unsupported puzzle ID")
-      }
-
-      let buf = Buffer.from(puzzle, "base64")
-      let str: string | undefined
-      try {
-        str = lzwDecompress(buf)
-      } catch (e) {
-        str = undefined
-      }
-
-      if (str === undefined) {
-        let buf = Buffer.from(puzzle.replace(/ /g, "+"), "base64")
-        str = lzwDecompress(buf)
-      }
-
-      if (str === undefined) {
-        throw new Error("Puzzle ID could not be decompressed")
-      }
-
-      let convertedPuzzle: Data
-      if (
-        id.length > 16 &&
-        (id.startsWith("fpuzzles") || id.startsWith("fpuz"))
-      ) {
-        convertedPuzzle = convertFPuzzle(JSON.parse(str))
-      } else if (
-        id.length > 16 &&
-        (id.startsWith("ctc") || id.startsWith("scl"))
-      ) {
-        convertedPuzzle = convertCTCPuzzle(str)
-      } else {
-        throw new Error("Unsupported puzzle ID")
-      }
-
-      updateGame({
-        type: TYPE_INIT,
-        data: convertedPuzzle
-      })
-    }
-
-    async function loadTest() {
-      let w = window as any
-      w.initTestGrid = function (json: any) {
-        if (
-          json.fpuzzles !== undefined ||
-          json.ctc !== undefined ||
-          json.scl !== undefined
-        ) {
-          let buf = Buffer.from(json.fpuzzles ?? json.ctc ?? json.scl, "base64")
-          let str = lzwDecompress(buf)!
-          if (json.fpuzzles !== undefined) {
-            json = convertFPuzzle(JSON.parse(str))
-          } else {
-            console.log(str)
-            json = convertCTCPuzzle(str)
-          }
-        }
-        setIsTest(true)
-        updateGame({
-          type: TYPE_INIT,
-          data: json
-        })
-        return json
-      }
-      w.resetTestGrid = function () {
-        setFontsLoaded(false) // make sure fonts for the next grid will be loaded
-        updateGame({
-          type: TYPE_INIT,
-          data: undefined
-        })
-        setIsTest(false)
-      }
-    }
-
-    if (
-      id.startsWith("fpuzzles") ||
-      id.startsWith("fpuz") ||
-      id.startsWith("ctc") ||
-      id.startsWith("scl")
-    ) {
-      loadCompressedPuzzle()
-    } else if (id === "test") {
-      loadTest()
-    } else {
-      let url
-      let fallbackUrl
-      if (id === null || id === "") {
-        url = `${process.env.basePath}/empty-grid.json`
-        fallbackUrl = url
-      } else {
-        url = DATABASE_URL.replace("{}", id)
-        fallbackUrl = FALLBACK_URL.replace("{}", id)
-      }
-      load(url, fallbackUrl)
-    }
-  }, [game.data, updateGame])
+    loadFromId(id)
+  }, [game.data, loadFromId])
 
   useEffect(() => {
     if (game.data.cells.length === 0) {
