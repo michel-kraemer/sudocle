@@ -8,7 +8,7 @@ const basePath =
       ? "/sudocle"
       : ""
     : process.env.SUDOCLE_BASE_PATH
-const eslintDirs = ["components", "cypress/plugins", "cypress/support", "pages"]
+const eslintDirs = ["app", "components", "cypress/plugins", "cypress/support"]
 
 const config = {
   basePath,

@@ -5,8 +5,6 @@ import resolvedStyles from "./Modal.scss?type=resolve"
 import styles from "./Modal.scss"
 import { MouseEventHandler, ReactNode } from "react"
 
-ReactModal.setAppElement("#__next")
-
 interface ModalProps extends ReactModal.Props {
   alert?: boolean
   icon: ReactNode

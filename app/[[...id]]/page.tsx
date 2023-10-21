@@ -1,3 +1,5 @@
+"use client"
+
 import GameContext from "../../components/contexts/GameContext"
 import SettingsContext from "../../components/contexts/SettingsContext"
 import Grid from "../../components/Grid"
@@ -46,7 +48,7 @@ import FontFaceObserver from "fontfaceobserver"
 import { Frown, ThumbsUp } from "lucide-react"
 import Head from "next/head"
 import lzwDecompress from "../../components/lib/lzwdecompressor"
-import styles from "./index.scss"
+import styles from "./page.scss"
 
 const URLS = [
   "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media",
@@ -54,7 +56,7 @@ const URLS = [
   `${process.env.basePath}/puzzles/{}.json`
 ]
 
-const Index = () => {
+const IndexPage = () => {
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
   const settings = useContext(SettingsContext.State)
@@ -802,4 +804,4 @@ const Index = () => {
   )
 }
 
-export default Index
+export default IndexPage
