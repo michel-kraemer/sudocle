@@ -10,6 +10,7 @@ import {
 } from "../types/Data"
 import JSON5 from "json5"
 import rename from "deep-rename-keys"
+import Color from "color"
 
 const KEYS: Record<string, string> = {
   c: "color",
@@ -73,6 +74,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     let r = { ...c }
     if (r.outlineC !== undefined) {
       r.borderColor = r.outlineC
+      delete r.outlineC
     }
     return r
   })
@@ -87,13 +89,34 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     if (r.fontSize !== undefined) {
       r.fontSize = r.fontSize * 0.85
     }
+    // TODO do not move all overlays, instead move just the text!!!
     r.center = [r.center[0] - (r.fontSize ?? 0) / 125, r.center[1]]
     return r
   })
 
-  let underlays: Overlay[] = puzzle.underlays
+  let underlays: Overlay[] = puzzle.underlays?.map((o: any) => {
+    // may angle to rotation
+    let r = { ...o }
+    if (r.angle !== undefined) {
+      r.rotation = r.angle
+      delete r.angle
+    }
 
-  let arrows: Arrow[] = []
+    // In Grid.tsx, we apply an opacity of 0.5 if the colour is not grey (see
+    // drawOverlay()). But for this kind of puzzle, we need to always apply an
+    // opacity of 0.5, regardless of the colour.
+    if (r.backgroundColor !== undefined) {
+      let bc = Color(r.backgroundColor.trim())
+      let alpha = bc.alpha()
+      if (alpha === 1) {
+        r.backgroundColor = bc.alpha(0.5).toString()
+      }
+    }
+
+    return r
+  })
+
+  let arrows: Arrow[] = puzzle.arrows
 
   let solution: (number | undefined)[][] | undefined = undefined
 
