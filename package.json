@@ -57,6 +57,6 @@
     "npm-check-updates": "^16.14.4",
     "odiff-bin": "^2.6.1",
     "prettier": "^3.0.3",
-    "start-server-and-test": "^2.0.1"
+    "start-server-and-test": "^2.0.2"
   }
 }
