@@ -153,6 +153,7 @@ interface FPuzzlesData {
   text?: FPuzzlesText[]
   solution?: (number | string | undefined)[]
   fogofwar?: string[]
+  foglight?: string[]
   metadata?: Metadata
 }
 
@@ -358,6 +359,17 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       fogLights.push({
         center: cellToCell(c, 0, 0),
         size: 3
+      })
+    }
+  }
+  if (puzzle.foglight !== undefined) {
+    for (let c of puzzle.foglight) {
+      if (fogLights === undefined) {
+        fogLights = []
+      }
+      fogLights.push({
+        center: cellToCell(c, 0, 0),
+        size: 1
       })
     }
   }
