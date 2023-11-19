@@ -21,7 +21,7 @@ const About = () => {
           {settings.theme === "dark" && (
             <img src={require("../assets/logo-white.svg")} alt="Sudocle logo" />
           )}
-          <div className="version">v{process.env.version}</div>
+          <div className="version font-baloo">v{process.env.version}</div>
         </div>
       </a>
       <p className="copyright">

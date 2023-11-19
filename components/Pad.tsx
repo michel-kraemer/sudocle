@@ -194,7 +194,7 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_NORMAL)}
         >
-          <div className="label-container">Normal</div>
+          <div className="label-container font-condensed">Normal</div>
         </Button>
       )) || (
         <Button
@@ -202,7 +202,7 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_PEN)}
         >
-          <div className="label-container">Pen</div>
+          <div className="label-container font-condensed">Pen</div>
         </Button>
       )}
       {digitButtons[0]}
@@ -214,7 +214,7 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_CORNER)}
         >
-          <div className="label-container">Corner</div>
+          <div className="label-container font-condensed">Corner</div>
         </Button>
       )) || <div className="placeholder"></div>}
       {digitButtons[3]}
@@ -226,7 +226,7 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_CENTRE)}
         >
-          <div className="label-container">Centre</div>
+          <div className="label-container font-condensed">Centre</div>
         </Button>
       )) || <div className="placeholder"></div>}
       {digitButtons[6]}
@@ -238,7 +238,7 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_COLOUR)}
         >
-          <div className="label-container">Colour</div>
+          <div className="label-container font-condensed">Colour</div>
         </Button>
       )) || <div className="placeholder"></div>}
       {game.mode !== MODE_COLOUR && (

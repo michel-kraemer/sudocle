@@ -4,18 +4,36 @@ import GameContext from "../components/contexts/GameContext"
 import SettingsContext from "../components/contexts/SettingsContext"
 import SidebarContext from "../components/contexts/SidebarContext"
 import styles from "./layout.scss?type=global"
-import MatomoTracker from "@datapunt/matomo-tracker-js"
 import { enableMapSet } from "immer"
-import baloo700 from "@fontsource/baloo-2/700.css"
-import roboto400 from "@fontsource/roboto/400.css"
-import roboto400italic from "@fontsource/roboto/400-italic.css"
-import roboto500 from "@fontsource/roboto/500.css"
-import roboto500italic from "@fontsource/roboto/500-italic.css"
-import roboto700 from "@fontsource/roboto/700.css"
-import robotoCondensed400 from "@fontsource/roboto-condensed/400.css"
+import classNames from "classnames"
 import MatomoInit from "../components/MatomoInit"
+import { Baloo_2, Roboto, Roboto_Condensed } from "next/font/google"
+
+const baloo = Baloo_2({
+  weight: ["700"],
+  style: ["normal"],
+  subsets: ["latin"],
+  display: "swap", // force "swap" even in production mode
+  variable: "--font-baloo"
+})
+
+const roboto = Roboto({
+  weight: ["400", "500", "700"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  display: "swap", // force "swap" even in production mode
+  variable: "--font-roboto"
+})
 
 enableMapSet()
+
+const robotoCondensed = Roboto_Condensed({
+  weight: ["400"],
+  style: ["normal"],
+  subsets: ["latin"],
+  display: "swap", // force "swap" even in production mode
+  variable: "--font-roboto-condensed"
+})
 
 export default function RootLayout({
   // Layouts must accept a children prop.
@@ -25,17 +43,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={classNames(
+        `${baloo.variable} ${roboto.variable} ${robotoCondensed.variable}`
+      )}
+    >
       <body>
-        <style jsx global>{`
-          ${roboto400}
-          ${roboto400italic}
-          ${roboto500}
-          ${roboto500italic}
-          ${roboto700}
-          ${robotoCondensed400}
-          ${baloo700}
-        `}</style>
         <style jsx>{styles}</style>
         <GameContext.Provider>
           <SettingsContext.Provider>

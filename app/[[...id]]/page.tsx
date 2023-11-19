@@ -357,17 +357,23 @@ const IndexPage = () => {
     }
 
     // make sure all required fonts are loaded
-    let fontRoboto300 = new FontFaceObserver("Roboto", {
-      weight: 300
-    })
-    let fontRoboto700 = new FontFaceObserver("Roboto", {
-      weight: 700
-    })
+    let style = getComputedStyle(document.body)
+    let varFontRoboto = style.getPropertyValue("--font-roboto")
+    let families = varFontRoboto
+      .split(",")
+      .map(s => s.trim().replace(/["']/g, ""))
+    let observers: FontFaceObserver[] = []
+    for (let family of families) {
+      let font400 = new FontFaceObserver(family, {
+        weight: 400
+      })
+      let font700 = new FontFaceObserver(family, {
+        weight: 700
+      })
+      observers.push(font400, font700)
+    }
     let textToLoad = collectTextToLoad(game.data)
-    Promise.all([
-      fontRoboto300.load(textToLoad),
-      fontRoboto700.load(textToLoad)
-    ]).then(
+    Promise.all(observers.map(o => o.load(textToLoad))).then(
       () => {
         setFontsLoaded(true)
       },

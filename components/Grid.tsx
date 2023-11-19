@@ -41,10 +41,6 @@ const FONT_SIZE_CENTRE_MARKS_HIGH_DPI = 29
 const FONT_SIZE_CENTRE_MARKS_LOW_DPI = 29
 const MAX_RENDER_LOOP_TIME = 500
 
-/* prettier-ignore */
-const DEFAULT_FONT_FAMILY =
-  "Roboto, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", Ubuntu, \"Helvetica Neue\", Oxygen, Cantarell, sans-serif"
-
 const PENLINE_TYPE_CENTER_RIGHT = 0
 const PENLINE_TYPE_CENTER_DOWN = 1
 const PENLINE_TYPE_EDGE_RIGHT = 2
@@ -652,14 +648,15 @@ function makeCornerMarks(
   y: number,
   fontSize: number,
   leaveRoom: boolean,
-  n = 11,
-  fontWeight: PIXI.TextStyleFontWeight = "normal"
+  fontFamily: string,
+  fontWeight: PIXI.TextStyleFontWeight = "normal",
+  n = 11
 ): PIXI.TextEx[] {
   let result = []
 
   for (let i = 0; i < n; ++i) {
     let text: PIXI.TextEx = new PIXI.Text("", {
-      fontFamily: DEFAULT_FONT_FAMILY,
+      fontFamily,
       fontSize,
       fontWeight
     })
@@ -844,7 +841,8 @@ function penWaypointsToKey(
 function drawOverlay(
   overlay: Overlay,
   mx: number,
-  my: number
+  my: number,
+  fontFamily: string
 ): PIXI.GraphicsEx {
   let r: PIXI.GraphicsEx = new PIXI.Graphics()
 
@@ -860,7 +858,7 @@ function drawOverlay(
       fontSize *= 1 / 0.75
     }
     text = new PIXI.Text(overlay.text, {
-      fontFamily: DEFAULT_FONT_FAMILY,
+      fontFamily,
       fontSize
     })
     if (overlay.fontColor) {
@@ -1423,6 +1421,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     document.addEventListener("pointerup", onPointerUp, false)
     document.addEventListener("pointercancel", onPointerUp, false)
 
+    let defaultFontFamily = getComputedStyle(document.body).getPropertyValue(
+      "--font-roboto"
+    )
+
     let themeColours = getThemeColours(ref.current!)
 
     let fontSizeCageLabels = 26
@@ -1678,7 +1680,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
         // create cage label
         // use larger font and scale down afterwards to improve text rendering
         let topleftText: PIXI.TextEx = new PIXI.Text(cage.value, {
-          fontFamily: DEFAULT_FONT_FAMILY,
+          fontFamily: defaultFontFamily,
           fontSize: fontSizeCageLabels
         })
         topleftText.scale.x = 0.5
@@ -1898,7 +1900,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     underlaysContainer.zIndex = -20
     underlaysContainer.mask = fogMask
     game.data.underlays.forEach(underlay => {
-      let e = drawOverlay(underlay, grid.x, grid.y)
+      let e = drawOverlay(underlay, grid.x, grid.y, defaultFontFamily)
       underlaysContainer.addChild(e)
       underlayElements.current.push(e)
     })
@@ -1909,7 +1911,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     overlaysContainer.zIndex = 40
     overlaysContainer.mask = fogMask
     game.data.overlays.forEach(overlay => {
-      let e = drawOverlay(overlay, grid.x, grid.y)
+      let e = drawOverlay(overlay, grid.x, grid.y, defaultFontFamily)
       overlaysContainer.addChild(e)
       overlayElements.current.push(e)
     })
@@ -1971,8 +1973,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           y,
           FONT_SIZE_CORNER_MARKS_HIGH_DPI,
           hcv,
-          arr.length,
-          "700"
+          defaultFontFamily,
+          "700",
+          arr.length
         )
         cms.forEach((cm, i) => {
           cm.zIndex = 41
@@ -1990,7 +1993,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let text: PIXI.TextEx = new PIXI.Text("", {
-          fontFamily: DEFAULT_FONT_FAMILY,
+          fontFamily: defaultFontFamily,
           fontSize: FONT_SIZE_DIGITS
         })
         text.visible = false
@@ -2024,6 +2027,8 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           y,
           FONT_SIZE_CORNER_MARKS_HIGH_DPI,
           leaveRoom,
+          defaultFontFamily,
+          "normal",
           11
         )
         for (let cm of cms) {
@@ -2042,7 +2047,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let text: PIXI.TextEx = new PIXI.Text("", {
-          fontFamily: DEFAULT_FONT_FAMILY,
+          fontFamily: defaultFontFamily,
           fontSize: FONT_SIZE_CENTRE_MARKS_HIGH_DPI
         })
         text.zIndex = 50
