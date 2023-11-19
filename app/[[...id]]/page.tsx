@@ -8,6 +8,14 @@ import Grid from "../../components/grid/Grid"
 import { GameState, useGame } from "../../components/hooks/useGame"
 import { useSettings } from "../../components/hooks/useSettings"
 import {
+  TYPE_MODE,
+  TYPE_MODE_GROUP,
+  TYPE_SELECTION,
+  TYPE_UNDO,
+  TYPE_REDO,
+  TYPE_INIT,
+    TYPE_SUDOKURULE,
+    TYPE_DIGITS,
   ACTION_ALL,
   ACTION_CLEAR,
   ACTION_DOWN,
@@ -18,12 +26,6 @@ import {
   ACTION_ROTATE,
   ACTION_SET,
   ACTION_UP,
-  TYPE_INIT,
-  TYPE_MODE,
-  TYPE_MODE_GROUP,
-  TYPE_REDO,
-  TYPE_SELECTION,
-  TYPE_UNDO,
 } from "../../components/lib/Actions"
 import {
   MODE_CENTRE,
@@ -414,8 +416,8 @@ const IndexPage = () => {
         e.preventDefault()
       } else if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
         updateGame({
-          type: TYPE_SELECTION,
-          action: ACTION_ALL,
+          type: TYPE_DIGITS,
+          action: ACTION_ALL
         })
         e.preventDefault()
       } else if (e.code === "KeyZ") {

@@ -20,12 +20,13 @@ import {
   SelectionAction,
   TYPE_CHECK,
   TYPE_COLOURS,
-  TYPE_DIGITS,
+    TYPE_SUDOKURULE,
+    TYPE_DIGITS,
   TYPE_INIT,
   TYPE_MODE,
   TYPE_MODE_GROUP,
-  TYPE_PAUSE,
-  TYPE_PENLINES,
+    TYPE_PAUSE,
+    TYPE_PENLINES,
   TYPE_REDO,
   TYPE_SELECTION,
   TYPE_UNDO,
@@ -378,9 +379,50 @@ function modeGroupReducer(draft: GameState, action: ModeGroupAction) {
 function marksReducer(
   marks: Map<number, Set<string | number>>,
   action: DigitsAction,
-  selection: Set<number>,
+  selection: Set<number>, cornerMarks = undefined, centreMarks = undefined
 ) {
   switch (action.action) {
+    case ACTION_ALL: {
+        let allDigitsInSelection = new Set()
+        for (let sc of selection) {
+        let digitInCurrentCell = marks.get(sc)?.digit
+        if (digitInCurrentCell !== undefined){
+        allDigitsInSelection.add(digitInCurrentCell)
+        }
+        else {
+        let centreMarksInCurrentCell = centreMarks.get(sc)
+        if (centreMarksInCurrentCell === undefined){
+        centreMarksInCurrentCell = new Set()
+        centreMarks.set(sc, centreMarksInCurrentCell)
+        for (let counter = 1; counter <= 9; counter++){
+        centreMarksInCurrentCell.add(counter)
+        }
+        }
+        }
+        }
+        if (allDigitsInSelection.size !== 0){
+        for (let sc2 of selection){
+        let cornerMarksInCurrentCell = cornerMarks.get(sc2)
+        if (cornerMarksInCurrentCell !== undefined){
+        for (let digitToRemove of allDigitsInSelection){
+        if (cornerMarksInCurrentCell.has(digitToRemove)){
+        cornerMarksInCurrentCell.delete(digitToRemove)
+        }
+        }
+        }
+        let centreMarksInCurrentCell = centreMarks.get(sc2)
+        if (centreMarksInCurrentCell !== undefined){
+        for (let digitToRemove of allDigitsInSelection){
+        if (centreMarksInCurrentCell.has(digitToRemove)){
+        centreMarksInCurrentCell.delete(digitToRemove)
+        }
+        }
+        }
+        }
+        }
+        break
+    }
+
     case ACTION_SET: {
       if (action.digit !== undefined) {
         for (let sc of selection) {
