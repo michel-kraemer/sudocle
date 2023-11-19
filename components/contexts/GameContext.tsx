@@ -406,7 +406,7 @@ function marksReducer(
 ) {
   switch (action.action) {
     case ACTION_ALL: {
-      let allDigitsInSelection = new Set<string | number>;
+      let allDigitsInSelection = new Set<string | number>
       for (let sc of selection) {
         // @ts-ignore
         let digitInCurrentCell : string | number | undefined = digits.get(sc)?.digit
