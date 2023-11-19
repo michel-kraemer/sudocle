@@ -595,7 +595,7 @@ function selectionReducer(
   rowNumber : number | undefined = undefined,
   columnNumber : number | undefined = undefined,
   centreMarks : Map<number, Set<string | number>> | undefined = undefined,
-  digits : Map<number, Digit>){
+  digits : Map<number, Digit> | undefined = undefined){
   switch (action.action) {
     case ACTION_ALL:
       if (rowNumber === undefined && columnNumber === undefined && centreMarks === undefined){
@@ -614,6 +614,7 @@ function selectionReducer(
           row.forEach((col, x) => {
             let currentCentreMarks = centreMarks.get(xytok(x, y))
             let currentMarks = digits.get(xytok(x, y))
+            // @ts-ignore
             if (currentMarks === undefined && currentCentreMarks !== undefined && currentCentreMarks.has(action.digit)){
               selection.add(xytok(x, y))
             }
@@ -631,6 +632,7 @@ function selectionReducer(
           selection.clear()
           cells.forEach((row, y) => {
             row.forEach((col, x) => {
+              // @ts-ignore
               if (y >= rowNumber && y <= rowNumber+2 && x >= columnNumber && x <= columnNumber+2)
                 selection.add(xytok(x, y))
             })
@@ -641,7 +643,7 @@ function selectionReducer(
         else if (rowNumber !== undefined){
           selection.clear()
           cells.forEach((row, y) => {
-            selection.add(xytok(y, rowNumber))
+            selection.add(xytok(y, rowNumber!))
           })
           return
         }
@@ -649,7 +651,7 @@ function selectionReducer(
         else if (columnNumber !== undefined){
           selection.clear()
           cells.forEach((col, y) => {
-            selection.add(xytok(columnNumber, y))
+            selection.add(xytok(columnNumber!, y))
           })
           return
         }

@@ -75,6 +75,7 @@ export interface SelectionAction {
     | typeof ACTION_DOWN
   readonly k?: number | number[]
   readonly append?: boolean
+  readonly digit?: number | string | undefined
 }
 
 export interface UndoAction {
@@ -103,7 +104,7 @@ export interface SpecialAction {
       | typeof TYPE_SUDOKURULE
       | typeof TYPE_SHOWDIGITS
   readonly action: typeof ACTION_ALL
-  readonly digit: number | undefined
+  readonly digit?: number | string | undefined
 }
 
 export type DigitOrSpecialAction =
