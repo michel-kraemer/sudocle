@@ -1,5 +1,5 @@
-import GameContext from "./contexts/GameContext"
-import SidebarContext from "./contexts/SidebarContext"
+import { State as GameContextState } from "./contexts/GameContext"
+import { OnTabClick } from "./contexts/SidebarContext"
 import { ID_RULES, ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
 import Timer from "./Timer"
 import { BookOpen, HelpCircle, Info, Sliders } from "lucide-react"
@@ -7,8 +7,8 @@ import { useContext } from "react"
 import styles from "./StatusBar.oscss"
 
 const StatusBar = () => {
-  const game = useContext(GameContext.State)
-  const onTabClick = useContext(SidebarContext.OnTabClick)
+  const game = useContext(GameContextState)
+  const onTabClick = useContext(OnTabClick)
 
   return (
     <div className="status-bar">

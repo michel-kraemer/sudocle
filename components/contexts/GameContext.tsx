@@ -1,3 +1,5 @@
+"use client"
+
 import { xytok, ktoxy, hasFog } from "../lib/utils"
 import {
   Action,
@@ -85,8 +87,8 @@ interface GameState extends PersistentGameState {
   checkCounter: number
 }
 
-const State = createContext(makeEmptyState())
-const Dispatch = createContext((_: Action) => {})
+export const State = createContext(makeEmptyState())
+export const Dispatch = createContext((_: Action) => {})
 
 function makeGiven<T, R>(
   data: Data | undefined,
@@ -993,7 +995,7 @@ interface ProviderProps {
   children: ReactNode
 }
 
-const Provider = ({ children }: ProviderProps) => {
+export const Provider = ({ children }: ProviderProps) => {
   const [state, dispatch] = useReducer(gameReducer, makeEmptyState())
 
   return (
@@ -1002,11 +1004,3 @@ const Provider = ({ children }: ProviderProps) => {
     </State.Provider>
   )
 }
-
-const GameContext = {
-  State,
-  Dispatch,
-  Provider
-}
-
-export default GameContext

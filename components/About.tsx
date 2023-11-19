@@ -1,9 +1,9 @@
-import SettingsContext from "./contexts/SettingsContext"
+import { State as SettingsContextState } from "./contexts/SettingsContext"
 import { useContext } from "react"
 import styles from "./About.oscss"
 
 const About = () => {
-  const settings = useContext(SettingsContext.State)
+  const settings = useContext(SettingsContextState)
 
   let currentYear = new Date().getFullYear()
 

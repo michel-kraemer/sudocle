@@ -1,13 +1,16 @@
 import Palette from "./Palette"
 import RadioGroup from "./RadioGroup"
 import RangeSlider from "./RangeSlider"
-import SettingsContext from "./contexts/SettingsContext"
+import {
+  Dispatch as SettingsContextDispatch,
+  State as SettingsContextState
+} from "./contexts/SettingsContext"
 import { useContext, useEffect, useRef, useState } from "react"
 import styles from "./Settings.oscss"
 
 const Settings = () => {
-  const settings = useContext(SettingsContext.State)
-  const updateSettings = useContext(SettingsContext.Dispatch)
+  const settings = useContext(SettingsContextState)
+  const updateSettings = useContext(SettingsContextDispatch)
   const [themeInternal, setThemeInternal] = useState(settings.theme)
 
   const refPlaceholderCTC = useRef<HTMLDivElement>(null)

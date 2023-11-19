@@ -1,3 +1,5 @@
+"use client"
+
 import { createContext, ReactNode, useEffect, useReducer } from "react"
 import { produce } from "immer"
 
@@ -25,8 +27,8 @@ const DEFAULT_SETTINGS: Settings = {
 
 const LOCAL_STORAGE_KEY = "SudocleSettings"
 
-const State = createContext(DEFAULT_SETTINGS)
-const Dispatch = createContext((_: Partial<Settings>) => {})
+export const State = createContext(DEFAULT_SETTINGS)
+export const Dispatch = createContext((_: Partial<Settings>) => {})
 
 const reducer = produce(
   (
@@ -73,7 +75,7 @@ interface ProviderProps {
   children: ReactNode
 }
 
-const Provider = ({ children }: ProviderProps) => {
+export const Provider = ({ children }: ProviderProps) => {
   const [state, dispatch] = useReducer(reducer, DEFAULT_SETTINGS)
 
   useEffect(() => {
@@ -98,11 +100,3 @@ const Provider = ({ children }: ProviderProps) => {
     </State.Provider>
   )
 }
-
-const SettingsContext = {
-  State,
-  Dispatch,
-  Provider
-}
-
-export default SettingsContext

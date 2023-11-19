@@ -1,10 +1,7 @@
-"use client"
-
-import GameContext from "../components/contexts/GameContext"
-import SettingsContext from "../components/contexts/SettingsContext"
-import SidebarContext from "../components/contexts/SidebarContext"
-import { enableMapSet } from "immer"
 import classNames from "classnames"
+import { Provider as GameContextProvider } from "../components/contexts/GameContext"
+import { Provider as SettingsContextProvider } from "../components/contexts/SettingsContext"
+import { Provider as SidebarContextProvider } from "../components/contexts/SidebarContext"
 import "../css/main.css"
 import "../css/themes.css"
 import "../css/colour-palettes.css"
@@ -26,8 +23,6 @@ const roboto = Roboto({
   display: "swap", // force "swap" even in production mode
   variable: "--font-roboto"
 })
-
-enableMapSet()
 
 const robotoCondensed = Roboto_Condensed({
   weight: ["400"],
@@ -52,11 +47,11 @@ export default function RootLayout({
       )}
     >
       <body>
-        <GameContext.Provider>
-          <SettingsContext.Provider>
-            <SidebarContext.Provider>{children}</SidebarContext.Provider>
-          </SettingsContext.Provider>
-        </GameContext.Provider>
+        <GameContextProvider>
+          <SettingsContextProvider>
+            <SidebarContextProvider>{children}</SidebarContextProvider>
+          </SettingsContextProvider>
+        </GameContextProvider>
         <MatomoInit />
       </body>
     </html>

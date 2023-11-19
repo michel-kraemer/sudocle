@@ -1,17 +1,20 @@
 import Button from "./Button"
-import GameContext from "./contexts/GameContext"
+import {
+  Dispatch as GameContextDispatch,
+  State as GameContextState
+} from "./contexts/GameContext"
 import { TYPE_PAUSE } from "./lib/Actions"
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Pause } from "lucide-react"
-import styles from "./Timer.scss"
+import styles from "./Timer.oscss"
 
 interface TimerProps {
   solved: boolean
 }
 
 const Timer = ({ solved }: TimerProps) => {
-  const game = useContext(GameContext.State)
-  const updateGame = useContext(GameContext.Dispatch)
+  const game = useContext(GameContextState)
+  const updateGame = useContext(GameContextDispatch)
 
   const [start] = useState(+new Date())
   const [end, setEnd] = useState<number>()

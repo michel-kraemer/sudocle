@@ -1,3 +1,5 @@
+"use client"
+
 import { createContext, ReactNode, useState } from "react"
 import { produce } from "immer"
 import { ID_SETTINGS, SidebarTab } from "../lib/SidebarTabs"
@@ -18,14 +20,14 @@ const DEFAULT_SIDEBAR_STATE: SidebarState = {
   activeTabId: ID_SETTINGS
 }
 
-const State = createContext(DEFAULT_SIDEBAR_STATE)
-const OnTabClick = createContext((_: SidebarTab) => {})
+export const State = createContext(DEFAULT_SIDEBAR_STATE)
+export const OnTabClick = createContext((_: SidebarTab) => {})
 
 interface ProviderProps {
   children: ReactNode
 }
 
-const Provider = ({ children }: ProviderProps) => {
+export const Provider = ({ children }: ProviderProps) => {
   const [state, setState] = useState(DEFAULT_SIDEBAR_STATE)
 
   function setExpanded(expanded: boolean) {
@@ -58,11 +60,3 @@ const Provider = ({ children }: ProviderProps) => {
     </State.Provider>
   )
 }
-
-const SidebarContext = {
-  State,
-  OnTabClick,
-  Provider
-}
-
-export default SidebarContext

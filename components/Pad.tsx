@@ -1,6 +1,9 @@
 import Button from "./Button"
-import SettingsContext from "./contexts/SettingsContext"
-import GameContext from "./contexts/GameContext"
+import { State as SettingsContextState } from "./contexts/SettingsContext"
+import {
+  Dispatch as GameContextDispatch,
+  State as GameContextState
+} from "./contexts/GameContext"
 import {
   TYPE_MODE,
   TYPE_DIGITS,
@@ -34,9 +37,9 @@ interface Colour {
 
 const Pad = () => {
   const ref = useRef<HTMLDivElement>(null)
-  const settings = useContext(SettingsContext.State)
-  const game = useContext(GameContext.State)
-  const updateGame = useContext(GameContext.Dispatch)
+  const settings = useContext(SettingsContextState)
+  const game = useContext(GameContextState)
+  const updateGame = useContext(GameContextDispatch)
   const [colours, setColours] = useState<Colour[]>([])
   const [checkReady, setCheckReady] = useState(false)
 

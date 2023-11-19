@@ -1,7 +1,10 @@
 "use client"
 
-import GameContext from "../../components/contexts/GameContext"
-import SettingsContext from "../../components/contexts/SettingsContext"
+import {
+  Dispatch as GameContextDispatch,
+  State as GameContextState
+} from "../../components/contexts/GameContext"
+import { State as SettingsContextState } from "../../components/contexts/SettingsContext"
 import Grid from "../../components/Grid"
 import Modal from "../../components/Modal"
 import Pad from "../../components/Pad"
@@ -49,6 +52,9 @@ import { Frown, ThumbsUp } from "lucide-react"
 import Head from "next/head"
 import lzwDecompress from "../../components/lib/lzwdecompressor"
 import styles from "./page.oscss"
+import { enableMapSet } from "immer"
+
+enableMapSet()
 
 const URLS = [
   "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media",
@@ -57,9 +63,9 @@ const URLS = [
 ]
 
 const IndexPage = () => {
-  const game = useContext(GameContext.State)
-  const updateGame = useContext(GameContext.Dispatch)
-  const settings = useContext(SettingsContext.State)
+  const game = useContext(GameContextState)
+  const updateGame = useContext(GameContextDispatch)
+  const settings = useContext(SettingsContextState)
   const appRef = useRef<HTMLDivElement>(null)
   const gameContainerRef = useRef<HTMLDivElement>(null)
   const gridContainerRef = useRef<HTMLDivElement>(null)

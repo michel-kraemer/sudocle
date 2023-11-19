@@ -2,8 +2,11 @@ import About from "./About"
 import Help from "./Help"
 import Rules from "./Rules"
 import Settings from "./Settings"
-import GameContext from "./contexts/GameContext"
-import SidebarContext from "./contexts/SidebarContext"
+import { State as GameContextState } from "./contexts/GameContext"
+import {
+  State as SidebarContextState,
+  OnTabClick
+} from "./contexts/SidebarContext"
 import classNames from "classnames"
 import { BookOpen, HelpCircle, Info, Sliders, X } from "lucide-react"
 import { ReactNode, useContext } from "react"
@@ -23,9 +26,9 @@ interface Tab {
 }
 
 const Sidebar = () => {
-  const sidebarState = useContext(SidebarContext.State)
-  const onTabClick = useContext(SidebarContext.OnTabClick)
-  const game = useContext(GameContext.State)
+  const sidebarState = useContext(SidebarContextState)
+  const onTabClick = useContext(OnTabClick)
+  const game = useContext(GameContextState)
 
   let tabs: Tab[] = [
     {

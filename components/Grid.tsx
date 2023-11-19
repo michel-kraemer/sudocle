@@ -1,5 +1,8 @@
-import GameContext from "./contexts/GameContext"
-import SettingsContext from "./contexts/SettingsContext"
+import {
+  Dispatch as GameContextDispatch,
+  State as GameContextState
+} from "./contexts/GameContext"
+import { State as SettingsContextState } from "./contexts/SettingsContext"
 import {
   PenLinesAction,
   SelectionAction,
@@ -992,9 +995,9 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
   const renderLoopStarted = useRef(0)
   const rendering = useRef(false)
 
-  const game = useContext(GameContext.State)
-  const updateGame = useContext(GameContext.Dispatch)
-  const settings = useContext(SettingsContext.State)
+  const game = useContext(GameContextState)
+  const updateGame = useContext(GameContextDispatch)
+  const settings = useContext(SettingsContextState)
 
   const currentMode = useRef(game.mode)
 
