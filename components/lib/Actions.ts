@@ -14,6 +14,7 @@ export const TYPE_REDO = "redo"
 export const TYPE_INIT = "init"
 export const TYPE_CHECK = "check"
 export const TYPE_PAUSE = "pause"
+export const TYPE_SUDOKURULE = "rule"
 
 export const ACTION_ALL = "all"
 export const ACTION_SET = "set"

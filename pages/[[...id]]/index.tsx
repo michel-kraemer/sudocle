@@ -12,6 +12,8 @@ import {
   TYPE_UNDO,
   TYPE_REDO,
   TYPE_INIT,
+  TYPE_SUDOKURULE,
+  TYPE_DIGITS,
   ACTION_ALL,
   ACTION_SET,
   ACTION_PUSH,
@@ -412,7 +414,7 @@ const Index = () => {
         e.preventDefault()
       } else if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
         updateGame({
-          type: TYPE_SELECTION,
+          type: TYPE_DIGITS,
           action: ACTION_ALL
         })
         e.preventDefault()
