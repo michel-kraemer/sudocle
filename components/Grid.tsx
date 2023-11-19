@@ -761,7 +761,7 @@ function getThemeColours(elem: Element): ThemeColours {
   let digitColor = getThemeColour(rootStyle, "--digit")
   let smallDigitColor = getThemeColour(rootStyle, "--digit-small")
 
-  let selectionYellow = getThemeColour(rootStyle, "--selection-yellow")
+  let selectionYellow = getThemeColour(rootStyle, "--selection-darkgrey")
   let selectionRed = getThemeColour(rootStyle, "--selection-red")
   let selectionBlue = getThemeColour(rootStyle, "--selection-blue")
   let selectionGreen = getThemeColour(rootStyle, "--selection-green")
