@@ -1,6 +1,6 @@
 import GameContext from "./contexts/GameContext"
 import { useContext } from "react"
-import styles from "./Rules.scss"
+import styles from "./Rules.oscss"
 
 const Rules = () => {
   const game = useContext(GameContext.State)

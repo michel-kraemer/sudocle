@@ -3,9 +3,11 @@
 import GameContext from "../components/contexts/GameContext"
 import SettingsContext from "../components/contexts/SettingsContext"
 import SidebarContext from "../components/contexts/SidebarContext"
-import styles from "./layout.scss?type=global"
 import { enableMapSet } from "immer"
 import classNames from "classnames"
+import "../css/main.css"
+import "../css/themes.css"
+import "../css/colour-palettes.css"
 import MatomoInit from "../components/MatomoInit"
 import { Baloo_2, Roboto, Roboto_Condensed } from "next/font/google"
 
@@ -50,7 +52,6 @@ export default function RootLayout({
       )}
     >
       <body>
-        <style jsx>{styles}</style>
         <GameContext.Provider>
           <SettingsContext.Provider>
             <SidebarContext.Provider>{children}</SidebarContext.Provider>

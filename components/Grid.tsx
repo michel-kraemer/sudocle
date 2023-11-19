@@ -12,12 +12,11 @@ import {
   TYPE_SELECTION
 } from "./lib/Actions"
 import { Digit } from "./types/Game"
-import { Arrow, Data, DataCell, FogLight, Line, Overlay } from "./types/Data"
+import { Arrow, DataCell, FogLight, Line, Overlay } from "./types/Data"
 import { MODE_PEN } from "./lib/Modes"
 import { ktoxy, xytok, pltok, hasFog } from "./lib/utils"
 import Color from "color"
 import polygonClipping, { Polygon } from "polygon-clipping"
-import styles from "./Grid.scss"
 import {
   MouseEvent,
   useCallback,
@@ -2761,12 +2760,10 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
   return (
     <div
       ref={ref}
-      className="grid"
+      className="flex"
       onClick={onBackgroundClick}
       onDoubleClick={onDoubleClick}
-    >
-      <style jsx>{styles}</style>
-    </div>
+    ></div>
   )
 }
 

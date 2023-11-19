@@ -19,7 +19,6 @@
 }
 
 .label-container {
-  font-family: "Roboto Condensed", sans-serif;
   font-size: 0.5rem;
 }
 

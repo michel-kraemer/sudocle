@@ -1,5 +1,5 @@
 import { ReactNode } from "react"
-import styles from "./RadioGroup.scss"
+import styles from "./RadioGroup.oscss"
 
 interface Option {
   id: string

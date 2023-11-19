@@ -14,7 +14,7 @@ import {
   ID_ABOUT,
   SidebarTab
 } from "./lib/SidebarTabs"
-import styles from "./Sidebar.scss"
+import styles from "./Sidebar.oscss"
 
 interface Tab {
   id: SidebarTab

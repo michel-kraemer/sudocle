@@ -1,6 +1,6 @@
 import { ChangeEvent, ReactNode, useState } from "react"
 import classNames from "classnames"
-import styles from "./RangeSlider.scss"
+import styles from "./RangeSlider.oscss"
 
 interface RangeSliderProps {
   id: string

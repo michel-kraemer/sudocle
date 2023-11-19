@@ -1,5 +1,3 @@
-@use "sass:color";
-
 :root {
   --bg: rgb(255 255 255);
   --bg-alpha: rgba(255 255 255 / 75%);
@@ -12,13 +10,13 @@
   --fg-600: var(--grey-600);
   --fg-700: var(--grey-700);
   --primary: #2b3f77;
-  --primary-highlight: #{color.adjust(#2b3f77, $lightness: 10%)};
+  --primary-highlight: #39539c;
   --alert: #b81e1e;
   --border-radius: 10px;
   --border-radius-inner: 8px;
   --border-radius-mini: 4px;
-  --digit: #{color.adjust(#2b3f77, $lightness: 20%)};
-  --digit-small: #{color.adjust(#2b3f77, $lightness: 10%)};
+  --digit: #4a69be;
+  --digit-small: #39539c;
   --button-hover: var(--grey-500);
   --button-active: var(--grey-500);
   --selection-yellow: #ffde2a;
@@ -39,10 +37,10 @@
   --fg-600: var(--grey-600);
   --fg-700: var(--grey-500);
   --primary: #81a1c1;
-  --primary-highlight: #{color.adjust(#81a1c1, $lightness: 10%)};
+  --primary-highlight: #a3bbd2;
   --alert: #bf616a;
   --digit: var(--primary);
   --digit-small: var(--primary-highlight);
-  --button-hover: #{color.adjust(#434c5e, $lightness: 20%)};
-  --button-active: #{color.adjust(#434c5e, $lightness: 20%)};
+  --button-hover: #6f7d98;
+  --button-active: #6f7d98;
 }

@@ -24,7 +24,7 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { Check, Delete, Redo, Undo } from "lucide-react"
 import Color from "color"
 import classNames from "classnames"
-import styles from "./Pad.scss"
+import styles from "./Pad.oscss"
 
 interface Colour {
   colour: string

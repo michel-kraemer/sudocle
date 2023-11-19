@@ -1,4 +1,4 @@
-import styles from "./Palette.scss"
+import styles from "./Palette.oscss"
 import { Minus, Plus } from "lucide-react"
 import Color from "color"
 import { FormEvent } from "react"

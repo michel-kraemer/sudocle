@@ -1,5 +1,5 @@
 import { ChangeEvent } from "react"
-import styles from "./Checkbox.scss"
+import styles from "./Checkbox.oscss"
 
 interface CheckboxProps {
   name: string

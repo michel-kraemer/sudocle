@@ -3,7 +3,7 @@ import RadioGroup from "./RadioGroup"
 import RangeSlider from "./RangeSlider"
 import SettingsContext from "./contexts/SettingsContext"
 import { useContext, useEffect, useRef, useState } from "react"
-import styles from "./Settings.scss"
+import styles from "./Settings.oscss"
 
 const Settings = () => {
   const settings = useContext(SettingsContext.State)

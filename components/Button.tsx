@@ -1,6 +1,6 @@
 import { MouseEvent, MouseEventHandler, ReactNode, useState } from "react"
 import classNames from "classnames"
-import styles from "./Button.scss"
+import styles from "./Button.oscss"
 
 interface ButtonProps {
   active?: boolean

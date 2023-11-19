@@ -46,13 +46,17 @@
     "@types/lodash": "^4.14.198",
     "@types/react": "18.2.22",
     "@types/react-modal": "^3.16.0",
+    "autoprefixer": "^10.4.16",
     "eslint": "^8.49.0",
     "eslint-config-next": "^13.5.2",
     "eslint-webpack-plugin": "^4.0.1",
     "html-webpack-plugin": "^5.5.3",
     "npm-check-updates": "^16.14.4",
     "odiff-bin": "^2.6.1",
+    "postcss": "^8.4.31",
     "prettier": "^3.0.3",
-    "start-server-and-test": "^2.0.1"
+    "prettier-plugin-tailwindcss": "^0.5.7",
+    "start-server-and-test": "^2.0.1",
+    "tailwindcss": "^3.3.5"
   }
 }

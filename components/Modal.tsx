@@ -1,8 +1,8 @@
 import Button from "./Button"
 import classNames from "classnames"
 import ReactModal from "react-modal"
-import resolvedStyles from "./Modal.scss?type=resolve"
-import styles from "./Modal.scss"
+import resolvedStyles from "./Modal.oscss?type=resolve"
+import styles from "./Modal.oscss"
 import { MouseEventHandler, ReactNode } from "react"
 
 interface ModalProps extends ReactModal.Props {

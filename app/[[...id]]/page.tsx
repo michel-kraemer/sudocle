@@ -48,7 +48,7 @@ import FontFaceObserver from "fontfaceobserver"
 import { Frown, ThumbsUp } from "lucide-react"
 import Head from "next/head"
 import lzwDecompress from "../../components/lib/lzwdecompressor"
-import styles from "./page.scss"
+import styles from "./page.oscss"
 
 const URLS = [
   "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media",

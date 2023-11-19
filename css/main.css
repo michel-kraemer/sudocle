@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-size: 20px;
+  text-rendering: geometricprecision;
+}
+
+@media screen(sm) {
+  :root {
+    font-size: 24px;
+  }
+}
+
+@media screen(md) {
+  :root {
+    font-size: 25px;
+  }
+}
+
+@media screen(lg) {
+  :root {
+    font-size: 26px;
+  }
+}
+
+@media screen(xl) {
+  :root {
+    font-size: 30px;
+  }
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-family);
+}
+
+a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+a:hover {
+  color: var(--primary-highlight);
+}

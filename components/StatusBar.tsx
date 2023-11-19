@@ -4,7 +4,7 @@ import { ID_RULES, ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
 import Timer from "./Timer"
 import { BookOpen, HelpCircle, Info, Sliders } from "lucide-react"
 import { useContext } from "react"
-import styles from "./StatusBar.scss"
+import styles from "./StatusBar.oscss"
 
 const StatusBar = () => {
   const game = useContext(GameContext.State)

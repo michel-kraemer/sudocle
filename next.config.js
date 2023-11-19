@@ -34,14 +34,7 @@ const config = {
 
   webpack: (config, { dev, defaultLoaders }) => {
     config.module.rules.push({
-      test: /\.css$/,
-      include: /@fontsource/,
-      use: ["css-loader"]
-    })
-
-    config.module.rules.push({
-      test: /\.s?css$/,
-      exclude: /@fontsource/,
+      test: /\.oscss$/,
       use: [
         defaultLoaders.babel,
         {

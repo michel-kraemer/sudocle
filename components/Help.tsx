@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState } from "react"
-import styles from "./Help.scss"
+import styles from "./Help.oscss"
 
 const Help = () => {
   const [isApple, setIsApple] = useState(false)
