@@ -15,6 +15,7 @@ export const TYPE_INIT = "init"
 export const TYPE_CHECK = "check"
 export const TYPE_PAUSE = "pause"
 export const TYPE_SUDOKURULE = "rule"
+export const TYPE_SHOWDIGITS = "showdigits"
 
 export const ACTION_ALL = "all"
 export const ACTION_SET = "set"
@@ -50,7 +51,7 @@ export interface DigitsAction {
 
 export interface ColoursAction {
   readonly type: typeof TYPE_COLOURS
-  readonly action: typeof ACTION_SET | typeof ACTION_REMOVE
+  readonly action: typeof ACTION_SET | typeof ACTION_REMOVE | typeof ACTION_ALL
   readonly digit?: number
 }
 
@@ -97,6 +98,18 @@ export interface PauseAction {
   readonly type: typeof TYPE_PAUSE
 }
 
+export interface SpecialAction {
+  readonly type:
+      | typeof TYPE_SUDOKURULE
+      | typeof TYPE_SHOWDIGITS
+  readonly action: typeof ACTION_ALL
+  readonly digit: number | undefined
+}
+
+export type DigitOrSpecialAction =
+    | DigitsAction
+    | SpecialAction
+
 export type Action =
   | ModeAction
   | ModeGroupAction
@@ -109,3 +122,4 @@ export type Action =
   | InitAction
   | CheckAction
   | PauseAction
+  | SpecialAction

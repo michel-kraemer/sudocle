@@ -14,7 +14,8 @@ import {
   TYPE_UNDO,
   TYPE_REDO,
   TYPE_INIT,
-    TYPE_SUDOKURULE,
+  TYPE_SUDOKURULE,
+    TYPE_SHOWDIGITS,
     TYPE_DIGITS,
   ACTION_ALL,
   ACTION_CLEAR,
@@ -369,7 +370,17 @@ const IndexPage = () => {
           action: ACTION_ROTATE,
         })
         e.preventDefault()
-      } else if (
+        // case F1 to F9 is pressed
+      } else if (e.keyCode >= 112 && e.keyCode <= 120) {
+        let newDigit = e.key.replace("F", "")
+        updateGame({
+          type: TYPE_SHOWDIGITS,
+          action: ACTION_ALL,
+          digit: parseInt(newDigit)
+        })
+        e.preventDefault()
+      }
+      else if (
         e.key === "Tab" &&
         !metaPressed &&
         !shiftPressed &&
@@ -416,8 +427,9 @@ const IndexPage = () => {
         e.preventDefault()
       } else if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
         updateGame({
-          type: TYPE_DIGITS,
-          action: ACTION_ALL
+          type: TYPE_SUDOKURULE,
+          action: ACTION_ALL,
+          digit: undefined
         })
         e.preventDefault()
       } else if (e.code === "KeyZ") {

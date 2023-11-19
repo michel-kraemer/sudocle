@@ -30,6 +30,11 @@ import {
   TYPE_REDO,
   TYPE_SELECTION,
   TYPE_UNDO,
+  TYPE_REDO,
+  TYPE_INIT,
+  TYPE_CHECK,
+  TYPE_PAUSE,
+    TYPE_SHOWDIGITS, DigitOrSpecialAction, SpecialAction
 } from "../lib/Actions"
 import {
   MODE_CENTRE,
@@ -378,49 +383,70 @@ function modeGroupReducer(draft: GameState, action: ModeGroupAction) {
 
 function marksReducer(
   marks: Map<number, Set<string | number>>,
-  action: DigitsAction,
-  selection: Set<number>, cornerMarks = undefined, centreMarks = undefined
+  action: DigitOrSpecialAction,
+  selection: Set<number>,
+  cornerMarks : Map<number, Set<string | number>>,
+  centreMarks : Map<number, Set<string | number>>,
+  digits : Map<number, Digit>,
 ) {
   switch (action.action) {
     case ACTION_ALL: {
-        let allDigitsInSelection = new Set()
-        for (let sc of selection) {
-        let digitInCurrentCell = marks.get(sc)?.digit
+      let allDigitsInSelection = new Set<string | number>;
+      for (let sc of selection) {
+        // @ts-ignore
+        let digitInCurrentCell : string | number | undefined = digits.get(sc)?.digit
         if (digitInCurrentCell !== undefined){
-        allDigitsInSelection.add(digitInCurrentCell)
+          allDigitsInSelection.add(digitInCurrentCell)
+          centreMarks.delete(sc)
+          cornerMarks.delete(sc)
         }
         else {
-        let centreMarksInCurrentCell = centreMarks.get(sc)
-        if (centreMarksInCurrentCell === undefined){
-        centreMarksInCurrentCell = new Set()
-        centreMarks.set(sc, centreMarksInCurrentCell)
-        for (let counter = 1; counter <= 9; counter++){
-        centreMarksInCurrentCell.add(counter)
+          let centreMarksInCurrentCell = centreMarks.get(sc)
+          if (centreMarksInCurrentCell === undefined){
+            centreMarksInCurrentCell = new Set()
+            centreMarks.set(sc, centreMarksInCurrentCell)
+            for (let counter = 1; counter <= 9; counter++){
+              centreMarksInCurrentCell.add(counter)
+            }
+          }
         }
-        }
-        }
-        }
-        if (allDigitsInSelection.size !== 0){
+      }
+      if (allDigitsInSelection.size !== 0){
         for (let sc2 of selection){
-        let cornerMarksInCurrentCell = cornerMarks.get(sc2)
-        if (cornerMarksInCurrentCell !== undefined){
-        for (let digitToRemove of allDigitsInSelection){
-        if (cornerMarksInCurrentCell.has(digitToRemove)){
-        cornerMarksInCurrentCell.delete(digitToRemove)
+          let cornerMarksInCurrentCell = cornerMarks.get(sc2)
+          if (cornerMarksInCurrentCell !== undefined){
+            for (let digitToRemove of allDigitsInSelection){
+              if (cornerMarksInCurrentCell.has(digitToRemove)){
+                cornerMarksInCurrentCell.delete(digitToRemove)
+              }
+            }
+          }
+          let centreMarksInCurrentCell = centreMarks.get(sc2)
+          if (centreMarksInCurrentCell !== undefined){
+            for (let digitToRemove of allDigitsInSelection){
+              if (centreMarksInCurrentCell.has(digitToRemove)){
+                centreMarksInCurrentCell.delete(digitToRemove)
+              }
+              if (centreMarksInCurrentCell.size === 1){
+                let digitToPlace = 0
+                for (let counter = 1; counter <= 9; counter++){
+                  if (centreMarksInCurrentCell.has(counter)){
+                    digitToPlace = counter
+                    break
+                  }
+                }
+                let attrName = "digit"
+                digits.set(sc2, {
+                  digit: digitToPlace,
+                  given: false,
+                  discovered: true
+                })
+              }
+            }
+          }
         }
-        }
-        }
-        let centreMarksInCurrentCell = centreMarks.get(sc2)
-        if (centreMarksInCurrentCell !== undefined){
-        for (let digitToRemove of allDigitsInSelection){
-        if (centreMarksInCurrentCell.has(digitToRemove)){
-        centreMarksInCurrentCell.delete(digitToRemove)
-        }
-        }
-        }
-        }
-        }
-        break
+      }
+      break
     }
 
     case ACTION_SET: {
@@ -564,18 +590,70 @@ function penLinesReducer(penLines: Set<number>, action: PenLinesAction) {
 
 function selectionReducer(
   selection: Set<number>,
-  action: SelectionAction,
+  action: SelectionAction | SpecialAction,
   cells: DataCell[][] = [],
-) {
+  rowNumber : number | undefined = undefined,
+  columnNumber : number | undefined = undefined,
+  centreMarks : Map<number, Set<string | number>> | undefined = undefined,
+  digits : Map<number, Digit>){
   switch (action.action) {
     case ACTION_ALL:
-      selection.clear()
-      cells.forEach((row, y) => {
-        row.forEach((col, x) => {
-          selection.add(xytok(x, y))
+      if (rowNumber === undefined && columnNumber === undefined && centreMarks === undefined){
+        selection.clear()
+        cells.forEach((row, y) => {
+          row.forEach((col, x) => {
+            selection.add(xytok(x, y))
+          })
         })
-      })
-      return
+        return
+      }
+      // if centreMarks were passed, mark all cells that contain the action's digit as pencilmark
+      else if (centreMarks !== undefined && digits !== undefined){
+        selection.clear()
+        cells.forEach((row, y) => {
+          row.forEach((col, x) => {
+            let currentCentreMarks = centreMarks.get(xytok(x, y))
+            let currentMarks = digits.get(xytok(x, y))
+            if (currentMarks === undefined && currentCentreMarks !== undefined && currentCentreMarks.has(action.digit)){
+              selection.add(xytok(x, y))
+            }
+          })
+        })
+        return
+      }
+      else {
+        // select 3x3 cages
+        // rowCounter then denominates the vertical enumeration of the cage and columnCounter the horizontal one
+        // e.g. 0,0 denotes the upper left cage, 1,1 denotes the middle cage and 1,3 denotes the rightmost cage in the middle
+        if (rowNumber !== undefined && columnNumber !== undefined){
+          rowNumber *=3
+          columnNumber *= 3
+          selection.clear()
+          cells.forEach((row, y) => {
+            row.forEach((col, x) => {
+              if (y >= rowNumber && y <= rowNumber+2 && x >= columnNumber && x <= columnNumber+2)
+                selection.add(xytok(x, y))
+            })
+          })
+          return
+        }
+        // select rows
+        else if (rowNumber !== undefined){
+          selection.clear()
+          cells.forEach((row, y) => {
+            selection.add(xytok(y, rowNumber))
+          })
+          return
+        }
+        // select columns
+        else if (columnNumber !== undefined){
+          selection.clear()
+          cells.forEach((col, y) => {
+            selection.add(xytok(columnNumber, y))
+          })
+          return
+        }
+      }
     case ACTION_CLEAR:
       selection.clear()
       return
@@ -737,6 +815,27 @@ function checkReducer(
 
 function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
   switch (action.type) {
+    case TYPE_SHOWDIGITS:
+      selectionReducer(state.selection, action, state.data?.cells, undefined, undefined, state.centreMarks, state.digits)
+      return
+    case TYPE_SUDOKURULE:
+      // Remove corner and centre marks in cages where the respective digit exists
+      for (let rowCounter = 0; rowCounter <= 2; rowCounter++){
+        for (let columnCounter = 0; columnCounter <= 2; columnCounter++){
+          selectionReducer(state.selection, action, state.data?.cells, rowCounter, columnCounter)
+          marksReducer(state.cornerMarks, action, state.selection, state.cornerMarks, state.centreMarks, state.digits)
+        }
+      }
+
+      // Remove corner and centre marks in rows / columns when the respective digit exists in that row / column
+      for (let counter = 0; counter <= 8; counter++){
+        selectionReducer(state.selection, action, state.data?.cells, undefined, counter)
+        marksReducer(state.cornerMarks, action, state.selection, state.cornerMarks, state.centreMarks, state.digits)
+        selectionReducer(state.selection, action, state.data?.cells, counter, undefined)
+        marksReducer(state.cornerMarks, action, state.selection, state.cornerMarks, state.centreMarks, state.digits)
+      }
+      state.selection.clear()
+      return
     case TYPE_MODE:
       modeReducer(state, action)
       return
@@ -767,6 +866,9 @@ function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
             state.cornerMarks,
             action,
             filterGivens(filteredDigits, state.selection),
+            state.cornerMarks,
+            state.centreMarks,
+            state.digits
           )
           return
         case MODE_CENTRE:
@@ -774,6 +876,9 @@ function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
             state.centreMarks,
             action,
             filterGivens(filteredDigits, state.selection),
+              state.cornerMarks,
+              state.centreMarks,
+              state.digits
           )
           return
       }
