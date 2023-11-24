@@ -118,7 +118,7 @@ const Index = () => {
     if (id.endsWith("/")) {
       id = id.substring(0, id.length - 1)
     }
-    id = id.substring(id.lastIndexOf("/") + 1)
+    id = id.substring(id.indexOf("/") + 1)
 
     if (id === null || id === "") {
       let s = new URLSearchParams(window.location.search)
