@@ -6,7 +6,6 @@ import {
 import { TYPE_PAUSE } from "./lib/Actions"
 import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Pause } from "lucide-react"
-import styles from "./Timer.oscss"
 
 interface TimerProps {
   solved: boolean
@@ -84,26 +83,32 @@ const Timer = ({ solved }: TimerProps) => {
 
   return (
     <>
-      <div className="timer">
+      <div className="flex items-center leading-none">
         {h > 0 && <>{("" + h).padStart(2, "0")}:</>}
         {("" + m).padStart(2, "0")}:{("" + s).padStart(2, "0")}
-        <div className="pause-button" onClick={onPause}>
-          <Pause />
+        <div
+          className="cursor-pointer pl-0.5 h-3 flex items-center"
+          onClick={onPause}
+        >
+          <Pause
+            fill="var(--fg)"
+            stroke="none"
+            className="[&_rect]:[rx:1] leading-none h-[0.7rem]"
+          />
         </div>
       </div>
       {continueVisible && (
-        <div className="timer-pause-overlay">
-          <div className="continue-area">
-            <div className="title">
-              <Pause size="1.5em" /> Game paused
+        <div className="fixed inset-0 bg-bg/75 flex justify-center items-center z-50 backdrop-blur-lg">
+          <div className="flex flex-col justify-center items-center">
+            <div className="font-medium pt-5 flex items-center text-sm mb-4">
+              <Pause size="1.3rem" className="mr-1 mb-[1px]" /> Game paused
             </div>
-            <div className="button-area">
+            <div className="w-16 text-[0.6rem] mt-0.5">
               <Button onClick={onContinue}>Continue</Button>
             </div>
           </div>
         </div>
       )}
-      <style jsx>{styles}</style>
     </>
   )
 }

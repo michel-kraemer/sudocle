@@ -5,6 +5,8 @@
 :root {
   font-size: 20px;
   text-rendering: geometricprecision;
+
+  --status-bar-height: 1.65rem;
 }
 
 @media screen(sm) {

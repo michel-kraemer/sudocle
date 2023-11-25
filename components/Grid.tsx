@@ -750,7 +750,7 @@ function getAlpha(colorString: string): number {
 }
 
 function getThemeColour(style: CSSStyleDeclaration, color: string): number {
-  return getRGBColor(style.getPropertyValue(color))
+  return getRGBColor(`rgb(${style.getPropertyValue(color)})`)
 }
 
 function getThemeColours(elem: Element): ThemeColours {

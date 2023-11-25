@@ -1,5 +1,3 @@
-@import "css/variables";
-
 .pad {
   display: grid;
   grid-template-columns: repeat(4, 2rem);
@@ -7,7 +5,8 @@
   grid-gap: 0.25rem;
   margin-left: 3rem;
 
-  @media (orientation: landscape) and (max-width: $md) {
+  /* TODO removed variable $md */
+  @media (orientation: landscape) and (max-width: md) {
     margin-left: 1rem;
   }
 

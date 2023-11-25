@@ -1,5 +1,3 @@
-@import "css/variables";
-
 .app {
   background-color: var(--bg);
   color: var(--fg);
@@ -8,23 +6,24 @@
 
 .game-container {
   width: 100vw;
-  height: calc(100vh - #{$status-bar-height * 2});
+  height: calc(100vh - var(--status-bar-height) * 2);
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 1rem 3rem;
 
-  @media (max-width: $md) {
-    height: calc(100vh - #{$status-bar-height});
+  /* TODO removed variable $md */
+  @media (max-width: md) {
+    height: calc(100vh - var(--status-bar-height));
     padding: 1rem 0;
   }
 
-  @media (max-width: $md) and (orientation: landscape) {
+  @media (max-width: md) and (orientation: landscape) {
     padding-bottom: 2rem;
   }
 
   @media (orientation: portrait) {
-    height: calc(100vh - #{$status-bar-height});
+    height: calc(100vh - var(--status-bar-height));
     flex-direction: column;
     padding: 1rem;
   }
