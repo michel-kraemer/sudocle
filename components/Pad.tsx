@@ -35,6 +35,12 @@ interface Colour {
   light: boolean
 }
 
+const Placeholder = () => (
+  <div className="placeholder rounded">
+    <style jsx>{styles}</style>
+  </div>
+)
+
 const Pad = () => {
   const ref = useRef<HTMLDivElement>(null)
   const settings = useContext(SettingsContextState)
@@ -157,7 +163,9 @@ const Pad = () => {
         digitButtons.push(
           <Button key={c.digit} noPadding onClick={() => onColour(c.digit)}>
             <div
-              className={classNames("colour-container", { light: c.light })}
+              className={classNames("colour-container rounded", {
+                light: c.light
+              })}
               style={{ backgroundColor: c.colour }}
             ></div>
             <style jsx>{styles}</style>
@@ -170,11 +178,7 @@ const Pad = () => {
     }
   } else {
     while (digitButtons.length < 12) {
-      digitButtons.push(
-        <div className="placeholder">
-          <style jsx>{styles}</style>
-        </div>
-      )
+      digitButtons.push(<Placeholder />)
     }
   }
 
@@ -219,7 +223,7 @@ const Pad = () => {
         >
           <div className="label-container font-condensed">Corner</div>
         </Button>
-      )) || <div className="placeholder"></div>}
+      )) || <Placeholder />}
       {digitButtons[3]}
       {digitButtons[4]}
       {digitButtons[5]}
@@ -231,7 +235,7 @@ const Pad = () => {
         >
           <div className="label-container font-condensed">Centre</div>
         </Button>
-      )) || <div className="placeholder"></div>}
+      )) || <Placeholder />}
       {digitButtons[6]}
       {digitButtons[7]}
       {digitButtons[8]}
@@ -243,11 +247,11 @@ const Pad = () => {
         >
           <div className="label-container font-condensed">Colour</div>
         </Button>
-      )) || <div className="placeholder"></div>}
+      )) || <Placeholder />}
       {game.mode !== MODE_COLOUR && (
         <>
           <div className="zero-button">{digitButtons[9]}</div>
-          <div className="placeholder"></div>
+          <Placeholder />
         </>
       )}
       {game.mode === MODE_COLOUR && (

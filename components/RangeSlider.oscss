@@ -19,14 +19,13 @@
 
 .description {
   position: absolute;
-  background-color: var(--fg);
-  color: var(--bg);
+  background-color: rgb(var(--fg));
+  color: rgb(var(--bg));
   padding: 0.15rem 0.25rem;
   font-size: 0.75em;
   font-weight: 500;
   transform: translateX(-50%);
   display: flex;
-  border-radius: var(--border-radius-mini);
   opacity: 0;
   transition: opacity 0.1s ease-in-out 0.2s;
 
@@ -44,15 +43,15 @@
   $form-range-track-width: 100%;
   $form-range-track-height: 0.5em;
   $form-range-track-cursor: pointer;
-  $form-range-track-bg: var(--grey-600);
+  $form-range-track-bg: rgb(var(--grey-600));
   $form-range-track-border-radius: math.div($form-range-track-height, 2);
 
   $form-range-thumb-width: 1em;
   $form-range-thumb-height: $form-range-thumb-width;
-  $form-range-thumb-bg: var(--primary);
+  $form-range-thumb-bg: rgb(var(--primary));
   $form-range-thumb-border: 0;
   $form-range-thumb-border-radius: 1em;
-  $form-range-thumb-disabled-bg: var(--grey-500);
+  $form-range-thumb-disabled-bg: rgb(var(--grey-500));
 
   width: 100%;
   height: $form-range-thumb-height;

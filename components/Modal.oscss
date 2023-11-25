@@ -27,7 +27,6 @@
   background-color: #fff;
   outline: none;
   box-shadow: 0 0 10px rgba(0 0 0 / 75%);
-  border-radius: var(--border-radius);
   font-size: 0.6rem;
 }
 
@@ -37,8 +36,6 @@
 }
 
 .modal-top-area {
-  border-top-left-radius: var(--border-radius);
-  border-top-right-radius: var(--border-radius);
   background-color: #deecd1;
   padding: 1.25em 4em;
   font-size: 1.2em;

@@ -15,10 +15,12 @@ interface ModalProps extends ReactModal.Props {
 const Modal = (props: ModalProps) => (
   <ReactModal
     {...props}
-    className={classNames(resolvedStyles.className, "modal")}
+    className={classNames(resolvedStyles.className, "modal rounded")}
     overlayClassName={classNames(resolvedStyles.className, "modal-overlay")}
   >
-    <div className={classNames("modal-top-area", { alert: props.alert })}>
+    <div
+      className={classNames("modal-top-area rounded-t", { alert: props.alert })}
+    >
       <div className="modal-icon">{props.icon}</div>
       <div className="modal-title">{props.title}</div>
       {props.children}

@@ -79,7 +79,7 @@ const RangeSlider = ({
         <div className="description-container">
           {description && (
             <div
-              className={classNames("description", {
+              className={classNames("description rounded-mini", {
                 visible: descriptionVisible
               })}
               style={{ left: `${descriptionPosition}%` }}

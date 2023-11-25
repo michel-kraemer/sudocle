@@ -37,10 +37,9 @@
   display: flex;
   flex: 1;
   height: 100%;
-  border-radius: var(--border-radius);
 
   &.light {
-    border: 1px solid var(--grey-500);
+    border: 1px solid rgb(var(--grey-500));
   }
 }
 
@@ -52,8 +51,7 @@
 .placeholder {
   display: flex;
   flex: 1;
-  background-color: var(--grey-700);
-  border-radius: var(--border-radius);
+  background-color: rgb(var(--grey-700));
   opacity: 0.5;
 }
 

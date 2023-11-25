@@ -70,6 +70,10 @@ module.exports = {
           "background-color": "rgb(var(--button-active))"
         }
       }
+    },
+    borderRadius: {
+      DEFAULT: "10px",
+      mini: "4px"
     }
   },
   plugins: []
