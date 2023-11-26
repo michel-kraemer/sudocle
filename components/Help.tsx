@@ -48,7 +48,7 @@ const Help = () => {
   let shift = <>&#x21e7;</>
 
   return (
-    <>
+    <div className="sidebar-page">
       <h2>Help</h2>
 
       <h3>Mouse</h3>
@@ -174,7 +174,7 @@ const Help = () => {
         <div className="desc">Add to selection</div>
       </div>
       <style jsx>{styles}</style>
-    </>
+    </div>
   )
 }
 

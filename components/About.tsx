@@ -8,7 +8,7 @@ const About = () => {
   let currentYear = new Date().getFullYear()
 
   return (
-    <>
+    <div className="sidebar-page">
       <a
         href="https://github.com/michel-kraemer/sudocle"
         target="_blank"
@@ -75,7 +75,7 @@ const About = () => {
         </a>
       </p>
       <style jsx>{styles}</style>
-    </>
+    </div>
   )
 }
 

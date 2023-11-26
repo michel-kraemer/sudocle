@@ -17,7 +17,6 @@ import {
   ID_ABOUT,
   SidebarTab
 } from "./lib/SidebarTabs"
-import styles from "./Sidebar.oscss"
 
 interface Tab {
   id: SidebarTab
@@ -73,13 +72,17 @@ const Sidebar = () => {
 
   return (
     <div
-      className={classNames("sidebar", {
-        visible: sidebarState.visible,
-        expanded: sidebarState.expanded,
-        collapsed: !sidebarState.expanded
-      })}
+      className={classNames(
+        "absolute top-0 right-0 bottom-0 w-[620px] max-w-full flex z-[30000] transition-transform",
+        sidebarState.visible
+          ? "translate-x-0 duration-300 ease-in-out"
+          : "translate-x-[calc(100%-2.5rem)] duration-200 ease-in",
+        {
+          "w-10 portrait:z-[-2000]": !sidebarState.expanded
+        }
+      )}
     >
-      <div className="sidebar-tabs">
+      <div className="w-8 mt-8 portrait:hidden">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 500">
           <defs>
             <filter id="shadow" x="-20%" y="-20%" height="140%" width="140%">
@@ -100,20 +103,44 @@ const Sidebar = () => {
             <g
               key={t.id}
               transform={`translate(0, ${t.y})`}
-              className={classNames("tab-handle", {
-                active: t.id === sidebarState.activeTabId
+              className={classNames("w-8 cursor-pointer group", {
+                "fill-bg hover:fill-button-hover":
+                  sidebarState.expanded && t.id !== sidebarState.activeTabId,
+                "fill-primary hover:fill-primary-highlight":
+                  sidebarState.expanded && t.id === sidebarState.activeTabId
               })}
               onClick={() => onTabClick(t.id)}
             >
-              <use xlinkHref="#tab-handle" className="tab-handle-path" />
-              <g className="tab-icon">
+              <use
+                xlinkHref="#tab-handle"
+                className={classNames(
+                  "transition-opacity duration-200 ease-in-out",
+                  sidebarState.visible ? "opacity-100" : "opacity-0"
+                )}
+              />
+              <g
+                className={classNames(
+                  "pointer-events-none",
+                  sidebarState.expanded && t.id === sidebarState.activeTabId
+                    ? "text-bg"
+                    : "text-fg-500 group-hover:text-primary"
+                )}
+              >
                 <g transform="translate(25, 47)">{t.icon}</g>
               </g>
             </g>
           ))}
         </svg>
       </div>
-      <div className="sidebar-container">
+      <div
+        className={classNames(
+          "bg-bg/75 shadow-[-2px_0_5px_0_rgba(0_0_0/20%)] pt-4 pr-8 pb-8 pl-8 flex-1 opacity-0 transition-opacity duration-[150ms] ease-[cubic-bezier(1,0,1,0)] overflow-y-auto backdrop-blur-sm",
+          {
+            "opacity-100 duration-0 ease-linear": sidebarState.visible,
+            hidden: !sidebarState.expanded
+          }
+        )}
+      >
         {sidebarState.expanded && sidebarState.activeTabId === ID_RULES && (
           <Rules />
         )}
@@ -127,10 +154,14 @@ const Sidebar = () => {
           <About />
         )}
       </div>
-      <div className="close-button">
+      <div
+        className={classNames(
+          "absolute top-8 right-8 cursor-pointer hover:text-primary",
+          { hidden: !sidebarState.expanded }
+        )}
+      >
         <X size="1rem" onClick={() => onTabClick(sidebarState.activeTabId)} />
       </div>
-      <style jsx>{styles}</style>
     </div>
   )
 }

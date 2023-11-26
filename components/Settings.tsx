@@ -105,7 +105,7 @@ const Settings = () => {
   }, [])
 
   return (
-    <>
+    <div className="sidebar-page">
       <h2>Settings</h2>
 
       <h3>Theme</h3>
@@ -236,7 +236,7 @@ const Settings = () => {
       </div>
 
       <style jsx>{styles}</style>
-    </>
+    </div>
   )
 }
 

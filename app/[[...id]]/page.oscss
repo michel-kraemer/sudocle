@@ -1,6 +1,6 @@
 .app {
-  background-color: var(--bg);
-  color: var(--fg);
+  background-color: rgb(var(--bg));
+  color: rgb(var(--fg));
   height: 100vh;
 }
 
@@ -38,10 +38,10 @@
 }
 
 .loading {
-  color: var(--fg-500);
+  color: rgb(var(--fg-500));
 }
 
 .error {
-  color: var(--alert);
+  color: rgb(var(--alert));
   text-align: center;
 }

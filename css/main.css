@@ -47,10 +47,30 @@ body {
 }
 
 a {
-  color: var(--primary);
-  text-decoration: underline;
+  @apply text-primary;
+  @apply hover:text-primary-highlight;
+  @apply underline;
 }
 
-a:hover {
-  color: var(--primary-highlight);
+@layer components {
+  .sidebar-page {
+    font-size: 0.6rem;
+  }
+
+  .sidebar-page h2 {
+    @apply text-base;
+    @apply font-medium;
+    @apply my-3;
+  }
+
+  .sidebar-page h3 {
+    @apply text-xs;
+    @apply font-normal;
+    @apply mt-4;
+    @apply mb-2;
+  }
+
+  p {
+    @apply my-2;
+  }
 }
