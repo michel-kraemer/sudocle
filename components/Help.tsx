@@ -1,5 +1,18 @@
 import { useLayoutEffect, useState } from "react"
-import styles from "./Help.oscss"
+
+const Shortcuts = ({ children }: { children: React.ReactNode }) => (
+  <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 items-center mb-5">
+    {children}
+  </div>
+)
+
+const Key = ({ children }: { children: React.ReactNode }) => (
+  <kbd className="font-sans inline-block border border-fg-500 rounded-mini bg-bg/75 py-0.5 px-1 leading-tight min-w-[1.7em] text-center">
+    {children}
+  </kbd>
+)
+
+const Divider = () => <div className="col-span-2"></div>
 
 const Help = () => {
   const [isApple, setIsApple] = useState(false)
@@ -52,128 +65,127 @@ const Help = () => {
       <h2>Help</h2>
 
       <h3>Mouse</h3>
-      <div className="shortcuts">
-        <div className="key">
-          <kbd>Click</kbd>
+      <Shortcuts>
+        <div>
+          <Key>Click</Key>
         </div>
-        <div className="desc">Select cell</div>
+        <div>Select cell</div>
 
-        <div className="key">
-          <kbd>Click</kbd> + <kbd>Drag</kbd>
+        <div>
+          <Key>Click</Key> + <Key>Drag</Key>
         </div>
-        <div className="desc">Select multiple cells</div>
+        <div>Select multiple cells</div>
 
-        <div className="key">
-          <kbd>{meta}</kbd> + <kbd>Click</kbd>
+        <div>
+          <Key>{meta}</Key> + <Key>Click</Key>
         </div>
-        <div className="desc">Add cell(s) to selection</div>
+        <div>Add cell(s) to selection</div>
 
-        <div className="key">
-          <kbd>{meta}</kbd> + <kbd>{shift}</kbd> + <kbd>Click</kbd>
+        <div>
+          <Key>{meta}</Key> + <Key>{shift}</Key> + <Key>Click</Key>
         </div>
-        <div className="desc">Deselect cell(s)</div>
+        <div>Deselect cell(s)</div>
 
-        <div className="key">
-          <kbd>{alt}</kbd> + <kbd>Double click</kbd>
+        <div>
+          <Key>{alt}</Key> + <Key>Double click</Key>
         </div>
-        <div className="desc">Select cells with same colour</div>
-      </div>
+        <div>Select cells with same colour</div>
+      </Shortcuts>
 
       <h3>Keyboard shortcuts</h3>
-      <div className="shortcuts">
-        <div className="key">
-          <kbd>0</kbd> &ndash; <kbd>9</kbd>
+      <Shortcuts>
+        <div>
+          <Key>0</Key> &ndash; <Key>9</Key>
         </div>
-        <div className="desc">Enter digit</div>
+        <div>Enter digit</div>
 
-        <div className="key">
-          <kbd>{shift}</kbd> + ( <kbd>0</kbd> &ndash; <kbd>9</kbd> )
+        <div>
+          <Key>{shift}</Key> + ( <Key>0</Key> &ndash; <Key>9</Key> )
         </div>
-        <div className="desc">Enter corner mark</div>
+        <div>Enter corner mark</div>
 
-        <div className="key">
-          <kbd>{meta}</kbd> + ( <kbd>0</kbd> &ndash; <kbd>9</kbd> )
+        <div>
+          <Key>{meta}</Key> + ( <Key>0</Key> &ndash; <Key>9</Key> )
         </div>
-        <div className="desc">Enter centre mark</div>
+        <div>Enter centre mark</div>
 
-        <div className="key">
-          <kbd>{del}</kbd>
+        <div>
+          <Key>{del}</Key>
         </div>
-        <div className="desc">Delete digit/mark/colour</div>
+        <div>Delete digit/mark/colour</div>
 
-        <div className="divider"></div>
+        <Divider />
 
-        <div className="key">
-          <kbd>{meta}</kbd> + <kbd>Z</kbd>
+        <div>
+          <Key>{meta}</Key> + <Key>Z</Key>
         </div>
-        <div className="desc">Undo</div>
+        <div>Undo</div>
 
-        <div className="key">
-          <kbd>{meta}</kbd> + <kbd>{shift}</kbd> + <kbd>Z</kbd>
+        <div>
+          <Key>{meta}</Key> + <Key>{shift}</Key> + <Key>Z</Key>
           <br />
-          <div className="alt-key">
-            <kbd>{meta}</kbd> + <kbd>Y</kbd>
+          <div className="mt-1 before:content-['or'] before:mr-[0.4rem]">
+            <Key>{meta}</Key> + <Key>Y</Key>
           </div>
         </div>
-        <div className="desc">Redo</div>
+        <div>Redo</div>
 
-        <div className="divider"></div>
+        <Divider />
 
-        <div className="key">
-          <kbd>Space</kbd>
+        <div>
+          <Key>Space</Key>
         </div>
-        <div className="desc">Switch to next mode in group</div>
+        <div>Switch to next mode in group</div>
 
-        <div className="key">
-          <kbd>{tab}</kbd>
+        <div>
+          <Key>{tab}</Key>
         </div>
-        <div className="desc">Toggle mode group</div>
+        <div>Toggle mode group</div>
 
-        <div className="key">
-          <kbd>{keyZ.toUpperCase()}</kbd>
+        <div>
+          <Key>{keyZ.toUpperCase()}</Key>
         </div>
-        <div className="desc">Digit mode (Group 1)</div>
+        <div>Digit mode (Group 1)</div>
 
-        <div className="key">
-          <kbd>{keyX.toUpperCase()}</kbd>
+        <div>
+          <Key>{keyX.toUpperCase()}</Key>
         </div>
-        <div className="desc">Corner mark mode (Group 1)</div>
+        <div>Corner mark mode (Group 1)</div>
 
-        <div className="key">
-          <kbd>{keyC.toUpperCase()}</kbd>
+        <div>
+          <Key>{keyC.toUpperCase()}</Key>
         </div>
-        <div className="desc">Centre mark mode (Group 1)</div>
+        <div>Centre mark mode (Group 1)</div>
 
-        <div className="key">
-          <kbd>{keyV.toUpperCase()}</kbd>
+        <div>
+          <Key>{keyV.toUpperCase()}</Key>
         </div>
-        <div className="desc">Colour mode (Group 1)</div>
+        <div>Colour mode (Group 1)</div>
 
-        <div className="key">
-          <kbd>{keyP.toUpperCase()}</kbd>
+        <div>
+          <Key>{keyP.toUpperCase()}</Key>
         </div>
-        <div className="desc">Pen mode (Group 2)</div>
+        <div>Pen mode (Group 2)</div>
 
-        <div className="divider"></div>
+        <Divider />
 
-        <div className="key">
-          <kbd>{meta}</kbd> + <kbd>A</kbd>
+        <div>
+          <Key>{meta}</Key> + <Key>A</Key>
         </div>
-        <div className="desc">Select all cells</div>
+        <div>Select all cells</div>
 
-        <div className="key">
-          <kbd>&#x2190;</kbd>, <kbd>&#x2191;</kbd>, <kbd>&#x2192;</kbd>,{" "}
-          <kbd>&#x2193;</kbd>
+        <div>
+          <Key>&#x2190;</Key>, <Key>&#x2191;</Key>, <Key>&#x2192;</Key>,{" "}
+          <Key>&#x2193;</Key>
         </div>
-        <div className="desc">Move selection</div>
+        <div>Move selection</div>
 
-        <div className="key">
-          <kbd>{meta}</kbd> + ( <kbd>&#x2190;</kbd> &ndash; <kbd>&#x2193;</kbd>{" "}
+        <div>
+          <Key>{meta}</Key> + ( <Key>&#x2190;</Key> &ndash; <Key>&#x2193;</Key>{" "}
           )
         </div>
-        <div className="desc">Add to selection</div>
-      </div>
-      <style jsx>{styles}</style>
+        <div>Add to selection</div>
+      </Shortcuts>
     </div>
   )
 }

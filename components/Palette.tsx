@@ -1,4 +1,3 @@
-import styles from "./Palette.oscss"
 import { Minus, Plus } from "lucide-react"
 import Color from "color"
 import { FormEvent } from "react"
@@ -53,18 +52,21 @@ const Palette = ({
   }
 
   return (
-    <div className="palette" style={{ gridTemplateColumns }}>
+    <div
+      className="grid gap-x-[0.3em] ml-[0.05em] mt-[0.25em] mb-[0.5em]"
+      style={{ gridTemplateColumns }}
+    >
       {colours.map((c, i) => {
         if (customisable) {
           return (
             <label
               key={i}
-              className="colour customisable"
+              className="w-[1em] h-[1em] shadow-[0_0_1px_rgba(0_0_0/20%)] cursor-pointer"
               style={{ backgroundColor: c }}
             >
               <input
                 type="color"
-                className="colour"
+                className="invisible"
                 defaultValue={Color(c.trim()).hex()}
                 onInput={e => onChangeColour(i, e)}
               />
@@ -74,17 +76,17 @@ const Palette = ({
           return (
             <div
               key={i}
-              className="colour"
+              className="w-[1em] h-[1em] shadow-[0_0_1px_rgba(0_0_0/20%)]"
               style={{ backgroundColor: c }}
             ></div>
           )
         }
       })}
       {customisable && (
-        <div className="customise-buttons">
+        <div className="flex">
           {colours.length < 12 && (
             <div
-              className="add-button"
+              className="flex h-[1em] w-[1em] cursor-pointer"
               title="Add colour"
               onClick={onAddColour}
             >
@@ -93,7 +95,7 @@ const Palette = ({
           )}
           {colours.length > 1 && (
             <div
-              className="remove-button"
+              className="flex h-[1em] w-[1em] cursor-pointer"
               title="Remove last colour"
               onClick={onRemoveColour}
             >
@@ -102,7 +104,6 @@ const Palette = ({
           )}
         </div>
       )}
-      <style jsx>{styles}</style>
     </div>
   )
 }

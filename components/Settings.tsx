@@ -6,7 +6,14 @@ import {
   State as SettingsContextState
 } from "./contexts/SettingsContext"
 import { useContext, useEffect, useRef, useState } from "react"
-import styles from "./Settings.oscss"
+
+const Slider = ({ children }: { children: React.ReactNode }) => (
+  <div className="mb-2 max-w-[7rem]">{children}</div>
+)
+
+const PaletteLabel = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex flex-col items-start">{children}</div>
+)
 
 const Settings = () => {
   const settings = useContext(SettingsContextState)
@@ -126,16 +133,8 @@ const Settings = () => {
       />
 
       <h3>Colour Palette</h3>
-      <div
-        className="palette-placeholder"
-        data-colour-palette="ctc"
-        ref={refPlaceholderCTC}
-      />
-      <div
-        className="palette-placeholder"
-        data-colour-palette="wong"
-        ref={refPlaceholderWong}
-      />
+      <div data-colour-palette="ctc" ref={refPlaceholderCTC} />
+      <div data-colour-palette="wong" ref={refPlaceholderWong} />
       <RadioGroup
         name="colourPalette"
         value={settings.colourPalette}
@@ -143,41 +142,41 @@ const Settings = () => {
           {
             id: "default",
             label: (
-              <div className="palette-label">
+              <PaletteLabel>
                 <div>Sudocle</div>
                 <Palette colours={coloursDefault} />
-              </div>
+              </PaletteLabel>
             )
           },
           {
             id: "ctc",
             label: (
-              <div className="palette-label">
+              <PaletteLabel>
                 <div>Cracking the Cryptic</div>
                 <Palette colours={coloursCTC} />
-              </div>
+              </PaletteLabel>
             )
           },
           {
             id: "wong",
             label: (
-              <div className="palette-label">
+              <PaletteLabel>
                 <div>Wong (optimised for colour-blindness)</div>
                 <Palette colours={coloursWong} />
-              </div>
+              </PaletteLabel>
             )
           },
           {
             id: "custom",
             label: (
-              <div className="palette-label">
+              <PaletteLabel>
                 <div>Custom</div>
                 <Palette
                   colours={coloursCustom}
                   customisable={true}
                   updatePalette={onUpdateCustomColours}
                 />
-              </div>
+              </PaletteLabel>
             )
           }
         ]}
@@ -185,7 +184,7 @@ const Settings = () => {
       />
 
       <h3>Zoom</h3>
-      <div className="slider">
+      <Slider>
         <RangeSlider
           id="range-zoom"
           min={0.9}
@@ -195,10 +194,10 @@ const Settings = () => {
           onChange={onChangeZoom}
           valueToDescription={zoomValueToDescription}
         />
-      </div>
+      </Slider>
 
       <h3>Font sizes</h3>
-      <div className="slider">
+      <Slider>
         <RangeSlider
           id="range-digits"
           label="Digits"
@@ -209,8 +208,8 @@ const Settings = () => {
           onChange={onChangeFontSizeDigits}
           valueToDescription={fontSizeValueToDescription}
         />
-      </div>
-      <div className="slider">
+      </Slider>
+      <Slider>
         <RangeSlider
           id="range-corner-marks"
           label="Corner marks"
@@ -221,8 +220,8 @@ const Settings = () => {
           onChange={onChangeFontSizeCornerMarks}
           valueToDescription={fontSizeValueToDescription}
         />
-      </div>
-      <div className="slider">
+      </Slider>
+      <Slider>
         <RangeSlider
           id="range-centre-marks"
           label="Centre marks"
@@ -233,9 +232,7 @@ const Settings = () => {
           onChange={onChangeFontSizeCentreMarks}
           valueToDescription={fontSizeValueToDescription}
         />
-      </div>
-
-      <style jsx>{styles}</style>
+      </Slider>
     </div>
   )
 }

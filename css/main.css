@@ -72,5 +72,6 @@ a {
 
   p {
     @apply my-2;
+    @apply leading-4;
   }
 }

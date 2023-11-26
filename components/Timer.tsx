@@ -91,9 +91,8 @@ const Timer = ({ solved }: TimerProps) => {
           onClick={onPause}
         >
           <Pause
-            fill="var(--fg)"
             stroke="none"
-            className="[&_rect]:[rx:1] leading-none h-[0.7rem]"
+            className="[&_rect]:[rx:1] leading-none h-[0.7rem] fill-fg"
           />
         </div>
       </div>
