@@ -52,6 +52,7 @@ module.exports = {
       "fg-700": withOpacity("fg-700"),
       primary: withOpacity("primary"),
       "primary-highlight": withOpacity("primary-highlight"),
+      alert: withOpacity("alert"),
       digit: withOpacity("digit"),
       "digit-small": withOpacity("digit-small"),
       "button-hover": withOpacity("button-hover"),

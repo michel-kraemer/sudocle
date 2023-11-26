@@ -11,7 +11,7 @@
   --fg-700: var(--grey-700);
   --primary: 43 64 120;
   --primary-highlight: 58 84 156;
-  --alert: #b81e1e;
+  --alert: 184 31 31;
   --digit: 75 106 190;
   --digit-small: 58 84 156;
   --button-hover: var(--grey-500);
@@ -35,7 +35,7 @@
   --fg-700: var(--grey-500);
   --primary: 130 162 194;
   --primary-highlight: 163 187 209;
-  --alert: #bf616a;
+  --alert: 191 97 106;
   --digit: 129 161 193;
   --digit-small: 163 187 210;
   --button-hover: 112 126 153;

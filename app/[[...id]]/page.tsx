@@ -49,9 +49,7 @@ import {
 } from "react"
 import FontFaceObserver from "fontfaceobserver"
 import { Frown, ThumbsUp } from "lucide-react"
-import Head from "next/head"
 import lzwDecompress from "../../components/lib/lzwdecompressor"
-import styles from "./page.oscss"
 import { enableMapSet } from "immer"
 
 enableMapSet()
@@ -667,15 +665,21 @@ const IndexPage = () => {
   return (
     <>
       <div
-        className="app"
+        className="bg-bg text-fg h-screen"
         data-theme={settings.theme}
         data-colour-palette={settings.colourPalette}
         onMouseDown={onMouseDown}
         ref={appRef}
       >
         {!isTest && <StatusBar />}
-        <div className="game-container" ref={gameContainerRef}>
-          <div className="grid-container" ref={gridContainerRef}>
+        <div
+          className="w-screen flex justify-center items-center py-4 px-12 h-[calc(100vh-var(--status-bar-height))] md:h-[calc(100vh-var(--status-bar-height)*2)] md:px-0 portrait:h-[calc(100vh-var(--status-bar-height))] portrait:flex-col portrait:p-4"
+          ref={gameContainerRef}
+        >
+          <div
+            className="flex flex-col justify-center items-center h-full"
+            ref={gridContainerRef}
+          >
             {game.data && game.data.cells.length > 0 && fontsLoaded && (
               <Grid
                 portrait={portrait}
@@ -685,8 +689,10 @@ const IndexPage = () => {
               />
             )}
           </div>
-          {rendering && !error && <div className="loading">Loading ...</div>}
-          {error && <div className="error">{error}</div>}
+          {rendering && !error && (
+            <div className="text-fg-500">Loading ...</div>
+          )}
+          {error && <div className="text-alert text-center">{error}</div>}
           <div className="pad-container" ref={padContainerRef}>
             {rendering || <Pad />}
           </div>
@@ -710,8 +716,6 @@ const IndexPage = () => {
         >
           Something seems to be wrong
         </Modal>
-
-        <style jsx>{styles}</style>
       </div>
     </>
   )
