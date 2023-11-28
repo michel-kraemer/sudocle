@@ -70,7 +70,17 @@ a {
     @apply mb-2;
   }
 
-  p {
+  .sidebar-page .lead {
+    @apply text-xs;
+    @apply text-fg/50;
+    @apply mb-3;
+  }
+
+  .sidebar-page h2:has(+ .lead) {
+    @apply mb-0;
+  }
+
+  .sidebar-page p {
     @apply my-2;
     @apply leading-4;
   }

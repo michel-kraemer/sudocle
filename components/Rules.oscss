@@ -3,15 +3,5 @@ h2 {
 }
 
 .author {
-  font-size: 1.25em;
   margin-bottom: 1em;
-  color: var(--fg-alpha);
-}
-
-.rules {
-  white-space: pre-wrap;
-}
-
-p {
-  line-height: 1.6em;
 }

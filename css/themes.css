@@ -1,3 +1,4 @@
+/* TODO use CSS relative colours in the future? (https://caniuse.com/css-relative-colors) */
 :root {
   --bg: 255 255 255;
   --bg-alpha: rgba(255 255 255 / 75%);
