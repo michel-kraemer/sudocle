@@ -42,6 +42,7 @@ module.exports = {
       baloo: ["var(--font-baloo)", ...defaultTheme.fontFamily.sans]
     },
     colors: {
+      black: withOpacity("black"),
       bg: withOpacity("bg"),
       fg: withOpacity("fg"),
       "grey-500": withOpacity("grey-500"),
@@ -53,6 +54,8 @@ module.exports = {
       primary: withOpacity("primary"),
       "primary-highlight": withOpacity("primary-highlight"),
       alert: withOpacity("alert"),
+      "modal-success": withOpacity("modal-success"),
+      "modal-alert": withOpacity("modal-alert"),
       digit: withOpacity("digit"),
       "digit-small": withOpacity("digit-small"),
       "button-hover": withOpacity("button-hover"),
@@ -63,9 +66,18 @@ module.exports = {
       "selection-blue": withOpacity("selection-blue")
     },
     animation: {
-      pulsating: "1s infinite pulsating ease-out alternate"
+      pulsating: "1s infinite pulsating ease-out alternate",
+      "fade-in": "200ms fade-in"
     },
     keyframes: {
+      "fade-in": {
+        "0%": {
+          opacity: "0"
+        },
+        "100%": {
+          opacity: "1"
+        }
+      },
       pulsating: {
         "0%": {
           "background-color": "rgb(var(--grey-700))"

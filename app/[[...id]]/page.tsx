@@ -703,7 +703,7 @@ const IndexPage = () => {
           isOpen={solvedModalOpen}
           title="Congratulations!"
           icon={<ThumbsUp size="3.25em" />}
-          onOK={() => setSolvedModalOpen(false)}
+          onOpenChange={open => setSolvedModalOpen(open)}
         >
           You have solved the puzzle
         </Modal>
@@ -712,7 +712,7 @@ const IndexPage = () => {
           title="Sorry"
           alert
           icon={<Frown size="3.25em" />}
-          onOK={() => setErrorModalOpen(false)}
+          onOpenChange={open => setErrorModalOpen(open)}
         >
           Something seems to be wrong
         </Modal>

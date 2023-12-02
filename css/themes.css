@@ -1,5 +1,6 @@
 /* TODO use CSS relative colours in the future? (https://caniuse.com/css-relative-colors) */
 :root {
+  --black: 0 0 0;
   --bg: 255 255 255;
   --bg-alpha: rgba(255 255 255 / 75%);
   --fg: 51 51 51;
@@ -13,6 +14,8 @@
   --primary: 43 64 120;
   --primary-highlight: 58 84 156;
   --alert: 184 31 31;
+  --modal-success: 221 236 208;
+  --modal-alert: 232 186 186;
   --digit: 75 106 190;
   --digit-small: 58 84 156;
   --button-hover: var(--grey-500);

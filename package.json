@@ -15,6 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@pixi/filter-drop-shadow": "^5.2.0",
+    "@radix-ui/react-dialog": "^1.0.5",
     "@thi.ng/bitstream": "^2.2.28",
     "@types/fontfaceobserver": "^2.1.1",
     "classnames": "^2.3.2",
@@ -35,7 +36,6 @@
     "polygon-clipping": "^0.15.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-modal": "^3.16.1",
     "sass": "^1.68.0",
     "sass-loader": "^13.3.2"
   },
@@ -45,7 +45,6 @@
     "@types/color": "^3.0.4",
     "@types/lodash": "^4.14.198",
     "@types/react": "18.2.22",
-    "@types/react-modal": "^3.16.0",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.49.0",
     "eslint-config-next": "^13.5.2",

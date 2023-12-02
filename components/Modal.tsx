@@ -1,36 +1,48 @@
 import Button from "./Button"
 import classNames from "classnames"
-import ReactModal from "react-modal"
-import resolvedStyles from "./Modal.oscss?type=resolve"
-import styles from "./Modal.oscss"
-import { MouseEventHandler, ReactNode } from "react"
+import { ReactNode } from "react"
+import * as Dialog from "@radix-ui/react-dialog"
 
-interface ModalProps extends ReactModal.Props {
+interface ModalProps {
+  isOpen: boolean
   alert?: boolean
   icon: ReactNode
   title: string
-  onOK: MouseEventHandler
+  onOpenChange: (open: boolean) => void
+  children?: ReactNode
 }
 
-const Modal = (props: ModalProps) => (
-  <ReactModal
-    {...props}
-    className={classNames(resolvedStyles.className, "modal rounded")}
-    overlayClassName={classNames(resolvedStyles.className, "modal-overlay")}
-  >
-    <div
-      className={classNames("modal-top-area rounded-t", { alert: props.alert })}
-    >
-      <div className="modal-icon">{props.icon}</div>
-      <div className="modal-title">{props.title}</div>
-      {props.children}
-    </div>
-    <div className="modal-button-area">
-      <Button onClick={props.onOK}>OK</Button>
-    </div>
-    {resolvedStyles.styles}
-    <style jsx>{styles}</style>
-  </ReactModal>
+const Modal = ({
+  isOpen,
+  alert,
+  icon,
+  title,
+  onOpenChange,
+  children
+}: ModalProps) => (
+  <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog.Portal>
+      <Dialog.Overlay className="fixed inset-0 bg-black/5 flex justify-center items-center z-[100000] animate-fade-in">
+        <Dialog.Content className="bg-bg shadow-[0_0_10px_rgba(0_0_0/75%)] focus:outline-none text-center rounded overflow-hidden">
+          <div
+            className={classNames(
+              "py-4 px-12",
+              alert ? "bg-modal-alert" : "bg-modal-success"
+            )}
+          >
+            <Dialog.Title className="font-medium flex flex-col items-center gap-0.5">
+              <div className="text-xs">{icon}</div>
+              <div className="text-lg leading-6">{title}</div>
+            </Dialog.Title>
+            <div className="text-xs">{children}</div>
+          </div>
+          <div className="max-w-[4rem] my-2 mx-auto flex flex-row justify-end text-[0.6rem]">
+            <Button onClick={() => onOpenChange(false)}>OK</Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Overlay>
+    </Dialog.Portal>
+  </Dialog.Root>
 )
 
 export default Modal
