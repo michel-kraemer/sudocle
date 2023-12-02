@@ -95,11 +95,17 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   })
 
   let underlays: Overlay[] = puzzle.underlays?.map((o: any) => {
-    // may angle to rotation
+    // map angle to rotation
     let r = { ...o }
     if (r.angle !== undefined) {
       r.rotation = r.angle
       delete r.angle
+    }
+
+    // map color to fontColor
+    if (r.color !== undefined) {
+      r.fontColor = r.color
+      delete r.color
     }
 
     // In Grid.tsx, we apply an opacity of 0.5 if the colour is not grey (see
