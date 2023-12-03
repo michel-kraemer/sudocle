@@ -27,7 +27,6 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { Check, Delete, Redo, Undo } from "lucide-react"
 import Color from "color"
 import classNames from "classnames"
-import styles from "./Pad.oscss"
 
 interface Colour {
   colour: string
@@ -35,10 +34,10 @@ interface Colour {
   light: boolean
 }
 
-const Placeholder = () => (
-  <div className="placeholder rounded">
-    <style jsx>{styles}</style>
-  </div>
+const Placeholder = () => <div className="flex flex-1 bg-grey-700/50 rounded" />
+
+const ModeButton = ({ children }: { children: React.ReactNode }) => (
+  <div className="text-[0.5rem] font-condensed">{children}</div>
 )
 
 const Pad = () => {
@@ -148,10 +147,25 @@ const Pad = () => {
         let digit = i % 10
         digitButtons.push(
           <Button key={i} noPadding onClick={() => onDigit(digit)}>
-            <div className={classNames("digit-container", `digit-${digit}`)}>
+            <div
+              className={classNames({
+                "text-[1.15rem]": game.mode === MODE_NORMAL,
+                "text-[0.6rem]": game.mode === MODE_CENTRE,
+                [classNames({
+                  "text-[0.55rem] absolute": true,
+                  "top-[0.2rem] left-[0.4rem]": digit === 0 || digit === 1,
+                  "top-[0.2rem]": digit === 2,
+                  "top-[0.2rem] right-[0.4rem]": digit === 3,
+                  "left-[0.4rem]": digit === 4,
+                  "right-[0.4rem]": digit === 6,
+                  "bottom-[0.2rem] left-[0.4rem]": digit === 7,
+                  "bottom-[0.2rem]": digit === 8,
+                  "bottom-[0.2rem] right-[0.4rem]": digit === 9
+                })]: game.mode === MODE_CORNER
+              })}
+            >
               <div>{digit}</div>
             </div>
-            <style jsx>{styles}</style>
           </Button>
         )
       }
@@ -163,12 +177,11 @@ const Pad = () => {
         digitButtons.push(
           <Button key={c.digit} noPadding onClick={() => onColour(c.digit)}>
             <div
-              className={classNames("colour-container rounded", {
-                light: c.light
+              className={classNames("flex flex-1 h-full rounded", {
+                "border border-grey-500": c.light
               })}
               style={{ backgroundColor: c.colour }}
             ></div>
-            <style jsx>{styles}</style>
           </Button>
         )
       }
@@ -183,9 +196,12 @@ const Pad = () => {
   }
 
   return (
-    <div className={classNames("pad", `mode-${game.mode}`)} ref={ref}>
+    <div
+      className="grid grid-cols-[repeat(4,2rem)] grid-rows-[repeat(5,2rem)] gap-1 ml-4 lg:ml-12 portrait:ml-0 portrait:mt-4 portrait:mb-12"
+      ref={ref}
+    >
       <Button noPadding onClick={onDelete}>
-        <div className="delete-container">
+        <div className="flex flex-1 items-center justify-center mr-[0.1rem]">
           <Delete size="1.05rem" />
         </div>
       </Button>
@@ -201,7 +217,7 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_NORMAL)}
         >
-          <div className="label-container font-condensed">Normal</div>
+          <ModeButton>Normal</ModeButton>
         </Button>
       )) || (
         <Button
@@ -209,7 +225,7 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_PEN)}
         >
-          <div className="label-container font-condensed">Pen</div>
+          <ModeButton>Pen</ModeButton>
         </Button>
       )}
       {digitButtons[0]}
@@ -221,7 +237,7 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_CORNER)}
         >
-          <div className="label-container font-condensed">Corner</div>
+          <ModeButton>Corner</ModeButton>
         </Button>
       )) || <Placeholder />}
       {digitButtons[3]}
@@ -233,7 +249,7 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_CENTRE)}
         >
-          <div className="label-container font-condensed">Centre</div>
+          <ModeButton>Centre</ModeButton>
         </Button>
       )) || <Placeholder />}
       {digitButtons[6]}
@@ -245,12 +261,12 @@ const Pad = () => {
           noPadding
           onClick={() => onMode(MODE_COLOUR)}
         >
-          <div className="label-container font-condensed">Colour</div>
+          <ModeButton>Colour</ModeButton>
         </Button>
       )) || <Placeholder />}
       {game.mode !== MODE_COLOUR && (
         <>
-          <div className="zero-button">{digitButtons[9]}</div>
+          <div className="flex col-span-2">{digitButtons[9]}</div>
           <Placeholder />
         </>
       )}
@@ -268,7 +284,6 @@ const Pad = () => {
       >
         <Check size="1.05rem" />
       </Button>
-      <style jsx>{styles}</style>
     </div>
   )
 }
