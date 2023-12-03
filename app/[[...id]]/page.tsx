@@ -295,7 +295,9 @@ const IndexPage = () => {
     if (id.endsWith("/")) {
       id = id.substring(0, id.length - 1)
     }
-    id = id.substring(id.lastIndexOf("/") + 1)
+    if (id.startsWith("/")) {
+      id = id.substring(1)
+    }
 
     if (id === null || id === "") {
       let s = new URLSearchParams(window.location.search)
