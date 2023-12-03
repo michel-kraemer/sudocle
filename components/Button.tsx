@@ -1,5 +1,5 @@
 import { MouseEvent, MouseEventHandler, ReactNode, useState } from "react"
-import classNames from "classnames"
+import clsx from "clsx"
 
 interface ButtonProps {
   active?: boolean
@@ -26,7 +26,7 @@ const Button = ({
   return (
     <div
       tabIndex={0}
-      className={classNames(
+      className={clsx(
         "flex flex-1 text-fg rounded justify-center items-center cursor-pointer select-none leading-4 relative focus:outline-none transition-colors duration-100 ease-linear hover:bg-button-hover hover:active:bg-primary hover:active:text-bg hover:active:transition-none",
         noPadding ? "p-0" : "p-1",
         active

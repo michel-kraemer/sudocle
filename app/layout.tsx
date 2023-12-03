@@ -1,4 +1,4 @@
-import classNames from "classnames"
+import clsx from "clsx"
 import { Provider as GameContextProvider } from "../components/contexts/GameContext"
 import { Provider as SettingsContextProvider } from "../components/contexts/SettingsContext"
 import { Provider as SidebarContextProvider } from "../components/contexts/SidebarContext"
@@ -55,7 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={classNames(
+      className={clsx(
         `${baloo.variable} ${roboto.variable} ${robotoCondensed.variable}`
       )}
     >

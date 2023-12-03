@@ -7,7 +7,7 @@ import {
   State as SidebarContextState,
   OnTabClick
 } from "./contexts/SidebarContext"
-import classNames from "classnames"
+import clsx from "clsx"
 import { BookOpen, HelpCircle, Info, Sliders, X } from "lucide-react"
 import { ReactNode, useContext } from "react"
 import {
@@ -72,7 +72,7 @@ const Sidebar = () => {
 
   return (
     <div
-      className={classNames(
+      className={clsx(
         "absolute top-0 right-0 bottom-0 w-[620px] max-w-full flex z-[30000] transition-transform",
         sidebarState.visible
           ? "translate-x-0 duration-300 ease-in-out"
@@ -103,7 +103,7 @@ const Sidebar = () => {
             <g
               key={t.id}
               transform={`translate(0, ${t.y})`}
-              className={classNames("w-8 cursor-pointer group", {
+              className={clsx("w-8 cursor-pointer group", {
                 "fill-bg hover:fill-button-hover":
                   sidebarState.expanded && t.id !== sidebarState.activeTabId,
                 "fill-primary hover:fill-primary-highlight":
@@ -113,13 +113,13 @@ const Sidebar = () => {
             >
               <use
                 xlinkHref="#tab-handle"
-                className={classNames(
+                className={clsx(
                   "transition-opacity duration-200 ease-in-out",
                   sidebarState.visible ? "opacity-100" : "opacity-0"
                 )}
               />
               <g
-                className={classNames(
+                className={clsx(
                   "pointer-events-none",
                   sidebarState.expanded && t.id === sidebarState.activeTabId
                     ? "text-bg"
@@ -133,7 +133,7 @@ const Sidebar = () => {
         </svg>
       </div>
       <div
-        className={classNames(
+        className={clsx(
           "bg-bg/75 shadow-[-2px_0_5px_0_rgba(0_0_0/20%)] pt-4 pr-8 pb-8 pl-8 flex-1 opacity-0 transition-opacity duration-[150ms] ease-[cubic-bezier(1,0,1,0)] overflow-y-auto backdrop-blur-sm",
           {
             "opacity-100 duration-0 ease-linear": sidebarState.visible,
@@ -155,7 +155,7 @@ const Sidebar = () => {
         )}
       </div>
       <div
-        className={classNames(
+        className={clsx(
           "absolute top-8 right-8 cursor-pointer hover:text-primary",
           { hidden: !sidebarState.expanded }
         )}

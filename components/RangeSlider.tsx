@@ -1,5 +1,5 @@
 import { ChangeEvent, ReactNode, useState } from "react"
-import classNames from "classnames"
+import clsx from "clsx"
 import styles from "./RangeSlider.oscss"
 
 interface RangeSliderProps {
@@ -79,7 +79,7 @@ const RangeSlider = ({
         <div className="description-container">
           {description && (
             <div
-              className={classNames("description rounded-mini", {
+              className={clsx("description rounded-mini", {
                 visible: descriptionVisible
               })}
               style={{ left: `${descriptionPosition}%` }}

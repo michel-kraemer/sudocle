@@ -18,7 +18,7 @@
     "@radix-ui/react-dialog": "^1.0.5",
     "@thi.ng/bitstream": "^2.2.28",
     "@types/fontfaceobserver": "^2.1.1",
-    "classnames": "^2.3.2",
+    "clsx": "^2.0.0",
     "color": "^4.2.3",
     "css-loader": "^6.8.1",
     "deep-rename-keys": "^0.2.1",

@@ -1,5 +1,5 @@
 import Button from "./Button"
-import classNames from "classnames"
+import clsx from "clsx"
 import { ReactNode } from "react"
 import * as Dialog from "@radix-ui/react-dialog"
 
@@ -25,7 +25,7 @@ const Modal = ({
       <Dialog.Overlay className="fixed inset-0 bg-black/5 flex justify-center items-center z-[100000] animate-fade-in">
         <Dialog.Content className="bg-bg shadow-[0_0_10px_rgba(0_0_0/75%)] focus:outline-none text-center rounded overflow-hidden">
           <div
-            className={classNames(
+            className={clsx(
               "py-4 px-12",
               alert ? "bg-modal-alert" : "bg-modal-success"
             )}

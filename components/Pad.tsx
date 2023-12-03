@@ -26,7 +26,7 @@ import {
 import { useContext, useEffect, useRef, useState } from "react"
 import { Check, Delete, Redo, Undo } from "lucide-react"
 import Color from "color"
-import classNames from "classnames"
+import clsx from "clsx"
 
 interface Colour {
   colour: string
@@ -148,10 +148,10 @@ const Pad = () => {
         digitButtons.push(
           <Button key={i} noPadding onClick={() => onDigit(digit)}>
             <div
-              className={classNames({
+              className={clsx({
                 "text-[1.15rem]": game.mode === MODE_NORMAL,
                 "text-[0.6rem]": game.mode === MODE_CENTRE,
-                [classNames({
+                [clsx({
                   "text-[0.55rem] absolute": true,
                   "top-[0.2rem] left-[0.4rem]": digit === 0 || digit === 1,
                   "top-[0.2rem]": digit === 2,
@@ -177,7 +177,7 @@ const Pad = () => {
         digitButtons.push(
           <Button key={c.digit} noPadding onClick={() => onColour(c.digit)}>
             <div
-              className={classNames("flex flex-1 h-full rounded", {
+              className={clsx("flex flex-1 h-full rounded", {
                 "border border-grey-500": c.light
               })}
               style={{ backgroundColor: c.colour }}
