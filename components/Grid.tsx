@@ -1590,7 +1590,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let cell: PIXI.GraphicsEx = new PIXI.Graphics()
-        cell.interactive = true
+        cell.eventMode = "static"
         cell.cursor = "pointer"
 
         cell.data = {
@@ -1921,7 +1921,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
 
     // draw a background that covers all elements
     let background = new PIXI.Graphics()
-    background.interactive = true
+    background.eventMode = "static"
     background.zIndex = -1000
     background.on("pointerdown", () => {
       if (currentMode.current !== MODE_PEN) {
@@ -2233,7 +2233,7 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
 
     // add invisible hit area for pen tool
     let penHitArea: PIXI.GraphicsEx = new PIXI.Graphics()
-    penHitArea.interactive = true
+    penHitArea.eventMode = "static"
     penHitArea.cursor = "crosshair"
     penHitArea.zIndex = 80
     penHitArea.visible = false
