@@ -953,14 +953,33 @@ function drawOverlay(
   return r
 }
 
+interface FogDisplayOptions {
+  /**
+   * `true` if fog should be visible, `false` if it should be completely disabled
+   */
+  enableFog: boolean
+
+  /**
+   * `true` if the fog should have a drop shadow
+   */
+  enableDropShadow: boolean
+}
+
 interface GridProps {
   maxWidth: number
   maxHeight: number
   portrait: boolean
   onFinishRender: () => void
+  fogDisplayOptions?: FogDisplayOptions
 }
 
-const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
+const Grid = ({
+  maxWidth,
+  maxHeight,
+  portrait,
+  onFinishRender,
+  fogDisplayOptions = { enableFog: true, enableDropShadow: true }
+}: GridProps) => {
   const ref = useRef<HTMLDivElement>(null)
   const app = useRef<PIXI.Application>()
   const gridElement = useRef<PIXI.Container>()
@@ -1515,15 +1534,17 @@ const Grid = ({ maxWidth, maxHeight, portrait, onFinishRender }: GridProps) => {
           }
         }
       }
-      let dropShadow = new DropShadowFilter({
-        offset: { x: 0, y: 0 },
-        blur: 5,
-        quality: 6,
-        alpha: 0.9,
-        color: 0x272e31
-      })
-      dropShadow.padding = 20
-      fog.filters = [dropShadow]
+      if (fogDisplayOptions.enableDropShadow) {
+        let dropShadow = new DropShadowFilter({
+          offset: { x: 0, y: 0 },
+          blur: 5,
+          quality: 6,
+          alpha: 0.9,
+          color: 0x272e31
+        })
+        dropShadow.padding = 20
+        fog.filters = [dropShadow]
+      }
       fogElements.current.push(fog)
       all.addChild(fog)
 

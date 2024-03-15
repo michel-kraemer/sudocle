@@ -699,6 +699,10 @@ const IndexPage = () => {
                 maxWidth={gridMaxWidth}
                 maxHeight={gridMaxHeight}
                 onFinishRender={onFinishRender}
+                fogDisplayOptions={{
+                  enableFog: true,
+                  enableDropShadow: !isTest
+                }}
               />
             )}
           </div>
