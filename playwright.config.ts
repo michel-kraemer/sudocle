@@ -11,7 +11,8 @@ export default defineConfig({
       // flags: https://chromium.googlesource.com/chromium/src/+/master/ui/gl/gl_switches.cc)
       // args: ["--use-gl=egl"]
       // args: ["--use-angle=gles-egl"]
-      args: ["--use-gl=angle"]
+      // args: ["--use-gl=angle"]
+      args: ["--use-gl=angle", "--use-angle=metal"]
     }
   }
 })

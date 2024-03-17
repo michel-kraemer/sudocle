@@ -34,8 +34,10 @@ let eventEmitters: EventEmitter[] = []
 // Check if hardware acceleration is enabled. Without it, our tests will be much slower.
 test("GPU hardware acceleration", async ({ page }) => {
   await page.goto("chrome://gpu")
-  let featureStatusList = page.locator(".feature-status-list")
-  await expect(featureStatusList).toContainText("Hardware accelerated")
+  let hardwareAccelerated = page
+    .locator("li")
+    .getByText("* Canvas: Hardware accelerated")
+  await expect(hardwareAccelerated).toBeVisible()
 })
 
 test.describe.parallel("Grid", () => {
