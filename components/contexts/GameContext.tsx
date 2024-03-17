@@ -805,9 +805,25 @@ function makeUndoState(state: PersistentGameState): PersistentGameState {
 function gameReducer(state: GameState, action: Action) {
   return produce(state, draft => {
     if (action.type === TYPE_INIT) {
-      let canonicalData = undefined
+      let canonicalData:
+        | {
+            -readonly [P in keyof Data]: Data[P]
+          }
+        | undefined = undefined
       if (action.data !== undefined) {
-        canonicalData = { ...action.data }
+        // Filter out invalid elements. For the time being, these are only
+        // lines without colour. In the future, we might implement more rules
+        // or check the schema against our data model.
+        let data = { ...action.data }
+        if (
+          data.lines !== undefined &&
+          Array.isArray(data.lines) &&
+          data.lines.some((l: any) => l.color === undefined)
+        ) {
+          data.lines = data.lines.filter((l: any) => l.color !== undefined)
+        }
+
+        canonicalData = data as Data
         canonicalData.cells = canonicalData.cells || []
         canonicalData.regions = canonicalData.regions || []
         canonicalData.cages = canonicalData.cages || []

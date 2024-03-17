@@ -258,18 +258,6 @@ const IndexPage = () => {
             throw e
           }
         }
-
-        // Filter out invalid elements. For the time being, these are only
-        // lines without colour. In the future, we might implement more rules
-        // or check the schema against our data model.
-        if (
-          json.lines !== undefined &&
-          Array.isArray(json.lines) &&
-          json.lines.some((l: any) => l.color === undefined)
-        ) {
-          json.lines = json.lines.filter((l: any) => l.color !== undefined)
-        }
-
         updateGame({
           type: TYPE_INIT,
           data: json
