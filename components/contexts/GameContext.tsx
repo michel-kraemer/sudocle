@@ -192,6 +192,9 @@ function makeFogRaster(
   for (let light of fogLights) {
     let y = light.center[0]
     let x = light.center[1]
+    if (x < 0 || y < 0) {
+      continue
+    }
     if (light.size === 3) {
       if (y > 0) {
         if (x > 0) {
