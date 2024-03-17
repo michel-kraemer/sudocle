@@ -1688,7 +1688,8 @@ const Grid = ({
           let color = cage.borderColor
             ? getRGBColor(cage.borderColor)
             : themeColours.foregroundColor
-          poly.lineStyle({ width: 1, color })
+          let alpha = cage.borderColor ? getAlpha(cage.borderColor) : 1
+          poly.lineStyle({ width: 1, color, alpha: alpha })
           drawDashedPolygon(shrunkenOutline, 3, 2, poly)
         }
       }
