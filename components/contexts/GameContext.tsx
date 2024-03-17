@@ -839,50 +839,41 @@ function gameReducer(state: GameState, action: Action) {
         let possibleTitles: string[] = []
         let needToFilterFogLights = false
         for (let cage of canonicalData.cages) {
-          if (
-            cage.cells === undefined ||
-            !Array.isArray(cage.cells) ||
-            cage.cells.length === 0
-          ) {
-            if (typeof cage.value === "string") {
-              if (cage.value.startsWith("title:")) {
-                canonicalData.title =
-                  canonicalData.title ?? cage.value.substring(6).trim()
-              } else if (cage.value.startsWith("author:")) {
-                canonicalData.author =
-                  canonicalData.author ?? cage.value.substring(7).trim()
-              } else if (cage.value.startsWith("rules:")) {
-                canonicalData.rules =
-                  canonicalData.rules ?? cage.value.substring(6).trim()
-              } else if (cage.value.startsWith("foglight:")) {
-                let str = cage.value.substring(9).trim()
-                canonicalData.fogLights = [
-                  ...(canonicalData.fogLights ?? []),
-                  ...parseFogLights(str)
-                ]
-              } else if (cage.value.startsWith("solution:")) {
-                let str = cage.value.substring(9).trim()
-                canonicalData.solution =
-                  canonicalData.solution ?? parseSolution(canonicalData, str)
-              } else if (cage.value.startsWith("msgcorrect:")) {
-                // Message to be displayed if solution is correct. This is not
-                // implemented yet. Ignore it.
-              } else {
-                possibleTitles.push(cage.value)
-              }
+          if (typeof cage.value === "string") {
+            if (cage.value.startsWith("title:")) {
+              canonicalData.title =
+                canonicalData.title ?? cage.value.substring(6).trim()
+            } else if (cage.value.startsWith("author:")) {
+              canonicalData.author =
+                canonicalData.author ?? cage.value.substring(7).trim()
+            } else if (cage.value.startsWith("rules:")) {
+              canonicalData.rules =
+                canonicalData.rules ?? cage.value.substring(6).trim()
+            } else if (cage.value.startsWith("foglight:")) {
+              let str = cage.value.substring(9).trim()
+              canonicalData.fogLights = [
+                ...(canonicalData.fogLights ?? []),
+                ...parseFogLights(str)
+              ]
+            } else if (cage.value.startsWith("solution:")) {
+              let str = cage.value.substring(9).trim()
+              canonicalData.solution =
+                canonicalData.solution ?? parseSolution(canonicalData, str)
+            } else if (cage.value.startsWith("msgcorrect:")) {
+              // Message to be displayed if solution is correct. This is not
+              // implemented yet. Ignore it.
+            } else if (cage.value.toLowerCase() === "foglight") {
+              canonicalData.fogLights = [
+                ...(canonicalData.fogLights ?? []),
+                ...(cage.cells ?? []).map<FogLight>(c => ({
+                  center: c,
+                  size: 1
+                }))
+              ]
+              needToFilterFogLights = true
+            } else {
+              possibleTitles.push(cage.value)
             }
-          } else if (
-            typeof cage.value === "string" &&
-            cage.value.toLowerCase() === "foglight"
-          ) {
-            canonicalData.fogLights = [
-              ...(canonicalData.fogLights ?? []),
-              ...cage.cells.map<FogLight>(c => ({
-                center: c,
-                size: 1
-              }))
-            ]
-            needToFilterFogLights = true
           }
         }
         if (canonicalData.title === undefined && possibleTitles.length > 0) {
