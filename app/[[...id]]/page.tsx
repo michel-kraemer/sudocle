@@ -157,17 +157,14 @@ const IndexPage = () => {
         return
       }
 
+      puzzle = puzzle.replace(/ /g, "+")
+
       let buf = Buffer.from(puzzle, "base64")
       let decompressedStr: string | undefined
       try {
         decompressedStr = lzwDecompress(buf)
       } catch (e) {
         decompressedStr = undefined
-      }
-
-      if (decompressedStr === undefined) {
-        let buf = Buffer.from(puzzle.replace(/ /g, "+"), "base64")
-        decompressedStr = lzwDecompress(buf)
       }
 
       if (decompressedStr === undefined) {
@@ -205,11 +202,14 @@ const IndexPage = () => {
       if (
         json.fpuzzles !== undefined ||
         json.ctc !== undefined ||
-        json.scl !== undefined
+        json.scl !== undefined ||
+        json.fpuz !== undefined
       ) {
-        let buf = Buffer.from(json.fpuzzles ?? json.ctc ?? json.scl, "base64")
+        let puzzle = json.fpuzzles ?? json.ctc ?? json.scl ?? json.fpuz
+        puzzle = decodeURIComponent(puzzle).replace(/ /g, "+")
+        let buf = Buffer.from(puzzle, "base64")
         let str = lzwDecompress(buf)!
-        if (json.fpuzzles !== undefined) {
+        if (json.fpuzzles !== undefined || json.fpuz !== undefined) {
           json = convertFPuzzle(JSON.parse(str))
         } else {
           console.log(str)
