@@ -26,6 +26,10 @@ interface FPuzzlesCage {
   outlineC?: string
 }
 
+interface FPuzzlesColumnIndexer {
+  cells: string[]
+}
+
 interface FPuzzlesMinMax {
   cell: string
 }
@@ -128,6 +132,7 @@ interface FPuzzlesData {
   author?: string
   ruleset?: string
   cage?: FPuzzlesCage[]
+  columnindexer: FPuzzlesColumnIndexer[]
   killercage?: FPuzzlesCage[]
   minimum?: FPuzzlesMinMax[]
   maximum?: FPuzzlesMinMax[]
@@ -501,6 +506,21 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           width: 1,
           height: 1,
           backgroundColor: row[c].c
+        })
+      }
+    }
+  }
+
+  // 1-5-9 cells
+  if (Array.isArray(puzzle.columnindexer)) {
+    for (let ci of puzzle.columnindexer) {
+      let cells = ci.cells ?? []
+      for (let c of cells) {
+        underlays.push({
+          center: cellToCell(c),
+          width: 1,
+          height: 1,
+          backgroundColor: "#E6261F"
         })
       }
     }
