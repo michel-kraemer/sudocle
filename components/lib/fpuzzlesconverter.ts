@@ -948,9 +948,6 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         } else {
           n = v
         }
-        if (n === 0) {
-          n = undefined
-        }
         srow.push(n)
       })
     })
