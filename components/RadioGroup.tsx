@@ -1,5 +1,4 @@
 import { ReactNode } from "react"
-import styles from "./RadioGroup.oscss"
 
 interface Option {
   id: string
@@ -21,12 +20,12 @@ const RadioGroup = ({ name, value, options, onChange }: RadioGroupProps) => {
   }
 
   return (
-    <div className="radio-group">
+    <div className="flex flex-col">
       {options.map(o => (
-        <div className="item" key={o.id}>
-          <div className="input-container">
+        <div className="flex items-start relative leading-4" key={o.id}>
+          <div className="h-4 flex items-center">
             <input
-              className="input"
+              className="appearance-none w-[1em] h-[1em] border border-fg/50 rounded mr-1 checked:border-primary checked:border-[0.2rem] transition-colors"
               type="radio"
               name={name}
               id={`${name}-${o.id}`}
@@ -39,7 +38,6 @@ const RadioGroup = ({ name, value, options, onChange }: RadioGroupProps) => {
           </label>
         </div>
       ))}
-      <style jsx>{styles}</style>
     </div>
   )
 }
