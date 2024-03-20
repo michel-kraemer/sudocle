@@ -18,7 +18,6 @@ const PaletteLabel = ({ children }: { children: React.ReactNode }) => (
 const Settings = () => {
   const settings = useContext(SettingsContextState)
   const updateSettings = useContext(SettingsContextDispatch)
-  const [themeInternal, setThemeInternal] = useState(settings.theme)
 
   const refPlaceholderCTC = useRef<HTMLDivElement>(null)
   const refPlaceholderWong = useRef<HTMLDivElement>(null)
@@ -29,7 +28,6 @@ const Settings = () => {
   const [coloursCustom, setColoursCustom] = useState(settings.customColours)
 
   function onChangeTheme(theme: string) {
-    setThemeInternal(theme)
     setTimeout(() => {
       updateSettings({ theme })
     }, 100)
@@ -89,10 +87,6 @@ const Settings = () => {
   }
 
   useEffect(() => {
-    setThemeInternal(settings.theme)
-  }, [settings.theme])
-
-  useEffect(() => {
     function makeColours(elem: Element): string[] {
       let style = getComputedStyle(elem)
       let nColours = +style.getPropertyValue("--colors")
@@ -118,7 +112,8 @@ const Settings = () => {
       <h3>Theme</h3>
       <RadioGroup
         name="theme"
-        value={themeInternal}
+        ariaLabel="Select theme"
+        value={settings.theme}
         options={[
           {
             id: "default",
@@ -137,6 +132,7 @@ const Settings = () => {
       <div data-colour-palette="wong" ref={refPlaceholderWong} />
       <RadioGroup
         name="colourPalette"
+        ariaLabel="Select colour palette"
         value={settings.colourPalette}
         options={[
           {
