@@ -1,6 +1,6 @@
-import { ChangeEvent, ReactNode, useState } from "react"
+import { ReactNode, useState } from "react"
+import * as Slider from "@radix-ui/react-slider"
 import clsx from "clsx"
-import styles from "./RangeSlider.oscss"
 
 interface RangeSliderProps {
   id: string
@@ -22,7 +22,6 @@ const RangeSlider = ({
   label,
   value,
   onChange,
-  valueChangeOnMouseUp = false,
   valueToDescription
 }: RangeSliderProps) => {
   const [currentValue, setCurrentValue] = useState(value)
@@ -31,11 +30,10 @@ const RangeSlider = ({
   const [descriptionVisible, setDescriptionVisible] = useState(false)
   const [descriptionPosition, setDescriptionPosition] = useState(0)
 
-  function onChangeInternal(e: ChangeEvent<HTMLInputElement>) {
-    let v = +e.target.value
-
+  function onChangeInternal(newValue: number[]) {
+    let v = newValue[0]
     setCurrentValue(v)
-    if (!valueChangeOnMouseUp && onChange) {
+    if (onChange) {
       onChange(v)
     }
 
@@ -47,49 +45,58 @@ const RangeSlider = ({
     setDescriptionPosition(((v - min) * 100) / (max - min))
   }
 
-  function onMouseDownInternal() {
+  function onPointerDown() {
     setDescriptionVisible(true)
   }
 
-  function onMouseUpInternal() {
-    if (valueChangeOnMouseUp && onChange) {
-      onChange(currentValue)
-    }
+  function onPointerUp() {
     setDescriptionVisible(false)
   }
 
   return (
     <>
-      <div className="range-slider">
-        <label htmlFor={id} className="form-label">
+      <form className="flex h-4 flex-col">
+        <label htmlFor={id} className="block mb-1">
           {label}
         </label>
-        <input
-          type="range"
-          id={id}
-          className="form-range"
-          min={min}
-          max={max}
-          step={step}
-          value={currentValue}
-          onChange={onChangeInternal}
-          onMouseDown={onMouseDownInternal}
-          onMouseUp={onMouseUpInternal}
-        />
-        <div className="description-container">
+        <div className="relative">
+          <Slider.Root
+            id={id}
+            className="relative flex items-center select-none touch-none w-full h-2"
+            value={[currentValue]}
+            onValueChange={onChangeInternal}
+            onPointerDown={onPointerDown}
+            onPointerUp={onPointerUp}
+            min={min}
+            max={max}
+            step={step}
+          >
+            <Slider.Track className="bg-grey-600 relative grow rounded h-[0.29rem]">
+              <Slider.Range className="absolute bg-white rounded-full h-full" />
+            </Slider.Track>
+            <Slider.Thumb
+              className="block w-[0.6rem] h-[0.6rem] bg-primary rounded hover:bg-violet3 focus:outline-none"
+              aria-label="Volume"
+            />
+          </Slider.Root>
           {description && (
-            <div
-              className={clsx("description rounded-mini", {
-                visible: descriptionVisible
-              })}
-              style={{ left: `${descriptionPosition}%` }}
-            >
-              {description}
+            <div className="absolute bottom-[0.8rem] left-[0.3rem] right-[0.3rem]">
+              <div
+                className={clsx(
+                  "relative rounded-mini transition-opacity select-none touch-none pointer-events-none whitespace-nowrap -translate-x-1/2 bg-fg text-bg px-1 py-0.5 text-[0.75em] font-medium inline-flex",
+                  {
+                    "opacity-100": descriptionVisible,
+                    "opacity-0 delay-100": !descriptionVisible
+                  }
+                )}
+                style={{ left: `${descriptionPosition}%` }}
+              >
+                {description}
+              </div>
             </div>
           )}
         </div>
-      </div>
-      <style jsx>{styles}</style>
+      </form>
     </>
   )
 }

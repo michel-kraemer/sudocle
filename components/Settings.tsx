@@ -8,7 +8,7 @@ import {
 import { useContext, useEffect, useRef, useState } from "react"
 
 const Slider = ({ children }: { children: React.ReactNode }) => (
-  <div className="mb-2 max-w-[7rem]">{children}</div>
+  <div className="mb-4 max-w-[7rem]">{children}</div>
 )
 
 const PaletteLabel = ({ children }: { children: React.ReactNode }) => (
