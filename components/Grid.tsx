@@ -2395,7 +2395,8 @@ const Grid = ({
     onPenMove,
     updateGame,
     onFinishRender,
-    onPointerUp
+    onPointerUp,
+    fogDisplayOptions.enableDropShadow
   ])
 
   useEffect(() => {
