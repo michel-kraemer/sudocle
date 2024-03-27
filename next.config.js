@@ -34,20 +34,6 @@ const config = {
 
   webpack: (config, { dev, defaultLoaders }) => {
     config.module.rules.push({
-      test: /\.oscss$/,
-      use: [
-        defaultLoaders.babel,
-        {
-          loader: require("styled-jsx/webpack").loader,
-          options: {
-            type: (fileName, options) => options.query.type || "scoped"
-          }
-        },
-        "sass-loader"
-      ]
-    })
-
-    config.module.rules.push({
       test: /\.(gif|png|jpe?g)$/i,
       type: "asset",
       use: "image-webpack-loader"
