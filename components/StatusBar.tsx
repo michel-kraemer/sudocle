@@ -1,5 +1,5 @@
 import { State as GameContextState } from "./contexts/GameContext"
-import { OnTabClick } from "./contexts/SidebarContext"
+import { useSidebar } from "./hooks/useSidebar"
 import { ID_RULES, ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
 import Timer from "./Timer"
 import { BookOpen, HelpCircle, Info, Sliders } from "lucide-react"
@@ -7,7 +7,7 @@ import { useContext } from "react"
 
 const StatusBar = () => {
   const game = useContext(GameContextState)
-  const onTabClick = useContext(OnTabClick)
+  const onTabClick = useSidebar(state => state.onTabClick)
 
   return (
     <div className="static flex justify-center items-center w-full bg-grey-700 text-fg text-[0.8rem] font-normal h-[var(--status-bar-height)] pt-[1px] portrait:justify-between portrait:py-0 portrait:px-4">

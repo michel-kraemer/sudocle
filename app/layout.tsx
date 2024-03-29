@@ -1,7 +1,6 @@
 import clsx from "clsx"
 import { Provider as GameContextProvider } from "../components/contexts/GameContext"
 import { Provider as SettingsContextProvider } from "../components/contexts/SettingsContext"
-import { Provider as SidebarContextProvider } from "../components/contexts/SidebarContext"
 import "../css/main.css"
 import "../css/themes.css"
 import "../css/colour-palettes.css"
@@ -139,9 +138,7 @@ export default function RootLayout({
       </head>
       <body>
         <GameContextProvider>
-          <SettingsContextProvider>
-            <SidebarContextProvider>{children}</SidebarContextProvider>
-          </SettingsContextProvider>
+          <SettingsContextProvider>{children}</SettingsContextProvider>
         </GameContextProvider>
         <MatomoInit />
       </body>
