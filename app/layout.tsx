@@ -38,13 +38,6 @@ export const metadata: Metadata = {
   description: "A modern web app for Sudoku inspired by Cracking the Cryptic"
 }
 
-// TODO enable this after upgrade to Next 14
-// export const viewport: Viewport = {
-//   width: "device-width",
-//   initialScale: 1,
-//   shrinkToFit: "no"
-// }
-
 export default function RootLayout({
   // Layouts must accept a children prop.
   // This will be populated with nested layouts or pages
