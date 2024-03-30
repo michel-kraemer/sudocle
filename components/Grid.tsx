@@ -53,13 +53,13 @@ declare module "pixi.js-legacy" {
   interface GraphicsExData {
     k?: number
     borderColor?: number | undefined
-    draw: (
-      cellSize: number,
-      zoomFactor: number,
-      currentDigits: Map<number, Digit>,
-      currentFogLights: FogLight[] | undefined,
+    draw: (options: {
+      cellSize: number
+      zoomFactor: number
+      currentDigits: Map<number, Digit>
+      currentFogLights: FogLight[] | undefined
       currentFogRaster: number[][] | undefined
-    ) => void
+    }) => void
   }
 
   interface WithGraphicsExData {
@@ -75,10 +75,10 @@ declare module "pixi.js-legacy" {
   type PenWaypointGraphics = PIXI.Graphics & {
     data?: {
       cellSize?: number
-      draw: (
-        cellSize: number | undefined,
+      draw: (options: {
+        cellSize?: number
         penCurrentWaypoints: number[]
-      ) => void
+      }) => void
     }
   }
 }
@@ -665,13 +665,7 @@ function makeCornerMarks(
     })
 
     text.data = {
-      draw: function (
-        cellSize,
-        _,
-        currentDigits,
-        currentFogLights,
-        currentFogRaster
-      ) {
+      draw: function ({ cellSize, currentFogRaster }) {
         let cx = x * cellSize + cellSize / 2
         let cy = y * cellSize + cellSize / 2 - 0.5
         let mx = cellSize / 3.2
@@ -889,7 +883,7 @@ function drawOverlay(
   }
 
   r.data = {
-    draw: function (cellSize, zoomFactor) {
+    draw: function ({ cellSize, zoomFactor }) {
       let center = cellToScreenCoords(overlay.center, mx, my, cellSize)
       r.x = center[0]
       r.y = center[1]
@@ -1302,7 +1296,7 @@ const Grid = ({
 
       // render waypoints
       penCurrentWaypointsElements.current.forEach(e =>
-        e.data?.draw(undefined, penCurrentWaypoints.current)
+        e.data?.draw({ penCurrentWaypoints: penCurrentWaypoints.current })
       )
       renderNow()
     },
@@ -1404,7 +1398,7 @@ const Grid = ({
 
       // render waypoints (this will basically remove them from the grid)
       penCurrentWaypointsElements.current.forEach(e =>
-        e.data?.draw(undefined, penCurrentWaypoints.current)
+        e.data?.draw({ penCurrentWaypoints: penCurrentWaypoints.current })
       )
       renderNow()
     }
@@ -1520,13 +1514,7 @@ const Grid = ({
       let fog: PIXI.GraphicsEx = new PIXI.Graphics()
       fog.zIndex = -1
       fog.data = {
-        draw: function (
-          cellSize,
-          _,
-          currentDigits,
-          currentFogLights,
-          currentFogRaster
-        ) {
+        draw: function ({ cellSize, currentFogRaster }) {
           if (currentFogRaster === undefined) {
             return
           }
@@ -1572,7 +1560,7 @@ const Grid = ({
 
       fogMask = new PIXI.Graphics()
       fogMask.data = {
-        draw: function (cellSize, _, currentDigits, currentFogLights) {
+        draw: function ({ cellSize, currentFogLights }) {
           fogMask!.beginFill(0)
           if (currentFogLights !== undefined) {
             for (let light of currentFogLights) {
@@ -1638,7 +1626,7 @@ const Grid = ({
 
         cell.data = {
           k: xytok(x, y),
-          draw: function (cellSize) {
+          draw: function ({ cellSize }) {
             cell.lineStyle({ width: 1, color: themeColours.foregroundColor })
             cell.drawRect(0, 0, cellSize, cellSize)
 
@@ -1673,7 +1661,7 @@ const Grid = ({
     for (let r of regions) {
       let poly: PIXI.GraphicsEx = new PIXI.Graphics()
       poly.data = {
-        draw: function (cellSize) {
+        draw: function ({ cellSize }) {
           poly.lineStyle({ width: 3, color: themeColours.foregroundColor })
           poly.drawPolygon(r.map(v => v * cellSize))
         }
@@ -1700,7 +1688,7 @@ const Grid = ({
         borderColor: cage.borderColor
           ? getRGBColor(cage.borderColor)
           : undefined,
-        draw: function (cellSize) {
+        draw: function ({ cellSize }) {
           let disposedOutline = disposePolygon(
             cage.outline.map(v => v * cellSize),
             regions.map(rarr => rarr.map(v => v * cellSize)),
@@ -1732,7 +1720,7 @@ const Grid = ({
         topleftText.scale.x = 0.5
         topleftText.scale.y = 0.5
         topleftText.data = {
-          draw: function (cellSize) {
+          draw: function ({ cellSize }) {
             topleftText.x = cage.topleft[1] * cellSize + cellSize / 20
             topleftText.y = cage.topleft[0] * cellSize + cellSize / 60
           }
@@ -1742,7 +1730,7 @@ const Grid = ({
 
         let topleftBg: PIXI.GraphicsEx = new PIXI.Graphics()
         topleftBg.data = {
-          draw: function (cellSize) {
+          draw: function ({ cellSize }) {
             topleftBg.beginFill(0xffffff)
             topleftBg.drawRect(
               0,
@@ -1774,7 +1762,7 @@ const Grid = ({
     for (let r of extraRegions) {
       let poly: PIXI.GraphicsEx = new PIXI.Graphics()
       poly.data = {
-        draw: function (cellSize) {
+        draw: function ({ cellSize }) {
           let disposedOutline = disposePolygon(
             r.outline.map(v => v * cellSize),
             regions.map(rarr => rarr.map(v => v * cellSize)),
@@ -1842,7 +1830,7 @@ const Grid = ({
       let poly: PIXI.GraphicsEx = new PIXI.Graphics()
       poly.alpha = getAlpha(line.color)
       poly.data = {
-        draw: function (cellSize) {
+        draw: function ({ cellSize }) {
           let points = shortenLine(
             filterDuplicatePoints(
               flatten(
@@ -1894,7 +1882,7 @@ const Grid = ({
         let arrow = line as Arrow
         let head: PIXI.GraphicsEx = new PIXI.Graphics()
         head.data = {
-          draw: function (cellSize) {
+          draw: function ({ cellSize }) {
             let points = shortenLine(
               filterDuplicatePoints(
                 flatten(
@@ -1984,7 +1972,7 @@ const Grid = ({
       sprite.zIndex = -40
       sprite.alpha = 0.2
       sprite.data = {
-        draw: function (cellSize) {
+        draw: function ({ cellSize }) {
           sprite.x = -cellSize / 4
           sprite.y = -cellSize / 4
           sprite.width = cellSize * game.data.cells[0].length + cellSize / 2
@@ -2047,7 +2035,7 @@ const Grid = ({
         text.anchor.set(0.5)
         text.data = {
           k: xytok(x, y),
-          draw: function (cellSize) {
+          draw: function ({ cellSize }) {
             text.x = x * cellSize + cellSize / 2
             text.y = y * cellSize + cellSize / 2 - 0.5
           }
@@ -2104,7 +2092,7 @@ const Grid = ({
         text.visible = false
         text.data = {
           k: xytok(x, y),
-          draw: function (cellSize) {
+          draw: function ({ cellSize }) {
             text.x = x * cellSize + cellSize / 2
             text.y = y * cellSize + cellSize / 2 - 0.5
           }
@@ -2122,7 +2110,7 @@ const Grid = ({
         rect.zIndex = 0
         rect.data = {
           k: xytok(x, y),
-          draw: function (cellSize) {
+          draw: function ({ cellSize }) {
             rect.x = x * cellSize
             rect.y = y * cellSize
           }
@@ -2140,7 +2128,7 @@ const Grid = ({
         rect.zIndex = 20
         rect.data = {
           k: xytok(x, y),
-          draw: function (cellSize) {
+          draw: function ({ cellSize }) {
             rect.beginFill(0xffde2a, 0.5)
             rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
             rect.endFill()
@@ -2161,7 +2149,7 @@ const Grid = ({
         rect.zIndex = 10
         rect.data = {
           k: xytok(x, y),
-          draw: function (cellSize) {
+          draw: function ({ cellSize }) {
             rect.beginFill(0xb33a3a, 0.5)
             rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
             rect.endFill()
@@ -2190,7 +2178,7 @@ const Grid = ({
           line.zIndex = 60
           line.data = {
             k: pltok(rx, ry, type),
-            draw: function (cellSize) {
+            draw: function ({ cellSize }) {
               line.lineStyle({
                 width: 2 * SCALE_FACTOR,
                 color: 0,
@@ -2232,7 +2220,7 @@ const Grid = ({
     let penWaypoints: PIXI.PenWaypointGraphics = new PIXI.Graphics()
     penWaypoints.zIndex = 70
     penWaypoints.data = {
-      draw: function (cellSize, penCurrentWaypoints) {
+      draw: function ({ cellSize, penCurrentWaypoints }) {
         let that = penWaypoints.data!
         that.cellSize = cellSize ?? that.cellSize
         if (that.cellSize === undefined) {
@@ -2282,7 +2270,7 @@ const Grid = ({
     penHitArea.zIndex = 80
     penHitArea.visible = false
     penHitArea.data = {
-      draw: function (cellSize) {
+      draw: function ({ cellSize }) {
         penHitArea.hitArea = new PIXI.Rectangle(
           0,
           0,
@@ -2302,34 +2290,22 @@ const Grid = ({
         e: PIXI.WithGraphicsExData,
         draw: NonNullable<PIXI.WithGraphicsExData["data"]>["draw"]
       ): NonNullable<PIXI.WithGraphicsExData["data"]>["draw"] =>
-      (
-        cellSize,
-        zoomFactor,
-        currentDigits,
-        currentFogLights,
-        currentFogRaster
-      ) => {
+      options => {
         if (e instanceof PIXI.Graphics) {
           e.clear()
         }
-        draw(
-          cellSize,
-          zoomFactor,
-          currentDigits,
-          currentFogLights,
-          currentFogRaster
-        )
+        draw(options)
       }
     const wrapDrawWaypoints =
       (
         e: PIXI.PenWaypointGraphics,
         draw: NonNullable<PIXI.PenWaypointGraphics["data"]>["draw"]
       ): NonNullable<PIXI.PenWaypointGraphics["data"]>["draw"] =>
-      (cellSize, penCurrentWaypoints) => {
+      options => {
         if (e instanceof PIXI.Graphics) {
           e.clear()
         }
-        draw(cellSize, penCurrentWaypoints)
+        draw(options)
       }
     let elementsToMemoize = [
       cellElements,
@@ -2460,28 +2436,31 @@ const Grid = ({
       ]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
-          e.data?.draw(
-            cs,
-            cellSizeFactor.current,
-            game.digits,
-            game.fogLights,
-            game.fogRaster
-          )
+          e.data?.draw({
+            cellSize: cs,
+            zoomFactor: cellSizeFactor.current,
+            currentDigits: game.digits,
+            currentFogLights: game.fogLights,
+            currentFogRaster: game.fogRaster
+          })
         }
       }
       for (let e of cornerMarkElements.current) {
         for (let ce of e.elements) {
-          ce.data?.draw(
-            cs,
-            cellSizeFactor.current,
-            game.digits,
-            game.fogLights,
-            game.fogRaster
-          )
+          ce.data?.draw({
+            cellSize: cs,
+            zoomFactor: cellSizeFactor.current,
+            currentDigits: game.digits,
+            currentFogLights: game.fogLights,
+            currentFogRaster: game.fogRaster
+          })
         }
       }
       for (let e of penCurrentWaypointsElements.current) {
-        e.data?.draw(cs, penCurrentWaypoints.current)
+        e.data?.draw({
+          cellSize: cs,
+          penCurrentWaypoints: penCurrentWaypoints.current
+        })
       }
 
       allElement.current!.calculateBounds()
