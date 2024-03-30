@@ -4,6 +4,7 @@ import Rules from "./Rules"
 import Settings from "./Settings"
 import { State as GameContextState } from "./contexts/GameContext"
 import { useSidebar } from "./hooks/useSidebar"
+import { useShallow } from "zustand/react/shallow"
 import clsx from "clsx"
 import { BookOpen, HelpCircle, Info, Sliders, X } from "lucide-react"
 import { ReactNode, useContext, useEffect, useRef, useState } from "react"
@@ -22,14 +23,23 @@ interface Tab {
 }
 
 const Sidebar = () => {
-  const activeTabId = useSidebar(state => state.activeTabId)
-  const visible = useSidebar(state => state.visible)
-  const onTabClick = useSidebar(state => state.onTabClick)
+  const {
+    activeTabId,
+    visible,
+    onTabClick,
+    expanded: expandedDirect
+  } = useSidebar(
+    useShallow(state => ({
+      activeTabId: state.activeTabId,
+      visible: state.visible,
+      onTabClick: state.onTabClick,
+      expanded: state.expanded
+    }))
+  )
   const game = useContext(GameContextState)
 
-  const expandedDirect = useSidebar(state => state.expanded)
   const [expanded, setExpanded] = useState(expandedDirect)
-  const setExpandedTimer = useRef<number | undefined>(undefined)
+  const setExpandedTimer = useRef<number>()
 
   useEffect(() => {
     if (setExpandedTimer.current !== undefined) {

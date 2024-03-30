@@ -1,5 +1,3 @@
-"use client"
-
 import { ID_SETTINGS, SidebarTab } from "../lib/SidebarTabs"
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
