@@ -2,7 +2,7 @@ import {
   Dispatch as GameContextDispatch,
   State as GameContextState
 } from "./contexts/GameContext"
-import { State as SettingsContextState } from "./contexts/SettingsContext"
+import { useSettings } from "./hooks/useSettings"
 import {
   PenLinesAction,
   SelectionAction,
@@ -33,6 +33,7 @@ import { flatten, isEqual } from "lodash"
 import { DropShadowFilter } from "@pixi/filter-drop-shadow"
 import memoizeOne from "memoize-one"
 import { produce } from "immer"
+import { useShallow } from "zustand/react/shallow"
 
 const SCALE_FACTOR = 1.2
 const ZOOM_DELTA = 0.05
@@ -1016,7 +1017,28 @@ const Grid = ({
 
   const game = useContext(GameContextState)
   const updateGame = useContext(GameContextDispatch)
-  const settings = useContext(SettingsContextState)
+
+  const {
+    colourPalette,
+    theme,
+    selectionColour,
+    customColours,
+    zoom,
+    fontSizeFactorDigits,
+    fontSizeFactorCornerMarks,
+    fontSizeFactorCentreMarks
+  } = useSettings(
+    useShallow(state => ({
+      colourPalette: state.colourPalette,
+      theme: state.theme,
+      selectionColour: state.selectionColour,
+      customColours: state.customColours,
+      zoom: state.zoom,
+      fontSizeFactorDigits: state.fontSizeFactorDigits,
+      fontSizeFactorCornerMarks: state.fontSizeFactorCornerMarks,
+      fontSizeFactorCentreMarks: state.fontSizeFactorCentreMarks
+    }))
+  )
 
   const currentMode = useRef(game.mode)
 
@@ -1279,8 +1301,8 @@ const Grid = ({
       }
 
       // render waypoints
-      penCurrentWaypointsElements.current.forEach(
-        e => e.data?.draw(undefined, penCurrentWaypoints.current)
+      penCurrentWaypointsElements.current.forEach(e =>
+        e.data?.draw(undefined, penCurrentWaypoints.current)
       )
       renderNow()
     },
@@ -1381,8 +1403,8 @@ const Grid = ({
       penCurrentDrawEdge.current = false
 
       // render waypoints (this will basically remove them from the grid)
-      penCurrentWaypointsElements.current.forEach(
-        e => e.data?.draw(undefined, penCurrentWaypoints.current)
+      penCurrentWaypointsElements.current.forEach(e =>
+        e.data?.draw(undefined, penCurrentWaypoints.current)
       )
       renderNow()
     }
@@ -2402,11 +2424,11 @@ const Grid = ({
   useEffect(() => {
     // reset cell size on next draw
     cellSizeFactor.current = -1
-  }, [maxWidth, maxHeight, portrait, settings.zoom])
+  }, [maxWidth, maxHeight, portrait, zoom])
 
   useEffect(() => {
     if (cellSizeFactor.current === -1) {
-      cellSizeFactor.current = settings.zoom + ZOOM_DELTA
+      cellSizeFactor.current = zoom + ZOOM_DELTA
     }
     let cs = Math.floor(cellSize * cellSizeFactor.current)
     let allBounds: PIXI.Rectangle
@@ -2492,7 +2514,7 @@ const Grid = ({
       // leave 5 pixels of leeway for rounding errors
       let sx = (maxWidth - 5) / allBounds.width
       let sy = (maxHeight - 5) / allBounds.height
-      cellSizeFactor.current = Math.min(sx, sy) * (settings.zoom + ZOOM_DELTA)
+      cellSizeFactor.current = Math.min(sx, sy) * (zoom + ZOOM_DELTA)
       cs = Math.floor(cellSize * cellSizeFactor.current)
     }
 
@@ -2536,7 +2558,7 @@ const Grid = ({
     maxWidth,
     maxHeight,
     portrait,
-    settings.zoom,
+    zoom,
     game.mode,
     game.digits,
     game.fogLights,
@@ -2566,9 +2588,9 @@ const Grid = ({
         : FONT_SIZE_CENTRE_MARKS_LOW_DPI
 
     // scale fonts
-    let fontSizeDigits = FONT_SIZE_DIGITS * settings.fontSizeFactorDigits
-    fontSizeCornerMarks *= settings.fontSizeFactorCornerMarks
-    fontSizeCentreMarks *= settings.fontSizeFactorCentreMarks
+    let fontSizeDigits = FONT_SIZE_DIGITS * fontSizeFactorDigits
+    fontSizeCornerMarks *= fontSizeFactorCornerMarks
+    fontSizeCentreMarks *= fontSizeFactorCentreMarks
 
     // change font size of digits
     for (let e of digitElements.current) {
@@ -2602,7 +2624,7 @@ const Grid = ({
     // change selection colour
     for (let e of selectionElements.current) {
       e.geometry.graphicsData[0].fillStyle.color =
-        themeColours.selection[settings.selectionColour]
+        themeColours.selection[selectionColour]
       let gd = [...e.geometry.graphicsData]
       e.geometry.clear()
       e.geometry.graphicsData = gd
@@ -2622,12 +2644,12 @@ const Grid = ({
       themeColours
     )
   }, [
-    settings.theme,
-    settings.selectionColour,
-    settings.zoom,
-    settings.fontSizeFactorDigits,
-    settings.fontSizeFactorCentreMarks,
-    settings.fontSizeFactorCornerMarks,
+    theme,
+    selectionColour,
+    zoom,
+    fontSizeFactorDigits,
+    fontSizeFactorCentreMarks,
+    fontSizeFactorCornerMarks,
     maxWidth,
     maxHeight,
     portrait,
@@ -2708,19 +2730,15 @@ const Grid = ({
     }
 
     let scaledCellSize = Math.floor(cellSize * cellSizeFactor.current)
-    let colourPalette = settings.colourPalette
-    if (colourPalette === "custom" && settings.customColours.length === 0) {
-      colourPalette = "default"
-    }
     let colours = []
-    if (colourPalette !== "custom") {
+    if (colourPalette !== "custom" || customColours.length === 0) {
       let computedStyle = getComputedStyle(ref.current!)
       let nColours = +computedStyle.getPropertyValue("--colors")
       for (let i = 0; i < nColours; ++i) {
         colours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
       }
     } else {
-      colours = settings.customColours
+      colours = customColours
     }
     for (let e of colourElements.current) {
       let colour = game.colours.get(e.data!.k!)
@@ -2766,14 +2784,14 @@ const Grid = ({
     game.penLines,
     game.errors,
     game.fogRaster,
-    settings.theme,
-    settings.colourPalette,
-    settings.selectionColour,
-    settings.customColours,
-    settings.zoom,
-    settings.fontSizeFactorDigits,
-    settings.fontSizeFactorCentreMarks,
-    settings.fontSizeFactorCornerMarks,
+    theme,
+    colourPalette,
+    selectionColour,
+    customColours,
+    zoom,
+    fontSizeFactorDigits,
+    fontSizeFactorCentreMarks,
+    fontSizeFactorCornerMarks,
     maxWidth,
     maxHeight,
     portrait,

@@ -1,6 +1,5 @@
 import clsx from "clsx"
 import { Provider as GameContextProvider } from "../components/contexts/GameContext"
-import { Provider as SettingsContextProvider } from "../components/contexts/SettingsContext"
 import "../css/main.css"
 import "../css/themes.css"
 import "../css/colour-palettes.css"
@@ -137,9 +136,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Sudocle" />
       </head>
       <body>
-        <GameContextProvider>
-          <SettingsContextProvider>{children}</SettingsContextProvider>
-        </GameContextProvider>
+        <GameContextProvider>{children}</GameContextProvider>
         <MatomoInit />
       </body>
     </html>

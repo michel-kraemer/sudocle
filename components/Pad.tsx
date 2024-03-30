@@ -1,5 +1,5 @@
 import Button from "./Button"
-import { State as SettingsContextState } from "./contexts/SettingsContext"
+import { useSettings } from "./hooks/useSettings"
 import {
   Dispatch as GameContextDispatch,
   State as GameContextState
@@ -27,6 +27,7 @@ import { useContext, useEffect, useRef, useState } from "react"
 import { Check, Delete, Redo, Undo } from "lucide-react"
 import Color from "color"
 import clsx from "clsx"
+import { useShallow } from "zustand/react/shallow"
 
 interface Colour {
   colour: string
@@ -42,7 +43,12 @@ const ModeButton = ({ children }: { children: React.ReactNode }) => (
 
 const Pad = () => {
   const ref = useRef<HTMLDivElement>(null)
-  const settings = useContext(SettingsContextState)
+  const { colourPalette, customColours } = useSettings(
+    useShallow(state => ({
+      colourPalette: state.colourPalette,
+      customColours: state.customColours
+    }))
+  )
   const game = useContext(GameContextState)
   const updateGame = useContext(GameContextDispatch)
   const [colours, setColours] = useState<Colour[]>([])
@@ -52,11 +58,7 @@ const Pad = () => {
     let computedStyle = getComputedStyle(ref.current!)
     let nColours = +computedStyle.getPropertyValue("--colors")
     let newColours: Colour[] = []
-    let colourPalette = settings.colourPalette
-    if (colourPalette === "custom" && settings.customColours.length === 0) {
-      colourPalette = "default"
-    }
-    if (colourPalette !== "custom") {
+    if (colourPalette !== "custom" || customColours.length === 0) {
       for (let i = 0; i < nColours; ++i) {
         let col = computedStyle.getPropertyValue(`--color-${i + 1}`)
         let pos = +computedStyle.getPropertyValue(`--color-${i + 1}-pos`)
@@ -67,8 +69,8 @@ const Pad = () => {
         }
       }
     } else {
-      for (let i = 0; i < settings.customColours.length; ++i) {
-        let col = settings.customColours[i]
+      for (let i = 0; i < customColours.length; ++i) {
+        let col = customColours[i]
         newColours[i] = {
           colour: col,
           digit: i + 1,
@@ -77,7 +79,7 @@ const Pad = () => {
       }
     }
     setColours(newColours)
-  }, [settings.colourPalette, settings.customColours])
+  }, [colourPalette, customColours])
 
   useEffect(() => {
     // check if all cells are filled

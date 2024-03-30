@@ -1,8 +1,7 @@
-import { State as SettingsContextState } from "./contexts/SettingsContext"
-import { useContext } from "react"
+import { useSettings } from "./hooks/useSettings"
 
 const About = () => {
-  const settings = useContext(SettingsContextState)
+  const theme = useSettings(state => state.theme)
 
   let currentYear = new Date().getFullYear()
 
@@ -14,10 +13,10 @@ const About = () => {
         rel="noreferrer"
       >
         <div className="max-w-screen-xs mt-10 relative pb-2">
-          {settings.theme !== "dark" && (
+          {theme !== "dark" && (
             <img src={require("../assets/logo.svg")} alt="Sudocle logo" />
           )}
-          {settings.theme === "dark" && (
+          {theme === "dark" && (
             <img src={require("../assets/logo-white.svg")} alt="Sudocle logo" />
           )}
           <div className="font-bold text-base absolute -right-2 bottom-0 leading-none text-fg font-baloo">

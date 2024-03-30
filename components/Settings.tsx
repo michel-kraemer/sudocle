@@ -1,11 +1,9 @@
 import Palette from "./Palette"
 import RadioGroup from "./RadioGroup"
 import RangeSlider from "./RangeSlider"
-import {
-  Dispatch as SettingsContextDispatch,
-  State as SettingsContextState
-} from "./contexts/SettingsContext"
-import { useContext, useEffect, useRef, useState } from "react"
+import { useSettings } from "./hooks/useSettings"
+import { useShallow } from "zustand/react/shallow"
+import { useEffect, useRef, useState } from "react"
 
 const Slider = ({ children }: { children: React.ReactNode }) => (
   <div className="mb-4 max-w-[7rem]">{children}</div>
@@ -16,8 +14,39 @@ const PaletteLabel = ({ children }: { children: React.ReactNode }) => (
 )
 
 const Settings = () => {
-  const settings = useContext(SettingsContextState)
-  const updateSettings = useContext(SettingsContextDispatch)
+  const {
+    colourPalette,
+    theme,
+    customColours,
+    zoom,
+    fontSizeFactorDigits,
+    fontSizeFactorCornerMarks,
+    fontSizeFactorCentreMarks,
+    setColourPalette,
+    setTheme,
+    setCustomColours: setSettingsCustomColours,
+    setZoom,
+    setFontSizeFactorDigits,
+    setFontSizeFactorCornerMarks,
+    setFontSizeFactorCentreMarks
+  } = useSettings(
+    useShallow(state => ({
+      colourPalette: state.colourPalette,
+      theme: state.theme,
+      customColours: state.customColours,
+      zoom: state.zoom,
+      fontSizeFactorDigits: state.fontSizeFactorDigits,
+      fontSizeFactorCornerMarks: state.fontSizeFactorCornerMarks,
+      fontSizeFactorCentreMarks: state.fontSizeFactorCentreMarks,
+      setColourPalette: state.setColourPalette,
+      setTheme: state.setTheme,
+      setCustomColours: state.setCustomColours,
+      setZoom: state.setZoom,
+      setFontSizeFactorDigits: state.setFontSizeFactorDigits,
+      setFontSizeFactorCornerMarks: state.setFontSizeFactorCornerMarks,
+      setFontSizeFactorCentreMarks: state.setFontSizeFactorCentreMarks
+    }))
+  )
 
   const refPlaceholderCTC = useRef<HTMLDivElement>(null)
   const refPlaceholderWong = useRef<HTMLDivElement>(null)
@@ -25,41 +54,13 @@ const Settings = () => {
   const [coloursDefault, setColoursDefault] = useState<string[]>([])
   const [coloursCTC, setColoursCTC] = useState<string[]>([])
   const [coloursWong, setColoursWong] = useState<string[]>([])
-  const [coloursCustom, setColoursCustom] = useState(settings.customColours)
-
-  function onChangeTheme(theme: string) {
-    setTimeout(() => {
-      updateSettings({ theme })
-    }, 100)
-  }
-
-  const changeZoomTimeout = useRef<number>()
-  function onChangeZoom(value: number) {
-    if (changeZoomTimeout.current !== undefined) {
-      clearTimeout(changeZoomTimeout.current)
-    }
-    changeZoomTimeout.current = window.setTimeout(() => {
-      updateSettings({ zoom: value })
-    }, 200)
-  }
+  const [coloursCustom, setColoursCustom] = useState(customColours)
 
   function zoomValueToDescription(value: number) {
     if (value === 1) {
       return "Default"
     }
     return `x${value}`
-  }
-
-  function onChangeFontSizeDigits(value: number) {
-    updateSettings({ fontSizeFactorDigits: value })
-  }
-
-  function onChangeFontSizeCornerMarks(value: number) {
-    updateSettings({ fontSizeFactorCornerMarks: value })
-  }
-
-  function onChangeFontSizeCentreMarks(value: number) {
-    updateSettings({ fontSizeFactorCentreMarks: value })
   }
 
   function fontSizeValueToDescription(value: number): string | undefined {
@@ -83,7 +84,7 @@ const Settings = () => {
 
   function onUpdateCustomColours(colours: string[]) {
     setColoursCustom(colours)
-    updateSettings({ customColours: colours })
+    setSettingsCustomColours(colours)
   }
 
   useEffect(() => {
@@ -113,7 +114,7 @@ const Settings = () => {
       <RadioGroup
         name="theme"
         ariaLabel="Select theme"
-        value={settings.theme}
+        value={theme}
         options={[
           {
             id: "default",
@@ -124,7 +125,7 @@ const Settings = () => {
             label: "Dark"
           }
         ]}
-        onChange={onChangeTheme}
+        onChange={setTheme}
       />
 
       <h3>Colour Palette</h3>
@@ -133,7 +134,7 @@ const Settings = () => {
       <RadioGroup
         name="colourPalette"
         ariaLabel="Select colour palette"
-        value={settings.colourPalette}
+        value={colourPalette}
         options={[
           {
             id: "default",
@@ -176,7 +177,7 @@ const Settings = () => {
             )
           }
         ]}
-        onChange={colourPalette => updateSettings({ colourPalette })}
+        onChange={setColourPalette}
       />
 
       <h3>Zoom</h3>
@@ -186,8 +187,8 @@ const Settings = () => {
           min={0.9}
           max={1.25}
           step={0.05}
-          value={settings.zoom}
-          onChange={onChangeZoom}
+          value={zoom}
+          onChange={setZoom}
           valueToDescription={zoomValueToDescription}
         />
       </Slider>
@@ -200,8 +201,8 @@ const Settings = () => {
           min={0.75}
           max={1.5}
           step={0.125}
-          value={settings.fontSizeFactorDigits}
-          onChange={onChangeFontSizeDigits}
+          value={fontSizeFactorDigits}
+          onChange={setFontSizeFactorDigits}
           valueToDescription={fontSizeValueToDescription}
         />
       </Slider>
@@ -212,8 +213,8 @@ const Settings = () => {
           min={0.75}
           max={1.5}
           step={0.125}
-          value={settings.fontSizeFactorCornerMarks}
-          onChange={onChangeFontSizeCornerMarks}
+          value={fontSizeFactorCornerMarks}
+          onChange={setFontSizeFactorCornerMarks}
           valueToDescription={fontSizeValueToDescription}
         />
       </Slider>
@@ -224,8 +225,8 @@ const Settings = () => {
           min={0.75}
           max={1.5}
           step={0.125}
-          value={settings.fontSizeFactorCentreMarks}
-          onChange={onChangeFontSizeCentreMarks}
+          value={fontSizeFactorCentreMarks}
+          onChange={setFontSizeFactorCentreMarks}
           valueToDescription={fontSizeValueToDescription}
         />
       </Slider>

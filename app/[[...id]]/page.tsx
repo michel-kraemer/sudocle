@@ -4,7 +4,7 @@ import {
   Dispatch as GameContextDispatch,
   State as GameContextState
 } from "../../components/contexts/GameContext"
-import { State as SettingsContextState } from "../../components/contexts/SettingsContext"
+import { useSettings } from "../../components/hooks/useSettings"
 import Grid from "../../components/Grid"
 import Modal from "../../components/Modal"
 import Pad from "../../components/Pad"
@@ -51,6 +51,7 @@ import FontFaceObserver from "fontfaceobserver"
 import { Frown, ThumbsUp } from "lucide-react"
 import lzwDecompress from "../../components/lib/lzwdecompressor"
 import { enableMapSet } from "immer"
+import { useShallow } from "zustand/react/shallow"
 
 enableMapSet()
 
@@ -63,7 +64,12 @@ const URLS = [
 const IndexPage = () => {
   const game = useContext(GameContextState)
   const updateGame = useContext(GameContextDispatch)
-  const settings = useContext(SettingsContextState)
+  const { theme, colourPalette } = useSettings(
+    useShallow(state => ({
+      theme: state.theme,
+      colourPalette: state.colourPalette
+    }))
+  )
   const appRef = useRef<HTMLDivElement>(null)
   const gameContainerRef = useRef<HTMLDivElement>(null)
   const gridContainerRef = useRef<HTMLDivElement>(null)
@@ -667,8 +673,8 @@ const IndexPage = () => {
     <>
       <div
         className="bg-bg text-fg h-screen"
-        data-theme={settings.theme}
-        data-colour-palette={settings.colourPalette}
+        data-theme={theme}
+        data-colour-palette={colourPalette}
         onMouseDown={onMouseDown}
         ref={appRef}
       >
