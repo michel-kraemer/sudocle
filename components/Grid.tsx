@@ -59,6 +59,7 @@ declare module "pixi.js-legacy" {
       currentDigits: Map<number, Digit>
       currentFogLights: FogLight[] | undefined
       currentFogRaster: number[][] | undefined
+      themeColours: ThemeColours
     }) => void
   }
 
@@ -786,18 +787,6 @@ function drawBackground(
   graphics.endFill()
 }
 
-function changeLineColour(graphicElements: PIXI.GraphicsEx[], colour: number) {
-  for (let e of graphicElements) {
-    let c = e.data?.borderColor ?? colour
-    for (let gd of e.geometry.graphicsData) {
-      gd.lineStyle.color = c
-    }
-    let gd = [...e.geometry.graphicsData]
-    e.geometry.clear()
-    e.geometry.graphicsData = gd
-  }
-}
-
 function cellToScreenCoords(
   cell: [number, number],
   mx: number,
@@ -1462,8 +1451,6 @@ const Grid = ({
       "--font-roboto"
     )
 
-    let themeColours = getThemeColours(ref.current!)
-
     let fontSizeCageLabels = 26
 
     // create grid
@@ -1626,7 +1613,7 @@ const Grid = ({
 
         cell.data = {
           k: xytok(x, y),
-          draw: function ({ cellSize }) {
+          draw: function ({ cellSize, themeColours }) {
             cell.lineStyle({ width: 1, color: themeColours.foregroundColor })
             cell.drawRect(0, 0, cellSize, cellSize)
 
@@ -1661,7 +1648,7 @@ const Grid = ({
     for (let r of regions) {
       let poly: PIXI.GraphicsEx = new PIXI.Graphics()
       poly.data = {
-        draw: function ({ cellSize }) {
+        draw: function ({ cellSize, themeColours }) {
           poly.lineStyle({ width: 3, color: themeColours.foregroundColor })
           poly.drawPolygon(r.map(v => v * cellSize))
         }
@@ -1688,7 +1675,7 @@ const Grid = ({
         borderColor: cage.borderColor
           ? getRGBColor(cage.borderColor)
           : undefined,
-        draw: function ({ cellSize }) {
+        draw: function ({ cellSize, themeColours }) {
           let disposedOutline = disposePolygon(
             cage.outline.map(v => v * cellSize),
             regions.map(rarr => rarr.map(v => v * cellSize)),
@@ -1986,6 +1973,8 @@ const Grid = ({
     app.current.stage.addChild(all)
 
     // ***************** draw other elements that don't contribute to the bounds
+
+    let themeColours = getThemeColours(ref.current!)
 
     // create text elements for given corner marks
     game.data.cells.forEach((row, y) => {
@@ -2412,6 +2401,8 @@ const Grid = ({
 
     allElement.current!.x = allElement.current!.y = 0
 
+    let themeColours = getThemeColours(ref.current!)
+
     for (let i = 0; i < 10; ++i) {
       let elementsToRedraw = [
         cellElements,
@@ -2441,7 +2432,8 @@ const Grid = ({
             zoomFactor: cellSizeFactor.current,
             currentDigits: game.digits,
             currentFogLights: game.fogLights,
-            currentFogRaster: game.fogRaster
+            currentFogRaster: game.fogRaster,
+            themeColours
           })
         }
       }
@@ -2452,7 +2444,8 @@ const Grid = ({
             zoomFactor: cellSizeFactor.current,
             currentDigits: game.digits,
             currentFogLights: game.fogLights,
-            currentFogRaster: game.fogRaster
+            currentFogRaster: game.fogRaster,
+            themeColours
           })
         }
       }
@@ -2537,6 +2530,7 @@ const Grid = ({
     maxWidth,
     maxHeight,
     portrait,
+    theme,
     zoom,
     game.mode,
     game.digits,
@@ -2608,11 +2602,6 @@ const Grid = ({
       e.geometry.clear()
       e.geometry.graphicsData = gd
     }
-
-    // change line colour of cells, regions, cages
-    changeLineColour(cellElements.current, themeColours.foregroundColor)
-    changeLineColour(regionElements.current, themeColours.foregroundColor)
-    changeLineColour(cageElements.current, themeColours.foregroundColor)
 
     // change background colour
     backgroundElement.current!.clear()
