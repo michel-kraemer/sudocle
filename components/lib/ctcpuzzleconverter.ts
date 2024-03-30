@@ -98,7 +98,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     // map angle to rotation
     let r = { ...o }
     if (r.angle !== undefined) {
-      r.rotation = r.angle
+      r.rotation = (r.angle * (2 * Math.PI)) / 360
       delete r.angle
     }
 
