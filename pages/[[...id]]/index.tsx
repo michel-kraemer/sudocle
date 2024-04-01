@@ -53,6 +53,7 @@ import styles from "./index.scss"
 const DATABASE_URL =
   "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
 const FALLBACK_URL = `${process.env.basePath}/puzzles/{}.json`
+const FALLBACK_URL2 = "https://app.crackingthecryptic.com/api/puzzle/{}"
 
 const Index = () => {
   const game = useContext(GameContext.State)
@@ -174,12 +175,17 @@ const Index = () => {
       }
     }
 
-    async function load(url: string, fallbackUrl: string) {
+    async function load(url: string, fallbackUrl: string, fallbackUrl2: string) {
       let fallbackUsed = false
+      let fallback2Used = false
       let response = await fetch(url)
       if (response.status !== 200) {
         response = await fetch(fallbackUrl)
         fallbackUsed = true
+      }
+      if (response.status !== 200) {
+        response = await fetch(fallbackUrl2)
+        fallback2Used = true
       }
       if (response.status === 404) {
         setError(`The puzzle with the ID ‘${id}’ does not exist`)
@@ -197,7 +203,7 @@ const Index = () => {
           json = await response.json()
         } catch (e) {
           if (
-            fallbackUsed &&
+            fallbackUsed && fallback2Used &&
             e instanceof Error &&
             e.message.includes("<!DOCTYPE")
           ) {
@@ -303,26 +309,58 @@ const Index = () => {
       }
     }
 
-    if (
-      id.startsWith("fpuzzles") ||
-      id.startsWith("fpuz") ||
-      id.startsWith("ctc") ||
-      id.startsWith("scl")
-    ) {
-      loadCompressedPuzzle()
-    } else if (id === "test") {
-      loadTest()
-    } else {
-      let url
-      let fallbackUrl
-      if (id === null || id === "") {
-        url = `${process.env.basePath}/empty-grid.json`
-        fallbackUrl = url
-      } else {
-        url = DATABASE_URL.replace("{}", id)
-        fallbackUrl = FALLBACK_URL.replace("{}", id)
+    async function loadFromApi() {
+      let url = FALLBACK_URL2.replace("{}", id)
+      let response = await fetch(url)
+      if (response.status === 404) {
+        // Kein hinterlegter Wert im API => Vielleicht zu altes Puzzle? Versuche andere Methoden an Data zu kommen
+        throw new Error("Will be caught later anyway...")
       }
-      load(url, fallbackUrl)
+      try {
+        let newId = await response.text()
+        if (
+            newId.startsWith("fpuzzles") ||
+            newId.startsWith("fpuz") ||
+            newId.startsWith("ctc") ||
+            newId.startsWith("scl")
+        ) {
+          id = newId
+          loadCompressedPuzzle()
+        }
+      } catch (e) {
+        throw e
+      }
+    }
+
+    try {
+      loadFromApi()
+    }
+    catch (e){
+      // continue with standard approach
+      if (
+        id.startsWith("fpuzzles") ||
+        id.startsWith("fpuz") ||
+        id.startsWith("ctc") ||
+        id.startsWith("scl")
+      ) {
+        loadCompressedPuzzle()
+      } else if (id === "test") {
+        loadTest()
+      } else {
+        let url
+        let fallbackUrl
+        let fallbackUrl2
+        if (id === null || id === "") {
+          url = `${process.env.basePath}/empty-grid.json`
+          fallbackUrl = url
+          fallbackUrl2 = url
+        } else {
+          url = DATABASE_URL.replace("{}", id)
+          fallbackUrl = FALLBACK_URL.replace("{}", id)
+          fallbackUrl2 = FALLBACK_URL2.replace("{}", id)
+        }
+        load(url, fallbackUrl, fallbackUrl2)
+      }
     }
   }, [game.data, updateGame])
 
