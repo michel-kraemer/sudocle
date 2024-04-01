@@ -56,7 +56,7 @@ jobs:
             MATOMO_SITE_ID=${{ secrets.MATOMO_SITE_ID }}
 
       - name: Remove untagged container images
-        uses: actions/delete-package-versions@v4
+        uses: actions/delete-package-versions@v5
         with:
           package-name: sudocle
           package-type: container
