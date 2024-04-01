@@ -28,9 +28,21 @@ import {
   useMemo,
   useRef
 } from "react"
-import * as PIXI from "pixi.js-legacy"
+import { useAsyncEffect } from "./hooks/useAsyncEffect"
+import {
+  Application,
+  Bounds,
+  Container,
+  FederatedPointerEvent,
+  Graphics,
+  Text,
+  TextStyleFontWeight,
+  Rectangle,
+  Sprite,
+  Ticker
+} from "pixi.js"
 import { flatten, isEqual } from "lodash"
-import { DropShadowFilter } from "@pixi/filter-drop-shadow"
+import { DropShadowFilter } from "pixi-filters/drop-shadow"
 import memoizeOne from "memoize-one"
 import { produce } from "immer"
 import { useShallow } from "zustand/react/shallow"
@@ -49,38 +61,36 @@ const PENLINE_TYPE_CENTER_DOWN = 1
 const PENLINE_TYPE_EDGE_RIGHT = 2
 const PENLINE_TYPE_EDGE_DOWN = 3
 
-declare module "pixi.js-legacy" {
-  interface GraphicsExData {
-    k?: number
-    borderColor?: number | undefined
+interface GraphicsExData {
+  k?: number
+  borderColor?: number | undefined
+  draw: (options: {
+    cellSize: number
+    zoomFactor: number
+    currentDigits: Map<number, Digit>
+    currentFogLights: FogLight[] | undefined
+    currentFogRaster: number[][] | undefined
+    themeColours: ThemeColours
+  }) => void
+}
+
+interface WithGraphicsExData {
+  data?: GraphicsExData
+}
+
+type GraphicsEx = Graphics & WithGraphicsExData
+
+type TextEx = Text & WithGraphicsExData
+
+type SpriteEx = Sprite & WithGraphicsExData
+
+type PenWaypointGraphics = Graphics & {
+  data?: {
+    cellSize?: number
     draw: (options: {
-      cellSize: number
-      zoomFactor: number
-      currentDigits: Map<number, Digit>
-      currentFogLights: FogLight[] | undefined
-      currentFogRaster: number[][] | undefined
-      themeColours: ThemeColours
-    }) => void
-  }
-
-  interface WithGraphicsExData {
-    data?: GraphicsExData
-  }
-
-  type GraphicsEx = PIXI.Graphics & WithGraphicsExData
-
-  type TextEx = PIXI.Text & WithGraphicsExData
-
-  type SpriteEx = PIXI.Sprite & WithGraphicsExData
-
-  type PenWaypointGraphics = PIXI.Graphics & {
-    data?: {
       cellSize?: number
-      draw: (options: {
-        cellSize?: number
-        penCurrentWaypoints: number[]
-      }) => void
-    }
+      penCurrentWaypoints: number[]
+    }) => void
   }
 }
 
@@ -88,7 +98,7 @@ interface CornerMarkElement {
   data: {
     k: number
   }
-  elements: PIXI.TextEx[]
+  elements: TextEx[]
 }
 
 interface GridCage {
@@ -305,7 +315,7 @@ function drawDashedPolygon(
   points: number[],
   dash: number,
   gap: number,
-  graphics: PIXI.Graphics
+  graphics: Graphics
 ) {
   let dashLeft = 0
   let gapLeft = 0
@@ -653,22 +663,24 @@ function makeCornerMarks(
   fontSize: number,
   leaveRoom: boolean,
   fontFamily: string,
-  fontWeight: PIXI.TextStyleFontWeight = "normal",
+  fontWeight: TextStyleFontWeight = "normal",
   n = 11
-): PIXI.TextEx[] {
+): TextEx[] {
   let result = []
 
   for (let i = 0; i < n; ++i) {
-    let text: PIXI.TextEx = new PIXI.Text("", {
-      fontFamily,
-      fontSize,
-      fontWeight
+    let text: TextEx = new Text({
+      style: {
+        fontFamily,
+        fontSize,
+        fontWeight
+      }
     })
 
     text.data = {
       draw: function ({ cellSize, currentFogRaster }) {
         let cx = x * cellSize + cellSize / 2
-        let cy = y * cellSize + cellSize / 2 - 0.5
+        let cy = y * cellSize + cellSize / 2
         let mx = cellSize / 3.2
         let my = cellSize / 3.4
 
@@ -776,15 +788,14 @@ function getThemeColours(elem: Element): ThemeColours {
 }
 
 function drawBackground(
-  graphics: PIXI.Graphics,
+  graphics: Graphics,
   width: number,
   height: number,
   themeColours: ThemeColours
 ) {
-  graphics.hitArea = new PIXI.Rectangle(0, 0, width, height)
-  graphics.beginFill(themeColours.backgroundColor)
-  graphics.drawRect(0, 0, width, height)
-  graphics.endFill()
+  graphics.hitArea = new Rectangle(0, 0, width, height)
+  graphics.rect(0, 0, width, height)
+  graphics.fill(themeColours.backgroundColor)
 }
 
 function cellToScreenCoords(
@@ -829,62 +840,38 @@ function drawOverlay(
   mx: number,
   my: number,
   fontFamily: string
-): PIXI.GraphicsEx {
-  let r: PIXI.GraphicsEx = new PIXI.Graphics()
+): (GraphicsEx | TextEx)[] {
+  let result = []
 
-  if (overlay.rotation !== undefined) {
-    r.rotation = overlay.rotation
-  }
+  if (
+    overlay.backgroundColor !== undefined ||
+    overlay.borderColor !== undefined
+  ) {
+    let g: GraphicsEx = new Graphics()
 
-  let text: PIXI.Text
-  let fontSize = overlay.fontSize ?? 20
-  if (overlay.text !== undefined && overlay.text !== "") {
-    fontSize *= SCALE_FACTOR
-    if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
-      fontSize *= 1 / 0.75
+    if (overlay.rotation !== undefined) {
+      g.rotation = overlay.rotation
     }
-    text = new PIXI.Text(overlay.text, {
-      fontFamily,
-      fontSize
-    })
-    if (overlay.fontColor) {
-      text.style.fill = overlay.fontColor
-    }
-    if (overlay.backgroundColor !== undefined) {
-      let bgc = Color(overlay.backgroundColor)
-      if (Color(overlay.fontColor ?? "#000").contrast(bgc) < 2) {
-        // text would be invisible on top of background
-        if (bgc.isDark()) {
-          text.style.stroke = "#fff"
+
+    g.data = {
+      draw: function ({ cellSize }) {
+        let center = cellToScreenCoords(overlay.center, mx, my, cellSize)
+        g.x = center[0]
+        g.y = center[1]
+        let w = overlay.width * cellSize
+        let h = overlay.height * cellSize
+        if (overlay.rounded) {
+          if (w === h) {
+            g.ellipse(0, 0, w / 2, h / 2)
+          } else {
+            // we divide by 2.27 instead of 2 here because we want the same
+            // look as we had with Pixi 6, which wasn't able to correctly round
+            // the rectangle
+            g.roundRect(-w / 2, -h / 2, w, h, Math.min(w, h) / 2.27 - 1)
+          }
         } else {
-          text.style.stroke = "#000"
+          g.rect(-w / 2, -h / 2, w, h)
         }
-        text.style.strokeThickness = 3
-      }
-    }
-    text.anchor.set(0.5)
-    text.style.align = "center"
-    if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
-      text.scale.x = 0.75
-      text.scale.y = 0.75
-    }
-    r.addChild(text)
-  }
-
-  r.data = {
-    draw: function ({ cellSize, zoomFactor }) {
-      let center = cellToScreenCoords(overlay.center, mx, my, cellSize)
-      r.x = center[0]
-      r.y = center[1]
-
-      if (text !== undefined) {
-        text.style.fontSize = Math.round(fontSize * zoomFactor)
-      }
-
-      if (
-        overlay.backgroundColor !== undefined ||
-        overlay.borderColor !== undefined
-      ) {
         let nBackgroundColour
         if (overlay.backgroundColor !== undefined) {
           nBackgroundColour = getRGBColor(overlay.backgroundColor)
@@ -892,7 +879,7 @@ function drawOverlay(
           if (alpha === 1) {
             alpha = isGrey(nBackgroundColour) ? 1 : 0.5
           }
-          r.beginFill(nBackgroundColour, alpha)
+          g.fill({ color: nBackgroundColour, alpha })
         }
         if (overlay.borderColor !== undefined) {
           let nBorderColour = getRGBColor(overlay.borderColor)
@@ -905,36 +892,75 @@ function drawOverlay(
               isGrey(nBorderColour)
             )
           ) {
-            r.lineStyle({
+            g.stroke({
               width: overlay.thickness ?? 2,
               color: nBorderColour,
               alpha: isGrey(nBorderColour) ? 1 : 0.5,
-              alignment: 0
+              alignment: 1
             })
           }
         }
-        let w = overlay.width * cellSize
-        let h = overlay.height * cellSize
-        if (overlay.rounded) {
-          if (w === h) {
-            r.drawEllipse(0, 0, w / 2, h / 2)
-          } else {
-            // we divide by 2.27 instead of 2 here because we want the same
-            // look as we had with Pixi 6, which wasn't able to correctly round
-            // the rectangle
-            r.drawRoundedRect(-w / 2, -h / 2, w, h, Math.min(w, h) / 2.27 - 1)
-          }
+      }
+    }
+
+    result.push(g)
+  }
+
+  if (overlay.text !== undefined && overlay.text !== "") {
+    let fontSize = (overlay.fontSize ?? 20) * SCALE_FACTOR
+    if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
+      fontSize *= 1 / 0.75
+    }
+
+    let text: TextEx = new Text({
+      text: overlay.text,
+      style: {
+        fontFamily,
+        fontSize
+      }
+    })
+
+    if (overlay.fontColor) {
+      text.style.fill = overlay.fontColor
+    }
+
+    if (overlay.backgroundColor !== undefined) {
+      let bgc = Color(overlay.backgroundColor)
+      if (Color(overlay.fontColor ?? "#000").contrast(bgc) < 2) {
+        // text would be invisible on top of background
+        if (bgc.isDark()) {
+          text.style.stroke = { color: "#fff", width: 3 }
         } else {
-          r.drawRect(-w / 2, -h / 2, w, h)
-        }
-        if (overlay.backgroundColor !== undefined) {
-          r.endFill()
+          text.style.stroke = { color: "#000", width: 3 }
         }
       }
     }
+
+    if (overlay.rotation !== undefined) {
+      text.rotation = overlay.rotation
+    }
+
+    text.anchor.set(0.5)
+    text.style.align = "center"
+
+    if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
+      text.scale.x = 0.75
+      text.scale.y = 0.75
+    }
+
+    text.data = {
+      draw: function ({ cellSize, zoomFactor }) {
+        let center = cellToScreenCoords(overlay.center, mx, my, cellSize)
+        text.x = center[0]
+        text.y = center[1]
+        text.style.fontSize = Math.round(fontSize * zoomFactor)
+      }
+    }
+
+    result.push(text)
   }
 
-  return r
+  return result
 }
 
 interface FogDisplayOptions {
@@ -965,35 +991,34 @@ const Grid = ({
   fogDisplayOptions = { enableFog: true, enableDropShadow: true }
 }: GridProps) => {
   const ref = useRef<HTMLDivElement>(null)
-  const app = useRef<PIXI.Application>()
-  const gridElement = useRef<PIXI.Container>()
-  const cellsElement = useRef<PIXI.Container>()
-  const allElement = useRef<PIXI.Container>()
-  const cellElements = useRef<PIXI.GraphicsEx[]>([])
-  const regionElements = useRef<PIXI.GraphicsEx[]>([])
-  const cageElements = useRef<PIXI.GraphicsEx[]>([])
-  const cageLabelTextElements = useRef<PIXI.TextEx[]>([])
-  const cageLabelBackgroundElements = useRef<PIXI.GraphicsEx[]>([])
-  const lineElements = useRef<PIXI.GraphicsEx[]>([])
-  const extraRegionElements = useRef<PIXI.GraphicsEx[]>([])
-  const underlayElements = useRef<PIXI.GraphicsEx[]>([])
-  const overlayElements = useRef<PIXI.GraphicsEx[]>([])
-  const backgroundElement = useRef<PIXI.Graphics>()
-  const backgroundImageElements = useRef<PIXI.SpriteEx[]>([])
-  const fogElements = useRef<PIXI.GraphicsEx[]>([])
-  const givenCornerMarkElements = useRef<PIXI.TextEx[]>([])
-  const digitElements = useRef<PIXI.TextEx[]>([])
-  const centreMarkElements = useRef<PIXI.TextEx[]>([])
+  const gridElement = useRef<Container>()
+  const cellsElement = useRef<Container>()
+  const allElement = useRef<Container>()
+  const cellElements = useRef<GraphicsEx[]>([])
+  const regionElements = useRef<GraphicsEx[]>([])
+  const cageElements = useRef<GraphicsEx[]>([])
+  const cageLabelTextElements = useRef<TextEx[]>([])
+  const cageLabelBackgroundElements = useRef<GraphicsEx[]>([])
+  const lineElements = useRef<GraphicsEx[]>([])
+  const extraRegionElements = useRef<GraphicsEx[]>([])
+  const underlayElements = useRef<(GraphicsEx | TextEx)[]>([])
+  const overlayElements = useRef<(GraphicsEx | TextEx)[]>([])
+  const backgroundElement = useRef<Graphics>()
+  const backgroundImageElements = useRef<SpriteEx[]>([])
+  const fogElements = useRef<GraphicsEx[]>([])
+  const givenCornerMarkElements = useRef<TextEx[]>([])
+  const digitElements = useRef<TextEx[]>([])
+  const centreMarkElements = useRef<TextEx[]>([])
   const cornerMarkElements = useRef<CornerMarkElement[]>([])
-  const colourElements = useRef<PIXI.GraphicsEx[]>([])
-  const selectionElements = useRef<PIXI.GraphicsEx[]>([])
-  const errorElements = useRef<PIXI.GraphicsEx[]>([])
+  const colourElements = useRef<GraphicsEx[]>([])
+  const selectionElements = useRef<GraphicsEx[]>([])
+  const errorElements = useRef<GraphicsEx[]>([])
   const penCurrentWaypoints = useRef<number[]>([])
   const penCurrentWaypointsAdd = useRef(true)
-  const penCurrentWaypointsElements = useRef<PIXI.PenWaypointGraphics[]>([])
-  const penHitareaElements = useRef<PIXI.GraphicsEx[]>([])
+  const penCurrentWaypointsElements = useRef<PenWaypointGraphics[]>([])
+  const penHitareaElements = useRef<GraphicsEx[]>([])
   const penCurrentDrawEdge = useRef(false)
-  const penLineElements = useRef<PIXI.GraphicsEx[]>([])
+  const penLineElements = useRef<GraphicsEx[]>([])
 
   const renderLoopStarted = useRef(0)
   const rendering = useRef(false)
@@ -1027,6 +1052,52 @@ const Grid = ({
 
   const cellSize = game.data.cellSize * SCALE_FACTOR
   const cellSizeFactor = useRef(-1)
+
+  let { result: app } = useAsyncEffect(
+    async () => {
+      // optimised resolution for different screens
+      let resolution = Math.min(
+        window.devicePixelRatio,
+        window.devicePixelRatio === 2 ? 3 : 2.5
+      )
+
+      let roundPixels: boolean | undefined = undefined
+      if (window.devicePixelRatio < 2) {
+        // good for dpi < 2
+        roundPixels = true
+      }
+
+      // create PixiJS app
+      let newApp = new Application()
+      await newApp.init({
+        resolution,
+        antialias: true,
+        backgroundAlpha: 0,
+        autoDensity: true,
+        autoStart: false,
+        roundPixels
+      })
+      if (!("_SUDOCLE_IS_TEST" in window)) {
+        ref.current!.appendChild(newApp.canvas as any)
+      }
+
+      // it seems we don't need the system ticker, so stop it
+      Ticker.system.stop()
+
+      // Disable accessibility manager. We don't need it. Also, if it is enabled,
+      // it creates an invisible div on top of our grid when the user presses the
+      // tab key, which resets the cursor. We don't want the cursor to be reset!
+      newApp.renderer.accessibility.destroy()
+
+      return newApp
+    },
+    async () => {
+      if (app !== undefined) {
+        app.destroy(true, true)
+      }
+    },
+    []
+  )
 
   const regions = useMemo(
     () =>
@@ -1089,18 +1160,14 @@ const Grid = ({
   }, [game.data])
 
   const selectCell = useCallback(
-    (
-      k: number,
-      evt: PIXI.FederatedPointerEvent | TouchEvent,
-      append = false
-    ) => {
+    (k: number, evt: FederatedPointerEvent | TouchEvent, append = false) => {
       if (currentMode.current === MODE_PEN) {
         // do nothing in pen mode
         return
       }
 
       let action: SelectionAction["action"] = append ? ACTION_PUSH : ACTION_SET
-      if (evt instanceof PIXI.FederatedPointerEvent) {
+      if (evt instanceof FederatedPointerEvent) {
         let oe = evt.originalEvent
         let ne = oe.nativeEvent
         if ("metaKey" in ne) {
@@ -1137,9 +1204,9 @@ const Grid = ({
 
     function doRender() {
       let elapsed = +new Date() - renderLoopStarted.current
-      if (app.current !== undefined && elapsed < MAX_RENDER_LOOP_TIME) {
+      if (app !== undefined && elapsed < MAX_RENDER_LOOP_TIME) {
         rendering.current = true
-        app.current.render()
+        app.render()
         requestAnimationFrame(doRender)
       } else {
         rendering.current = false
@@ -1150,16 +1217,18 @@ const Grid = ({
     if (!rendering.current) {
       doRender()
     }
-  }, [])
+  }, [app])
 
   const screenshotNow = useCallback(() => {
-    app.current!.render()
-    let url = app.current!.view.toDataURL!()
-    ;(window as any).screenshotRendered(url)
-  }, [])
+    if (app !== undefined) {
+      app.render()
+      let url = app.canvas.toDataURL!()
+      ;(window as any).screenshotRendered(url)
+    }
+  }, [app])
 
   const onPenMove = useCallback(
-    (e: PIXI.FederatedPointerEvent, cellSize: number) => {
+    (e: FederatedPointerEvent, cellSize: number) => {
       if (e.target === null) {
         // pointer is not over the hit area
         return
@@ -1396,51 +1465,24 @@ const Grid = ({
   useEffect(() => {
     currentMode.current = game.mode
 
-    if (app.current !== undefined) {
+    if (app !== undefined) {
       if (game.mode === MODE_PEN) {
-        app.current.renderer.events.setCursor("crosshair")
+        app.renderer.events.setCursor("crosshair")
       } else {
-        app.current.renderer.events.setCursor("pointer")
+        app.renderer.events.setCursor("pointer")
       }
     }
+
     penHitareaElements.current.forEach(
       e => (e.visible = game.mode === MODE_PEN)
     )
 
     penCurrentWaypoints.current = []
-  }, [game.mode])
+  }, [app, game.mode])
 
   useEffect(() => {
-    // optimised resolution for different screens
-    let resolution = Math.min(
-      window.devicePixelRatio,
-      window.devicePixelRatio === 2 ? 3 : 2.5
-    )
-
-    // create PixiJS app
-    let newApp = new PIXI.Application({
-      resolution,
-      antialias: true,
-      backgroundAlpha: 0,
-      autoDensity: true,
-      autoStart: false
-    })
-    if (!("_SUDOCLE_IS_TEST" in window)) {
-      ref.current!.appendChild(newApp.view as any)
-    }
-    app.current = newApp
-
-    // it seems we don't need the system ticker, so stop it
-    PIXI.Ticker.system.stop()
-
-    // Disable accessibility manager. We don't need it. Also, if it is enabled,
-    // it creates an invisible div on top of our grid when the user presses the
-    // tab key, which resets the cursor. We don't want the cursor to be reset!
-    newApp.renderer.plugins.accessibility.destroy()
-
-    // good for dpi < 2
-    if (window.devicePixelRatio < 2) {
-      PIXI.settings.ROUND_PIXELS = true
+    if (app === undefined) {
+      return
     }
 
     // register touch handler
@@ -1454,11 +1496,11 @@ const Grid = ({
     let fontSizeCageLabels = 26
 
     // create grid
-    let all = new PIXI.Container()
+    let all = new Container()
     allElement.current = all
-    let grid = new PIXI.Container()
+    let grid = new Container()
     gridElement.current = grid
-    let cells = new PIXI.Container()
+    let cells = new Container()
     cellsElement.current = cells
 
     all.sortableChildren = true
@@ -1496,9 +1538,9 @@ const Grid = ({
     // ***************** render everything that could contribute to bounds
 
     // fog
-    let fogMask: PIXI.GraphicsEx | null = null
+    let fogMask: GraphicsEx | null = null
     if (game.data.fogLights !== undefined) {
-      let fog: PIXI.GraphicsEx = new PIXI.Graphics()
+      let fog: GraphicsEx = new Graphics()
       fog.zIndex = -1
       fog.data = {
         draw: function ({ cellSize, currentFogRaster }) {
@@ -1518,15 +1560,13 @@ const Grid = ({
           let polygons = unionCells(flatCells)
           for (let polygon of polygons) {
             let poly = polygon.map(o => o.map(r => r * cellSize))
-            fog.beginFill(0x8b909b)
-            fog.drawPolygon(poly[0])
-            fog.endFill()
+            fog.poly(poly[0])
+            fog.fill(0x8b909b)
             if (poly.length > 1) {
-              fog.beginHole()
               for (let i = 1; i < poly.length; ++i) {
-                fog.drawPolygon(poly[i])
+                fog.poly(poly[i])
               }
-              fog.endHole()
+              fog.cut()
             }
           }
         }
@@ -1534,8 +1574,8 @@ const Grid = ({
       if (fogDisplayOptions.enableDropShadow) {
         let dropShadow = new DropShadowFilter({
           offset: { x: 0, y: 0 },
-          blur: 5,
-          quality: 6,
+          blur: 35,
+          quality: 35,
           alpha: 0.9,
           color: 0x272e31
         })
@@ -1545,59 +1585,53 @@ const Grid = ({
       fogElements.current.push(fog)
       all.addChild(fog)
 
-      fogMask = new PIXI.Graphics()
+      fogMask = new Graphics()
       fogMask.data = {
         draw: function ({ cellSize, currentFogLights }) {
-          fogMask!.beginFill(0)
           if (currentFogLights !== undefined) {
             for (let light of currentFogLights) {
               let y = light.center[0]
               let x = light.center[1]
               if (light.size === 3) {
-                fogMask!.drawRect(
+                fogMask!.rect(
                   (x - 1) * cellSize,
                   (y - 1) * cellSize,
                   cellSize * 3,
                   cellSize * 3
                 )
               } else {
-                fogMask!.drawRect(
-                  x * cellSize,
-                  y * cellSize,
-                  cellSize,
-                  cellSize
-                )
+                fogMask!.rect(x * cellSize, y * cellSize, cellSize, cellSize)
               }
             }
           }
 
           // always show area outside of grid
-          fogMask!.drawRect(
+          fogMask!.rect(
             -5 * cellSize,
             -5 * cellSize,
             cellSize * 5,
             cellSize * (game.data.cells.length + 10)
           )
-          fogMask!.drawRect(
+          fogMask!.rect(
             cellSize * game.data.cells[0].length,
             -5 * cellSize,
             cellSize * 5,
             cellSize * (game.data.cells.length + 10)
           )
-          fogMask!.drawRect(
+          fogMask!.rect(
             0,
             -5 * cellSize,
             cellSize * game.data.cells[0].length,
             cellSize * 5
           )
-          fogMask!.drawRect(
+          fogMask!.rect(
             0,
             cellSize * game.data.cells.length,
             cellSize * game.data.cells[0].length,
             cellSize * 5
           )
 
-          fogMask!.endFill()
+          fogMask!.fill(0)
         }
       }
       fogElements.current.push(fogMask)
@@ -1607,32 +1641,35 @@ const Grid = ({
     // render cells
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let cell: PIXI.GraphicsEx = new PIXI.Graphics()
+        let cell: GraphicsEx = new Graphics()
         cell.eventMode = "static"
         cell.cursor = "pointer"
 
         cell.data = {
           k: xytok(x, y),
           draw: function ({ cellSize, themeColours }) {
-            cell.lineStyle({ width: 1, color: themeColours.foregroundColor })
-            cell.drawRect(0, 0, cellSize, cellSize)
+            cell.rect(0, 0, cellSize, cellSize)
+            cell.stroke({
+              width: 1,
+              color: themeColours.foregroundColor
+            })
 
             cell.x = x * cellSize
             cell.y = y * cellSize
 
             // since our cells have a transparent background, we need to
             // define a hit area
-            cell.hitArea = new PIXI.Rectangle(0, 0, cellSize, cellSize)
+            cell.hitArea = new Rectangle(0, 0, cellSize, cellSize)
           }
         }
 
-        cell.on("pointerdown", function (e: PIXI.FederatedPointerEvent) {
+        cell.on("pointerdown", function (e: FederatedPointerEvent) {
           selectCell(cell!.data!.k!, e)
           e.stopPropagation()
           e.originalEvent.preventDefault()
         })
 
-        cell.on("pointerover", function (e: PIXI.FederatedPointerEvent) {
+        cell.on("pointerover", function (e: FederatedPointerEvent) {
           if (e.buttons === 1) {
             selectCell(cell!.data!.k!, e, true)
           }
@@ -1646,11 +1683,11 @@ const Grid = ({
 
     // render regions
     for (let r of regions) {
-      let poly: PIXI.GraphicsEx = new PIXI.Graphics()
+      let poly: GraphicsEx = new Graphics()
       poly.data = {
         draw: function ({ cellSize, themeColours }) {
-          poly.lineStyle({ width: 3, color: themeColours.foregroundColor })
-          poly.drawPolygon(r.map(v => v * cellSize))
+          poly.poly(r.map(v => v * cellSize))
+          poly.stroke({ width: 3, color: themeColours.foregroundColor })
         }
       }
       poly.zIndex = 10
@@ -1659,18 +1696,18 @@ const Grid = ({
     }
 
     // render cages
-    let cageOutlinesContainer = new PIXI.Container()
+    let cageOutlinesContainer = new Container()
     cageOutlinesContainer.zIndex = 1
     cageOutlinesContainer.mask = fogMask
-    let cageTopLeftTextContainer = new PIXI.Container()
+    let cageTopLeftTextContainer = new Container()
     cageTopLeftTextContainer.zIndex = 3
     cageTopLeftTextContainer.mask = fogMask
-    let cageTopLeftBgContainer = new PIXI.Container()
+    let cageTopLeftBgContainer = new Container()
     cageTopLeftBgContainer.zIndex = 2
     cageTopLeftBgContainer.mask = fogMask
     for (let cage of cages) {
       // draw outline
-      let poly: PIXI.GraphicsEx = new PIXI.Graphics()
+      let poly: GraphicsEx = new Graphics()
       poly.data = {
         borderColor: cage.borderColor
           ? getRGBColor(cage.borderColor)
@@ -1686,8 +1723,8 @@ const Grid = ({
             ? getRGBColor(cage.borderColor)
             : themeColours.foregroundColor
           let alpha = cage.borderColor ? getAlpha(cage.borderColor) : 1
-          poly.lineStyle({ width: 1, color, alpha: alpha })
           drawDashedPolygon(shrunkenOutline, 3, 2, poly)
+          poly.stroke({ width: 1, color, alpha: alpha })
         }
       }
       cageOutlinesContainer.addChild(poly)
@@ -1700,32 +1737,34 @@ const Grid = ({
       ) {
         // create cage label
         // use larger font and scale down afterwards to improve text rendering
-        let topleftText: PIXI.TextEx = new PIXI.Text(cage.value, {
-          fontFamily: defaultFontFamily,
-          fontSize: fontSizeCageLabels
+        let topleftText: TextEx = new Text({
+          text: cage.value,
+          style: {
+            fontFamily: defaultFontFamily,
+            fontSize: fontSizeCageLabels
+          }
         })
         topleftText.scale.x = 0.5
         topleftText.scale.y = 0.5
         topleftText.data = {
           draw: function ({ cellSize }) {
             topleftText.x = cage.topleft[1] * cellSize + cellSize / 20
-            topleftText.y = cage.topleft[0] * cellSize + cellSize / 60
+            topleftText.y = cage.topleft[0] * cellSize + cellSize / 60 + 0.25
           }
         }
         cageTopLeftTextContainer.addChild(topleftText)
         cageLabelTextElements.current.push(topleftText)
 
-        let topleftBg: PIXI.GraphicsEx = new PIXI.Graphics()
+        let topleftBg: GraphicsEx = new Graphics()
         topleftBg.data = {
           draw: function ({ cellSize }) {
-            topleftBg.beginFill(0xffffff)
-            topleftBg.drawRect(
+            topleftBg.rect(
               0,
               0,
-              topleftText.width + cellSize / 10 - 1,
-              topleftText.height + cellSize / 60
+              topleftText.width + cellSize / 10 - 0.5,
+              topleftText.height + cellSize / 60 + 0.5
             )
-            topleftBg.endFill()
+            topleftBg.fill(0xffffff)
             topleftBg.x = cage.topleft[1] * cellSize + 0.5
             topleftBg.y = cage.topleft[0] * cellSize + 0.5
           }
@@ -1743,11 +1782,11 @@ const Grid = ({
     all.addChild(grid)
 
     // render extra regions
-    let extraRegionsContainer = new PIXI.Container()
+    let extraRegionsContainer = new Container()
     extraRegionsContainer.zIndex = -30
     extraRegionsContainer.mask = fogMask
     for (let r of extraRegions) {
-      let poly: PIXI.GraphicsEx = new PIXI.Graphics()
+      let poly: GraphicsEx = new Graphics()
       poly.data = {
         draw: function ({ cellSize }) {
           let disposedOutline = disposePolygon(
@@ -1756,9 +1795,8 @@ const Grid = ({
             1
           )
           let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
-          poly.beginFill(getRGBColor(r.backgroundColor))
-          poly.drawPolygon(shrunkenOutline)
-          poly.endFill()
+          poly.poly(shrunkenOutline)
+          poly.fill(getRGBColor(r.backgroundColor))
         }
       }
       extraRegionsContainer.addChild(poly)
@@ -1810,11 +1848,11 @@ const Grid = ({
     lines.sort((a, b) => b.thickness - a.thickness)
 
     // add lines and arrows
-    let linesContainer = new PIXI.Container()
+    let linesContainer = new Container()
     linesContainer.zIndex = -10
     linesContainer.mask = fogMask
     lines.forEach(line => {
-      let poly: PIXI.GraphicsEx = new PIXI.Graphics()
+      let poly: GraphicsEx = new Graphics()
       poly.alpha = getAlpha(line.color)
       poly.data = {
         draw: function ({ cellSize }) {
@@ -1829,12 +1867,6 @@ const Grid = ({
             line.shortenStart,
             line.shortenEnd
           )
-          poly.lineStyle({
-            width: line.thickness * SCALE_FACTOR,
-            color: getRGBColor(line.color),
-            cap: PIXI.LINE_CAP.ROUND,
-            join: PIXI.LINE_JOIN.ROUND
-          })
           let lvx = 0
           let lvy = 0
           poly.moveTo(points[0], points[1])
@@ -1859,6 +1891,12 @@ const Grid = ({
             lvx = vx
             lvy = vy
           }
+          poly.stroke({
+            width: line.thickness * SCALE_FACTOR,
+            color: getRGBColor(line.color),
+            cap: "round",
+            join: "round"
+          })
         }
       }
       linesContainer.addChild(poly)
@@ -1867,7 +1905,7 @@ const Grid = ({
       // arrow heads
       if (line.isArrow && line.wayPoints.length > 1) {
         let arrow = line as Arrow
-        let head: PIXI.GraphicsEx = new PIXI.Graphics()
+        let head: GraphicsEx = new Graphics()
         head.data = {
           draw: function ({ cellSize }) {
             let points = shortenLine(
@@ -1897,17 +1935,17 @@ const Grid = ({
             let ey1 = ey + dx * f
             let ex2 = ex + dy * f
             let ey2 = ey - dx * f
-            head.lineStyle({
-              alpha: getAlpha(arrow.color),
-              width: arrow.thickness * SCALE_FACTOR,
-              color: getRGBColor(arrow.color),
-              cap: PIXI.LINE_CAP.ROUND,
-              join: PIXI.LINE_JOIN.ROUND
-            })
             head.moveTo(lastPointX, lastPointY)
             head.lineTo(ex1, ey1)
             head.moveTo(lastPointX, lastPointY)
             head.lineTo(ex2, ey2)
+            head.stroke({
+              alpha: getAlpha(arrow.color),
+              width: arrow.thickness * SCALE_FACTOR,
+              color: getRGBColor(arrow.color),
+              cap: "round",
+              join: "round"
+            })
           }
         }
         linesContainer.addChild(head)
@@ -1917,29 +1955,33 @@ const Grid = ({
     all.addChild(linesContainer)
 
     // add underlays
-    let underlaysContainer = new PIXI.Container()
+    let underlaysContainer = new Container()
     underlaysContainer.zIndex = -20
     underlaysContainer.mask = fogMask
     game.data.underlays.forEach(underlay => {
-      let e = drawOverlay(underlay, grid.x, grid.y, defaultFontFamily)
-      underlaysContainer.addChild(e)
-      underlayElements.current.push(e)
+      let es = drawOverlay(underlay, grid.x, grid.y, defaultFontFamily)
+      for (let e of es) {
+        underlaysContainer.addChild(e)
+        underlayElements.current.push(e)
+      }
     })
     all.addChild(underlaysContainer)
 
     // add overlays
-    let overlaysContainer = new PIXI.Container()
+    let overlaysContainer = new Container()
     overlaysContainer.zIndex = 40
     overlaysContainer.mask = fogMask
     game.data.overlays.forEach(overlay => {
-      let e = drawOverlay(overlay, grid.x, grid.y, defaultFontFamily)
-      overlaysContainer.addChild(e)
-      overlayElements.current.push(e)
+      let es = drawOverlay(overlay, grid.x, grid.y, defaultFontFamily)
+      for (let e of es) {
+        overlaysContainer.addChild(e)
+        overlayElements.current.push(e)
+      }
     })
     all.addChild(overlaysContainer)
 
     // draw a background that covers all elements
-    let background = new PIXI.Graphics()
+    let background = new Graphics()
     background.eventMode = "static"
     background.zIndex = -1000
     background.on("pointerdown", () => {
@@ -1951,11 +1993,11 @@ const Grid = ({
       }
     })
     backgroundElement.current = background
-    app.current.stage.addChild(background)
+    app.stage.addChild(background)
 
     // add background image
     if (game.data.metadata?.bgimage !== undefined) {
-      let sprite: PIXI.SpriteEx = PIXI.Sprite.from(game.data.metadata.bgimage)
+      let sprite: SpriteEx = Sprite.from(game.data.metadata.bgimage)
       sprite.zIndex = -40
       sprite.alpha = 0.2
       sprite.data = {
@@ -1970,7 +2012,7 @@ const Grid = ({
       all.addChild(sprite)
     }
 
-    app.current.stage.addChild(all)
+    app.stage.addChild(all)
 
     // ***************** draw other elements that don't contribute to the bounds
 
@@ -2015,9 +2057,11 @@ const Grid = ({
     // create empty text elements for all digits
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let text: PIXI.TextEx = new PIXI.Text("", {
-          fontFamily: defaultFontFamily,
-          fontSize: FONT_SIZE_DIGITS
+        let text: TextEx = new Text({
+          style: {
+            fontFamily: defaultFontFamily,
+            fontSize: FONT_SIZE_DIGITS
+          }
         })
         text.visible = false
         text.zIndex = 50
@@ -2026,7 +2070,7 @@ const Grid = ({
           k: xytok(x, y),
           draw: function ({ cellSize }) {
             text.x = x * cellSize + cellSize / 2
-            text.y = y * cellSize + cellSize / 2 - 0.5
+            text.y = y * cellSize + cellSize / 2
           }
         }
         all.addChild(text)
@@ -2041,7 +2085,7 @@ const Grid = ({
           data: {
             k: xytok(x, y)
           },
-          elements: [] as PIXI.TextEx[]
+          elements: [] as TextEx[]
         }
 
         let leaveRoom = hasCageValue(x, y, cages) || hasGivenCornerMarks(col)
@@ -2069,9 +2113,11 @@ const Grid = ({
     // create empty text elements for centre marks
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let text: PIXI.TextEx = new PIXI.Text("", {
-          fontFamily: defaultFontFamily,
-          fontSize: FONT_SIZE_CENTRE_MARKS_HIGH_DPI
+        let text: TextEx = new Text({
+          style: {
+            fontFamily: defaultFontFamily,
+            fontSize: FONT_SIZE_CENTRE_MARKS_HIGH_DPI
+          }
         })
         text.zIndex = 50
         text.anchor.set(0.5)
@@ -2083,7 +2129,7 @@ const Grid = ({
           k: xytok(x, y),
           draw: function ({ cellSize }) {
             text.x = x * cellSize + cellSize / 2
-            text.y = y * cellSize + cellSize / 2 - 0.5
+            text.y = y * cellSize + cellSize / 2
           }
         }
         all.addChild(text)
@@ -2094,7 +2140,7 @@ const Grid = ({
     // create invisible rectangles for colours
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let rect: PIXI.GraphicsEx = new PIXI.Graphics()
+        let rect: GraphicsEx = new Graphics()
         rect.alpha = 0
         rect.zIndex = 0
         rect.data = {
@@ -2112,15 +2158,14 @@ const Grid = ({
     // create invisible rectangles for selection
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let rect: PIXI.GraphicsEx = new PIXI.Graphics()
+        let rect: GraphicsEx = new Graphics()
         rect.visible = false
         rect.zIndex = 20
         rect.data = {
           k: xytok(x, y),
           draw: function ({ cellSize }) {
-            rect.beginFill(0xffde2a, 0.5)
-            rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
-            rect.endFill()
+            rect.rect(0.5, 0.5, cellSize - 1, cellSize - 1)
+            rect.fill({ color: 0xffde2a, alpha: 0.5 })
             rect.x = x * cellSize
             rect.y = y * cellSize
           }
@@ -2133,15 +2178,14 @@ const Grid = ({
     // create invisible rectangles for errors
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let rect: PIXI.GraphicsEx = new PIXI.Graphics()
+        let rect: GraphicsEx = new Graphics()
         rect.visible = false
         rect.zIndex = 10
         rect.data = {
           k: xytok(x, y),
           draw: function ({ cellSize }) {
-            rect.beginFill(0xb33a3a, 0.5)
-            rect.drawRect(0.5, 0.5, cellSize - 1, cellSize - 1)
-            rect.endFill()
+            rect.rect(0.5, 0.5, cellSize - 1, cellSize - 1)
+            rect.fill({ color: 0xb33a3a, alpha: 0.5 })
             rect.x = x * cellSize
             rect.y = y * cellSize
           }
@@ -2162,18 +2206,12 @@ const Grid = ({
           dy: number,
           type: number
         ) {
-          let line: PIXI.GraphicsEx = new PIXI.Graphics()
+          let line: GraphicsEx = new Graphics()
           line.visible = false
           line.zIndex = 60
           line.data = {
             k: pltok(rx, ry, type),
             draw: function ({ cellSize }) {
-              line.lineStyle({
-                width: 2 * SCALE_FACTOR,
-                color: 0,
-                cap: PIXI.LINE_CAP.ROUND,
-                join: PIXI.LINE_JOIN.ROUND
-              })
               line.moveTo(0, 0)
               if (horiz) {
                 line.lineTo(cellSize, 0)
@@ -2182,6 +2220,12 @@ const Grid = ({
               }
               line.x = (rx + dx) * cellSize
               line.y = (ry + dy) * cellSize
+              line.stroke({
+                width: 2 * SCALE_FACTOR,
+                color: 0,
+                cap: "round",
+                join: "round"
+              })
             }
           }
           all.addChild(line)
@@ -2206,7 +2250,7 @@ const Grid = ({
     })
 
     // create element that visualises current pen waypoints
-    let penWaypoints: PIXI.PenWaypointGraphics = new PIXI.Graphics()
+    let penWaypoints: PenWaypointGraphics = new Graphics()
     penWaypoints.zIndex = 70
     penWaypoints.data = {
       draw: function ({ cellSize, penCurrentWaypoints }) {
@@ -2228,12 +2272,6 @@ const Grid = ({
           if (penCurrentDrawEdge.current) {
             d = 0
           }
-          penWaypoints.lineStyle({
-            width: 3 * SCALE_FACTOR,
-            color,
-            cap: PIXI.LINE_CAP.ROUND,
-            join: PIXI.LINE_JOIN.ROUND
-          })
           let p0 = ktoxy(penCurrentWaypoints[0])
           penWaypoints.moveTo(
             (p0[0] + d) * that.cellSize,
@@ -2246,6 +2284,12 @@ const Grid = ({
               (p[1] + d) * that.cellSize
             )
           }
+          penWaypoints.stroke({
+            width: 3 * SCALE_FACTOR,
+            color,
+            cap: "round",
+            join: "round"
+          })
         }
       }
     }
@@ -2253,14 +2297,14 @@ const Grid = ({
     penCurrentWaypointsElements.current.push(penWaypoints)
 
     // add invisible hit area for pen tool
-    let penHitArea: PIXI.GraphicsEx = new PIXI.Graphics()
+    let penHitArea: GraphicsEx = new Graphics()
     penHitArea.eventMode = "static"
     penHitArea.cursor = "crosshair"
     penHitArea.zIndex = 80
     penHitArea.visible = false
     penHitArea.data = {
       draw: function ({ cellSize }) {
-        penHitArea.hitArea = new PIXI.Rectangle(
+        penHitArea.hitArea = new Rectangle(
           0,
           0,
           game.data.cells[0].length * cellSize,
@@ -2276,22 +2320,22 @@ const Grid = ({
     // memoize draw calls to improve performance
     const wrapDraw =
       (
-        e: PIXI.WithGraphicsExData,
-        draw: NonNullable<PIXI.WithGraphicsExData["data"]>["draw"]
-      ): NonNullable<PIXI.WithGraphicsExData["data"]>["draw"] =>
+        e: WithGraphicsExData,
+        draw: NonNullable<WithGraphicsExData["data"]>["draw"]
+      ): NonNullable<WithGraphicsExData["data"]>["draw"] =>
       options => {
-        if (e instanceof PIXI.Graphics) {
+        if (e instanceof Graphics) {
           e.clear()
         }
         draw(options)
       }
     const wrapDrawWaypoints =
       (
-        e: PIXI.PenWaypointGraphics,
-        draw: NonNullable<PIXI.PenWaypointGraphics["data"]>["draw"]
-      ): NonNullable<PIXI.PenWaypointGraphics["data"]>["draw"] =>
+        e: PenWaypointGraphics,
+        draw: NonNullable<PenWaypointGraphics["data"]>["draw"]
+      ): NonNullable<PenWaypointGraphics["data"]>["draw"] =>
       options => {
-        if (e instanceof PIXI.Graphics) {
+        if (e instanceof Graphics) {
           e.clear()
         }
         draw(options)
@@ -2342,6 +2386,10 @@ const Grid = ({
     }
 
     return () => {
+      if (allElement.current !== undefined) {
+        allElement.current.destroy(true)
+      }
+
       allElement.current = undefined
       gridElement.current = undefined
       cellsElement.current = undefined
@@ -2369,10 +2417,9 @@ const Grid = ({
 
       document.removeEventListener("pointercancel", onPointerUp)
       document.removeEventListener("pointerup", onPointerUp)
-      newApp.destroy(true, true)
-      app.current = undefined
     }
   }, [
+    app,
     game.data,
     cellSize,
     regions,
@@ -2389,15 +2436,19 @@ const Grid = ({
   useEffect(() => {
     // reset cell size on next draw
     cellSizeFactor.current = -1
-  }, [maxWidth, maxHeight, portrait, zoom])
+  }, [maxWidth, maxHeight, portrait, zoom, game.data])
 
   useEffect(() => {
+    if (app === undefined) {
+      return
+    }
+
     if (cellSizeFactor.current === -1) {
       cellSizeFactor.current = zoom + ZOOM_DELTA
     }
     let cs = Math.floor(cellSize * cellSizeFactor.current)
-    let allBounds: PIXI.Rectangle
-    let gridBounds: PIXI.Rectangle
+    let allBounds: Bounds
+    let gridBounds: Bounds
 
     allElement.current!.x = allElement.current!.y = 0
 
@@ -2456,7 +2507,6 @@ const Grid = ({
         })
       }
 
-      allElement.current!.calculateBounds()
       allBounds = allElement.current!.getBounds()
       gridBounds = gridElement.current!.getBounds()
 
@@ -2507,7 +2557,7 @@ const Grid = ({
     let w = allBounds!.width
     let h = allBounds!.height
 
-    app.current!.renderer.resize(w, h)
+    app.renderer.resize(w, h)
     allElement.current!.x = -allBounds!.x
     allElement.current!.y = -allBounds!.y
 
@@ -2526,12 +2576,14 @@ const Grid = ({
       ref.current!.style.marginRight = "0"
     }
   }, [
+    app,
     cellSize,
     maxWidth,
     maxHeight,
     portrait,
     theme,
     zoom,
+    game.data,
     game.mode,
     game.digits,
     game.fogLights,
@@ -2548,6 +2600,10 @@ const Grid = ({
   }, [onKeyDown])
 
   useEffect(() => {
+    if (app === undefined) {
+      return
+    }
+
     let themeColours = getThemeColours(ref.current!)
 
     // optimised font sizes for different screens
@@ -2596,22 +2652,19 @@ const Grid = ({
 
     // change selection colour
     for (let e of selectionElements.current) {
-      e.geometry.graphicsData[0].fillStyle.color =
-        themeColours.selection[selectionColour]
-      let gd = [...e.geometry.graphicsData]
-      e.geometry.clear()
-      e.geometry.graphicsData = gd
+      e.fillStyle.color = themeColours.selection[selectionColour]
     }
 
     // change background colour
     backgroundElement.current!.clear()
     drawBackground(
       backgroundElement.current!,
-      app.current!.renderer.width,
-      app.current!.renderer.height,
+      app.renderer.width,
+      app.renderer.height,
       themeColours
     )
   }, [
+    app,
     theme,
     selectionColour,
     zoom,
@@ -2621,6 +2674,7 @@ const Grid = ({
     maxWidth,
     maxHeight,
     portrait,
+    game.data,
     game.mode
   ])
 
@@ -2632,6 +2686,10 @@ const Grid = ({
   }, [game.selection, renderNow])
 
   useEffect(() => {
+    if (app === undefined) {
+      return
+    }
+
     let themeColours = getThemeColours(ref.current!)
     let cornerMarks = new Map()
     let centreMarks = new Map()
@@ -2717,9 +2775,8 @@ const Grid = ({
         }
         let colourNumber = getRGBColor(palCol)
         e.clear()
-        e.beginFill(colourNumber)
-        e.drawRect(0.5, 0.5, scaledCellSize - 1, scaledCellSize - 1)
-        e.endFill()
+        e.rect(0.5, 0.5, scaledCellSize - 1, scaledCellSize - 1)
+        e.fill(colourNumber)
         if (colourNumber === 0xffffff) {
           e.alpha = 1.0
         } else {
@@ -2744,6 +2801,7 @@ const Grid = ({
       screenshotNow()
     }
   }, [
+    app,
     cellSize,
     game.digits,
     game.cornerMarks,

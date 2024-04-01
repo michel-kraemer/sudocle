@@ -137,9 +137,6 @@ test.describe.parallel("Grid", () => {
       fs.unlink(actualImage)
 
       expect(isOK).toEqual(true)
-
-      // reset Grid for the next test
-      await page.evaluate(() => (window as any).resetTestGrid())
     })
   }
 })

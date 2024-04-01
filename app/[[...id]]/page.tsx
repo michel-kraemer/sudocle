@@ -229,14 +229,6 @@ const IndexPage = () => {
       })
       return json
     }
-    w.resetTestGrid = function () {
-      setFontsLoaded(false) // make sure fonts for the next grid will be loaded
-      updateGame({
-        type: TYPE_INIT,
-        data: undefined
-      })
-      setIsTest(false)
-    }
   }, [updateGame])
 
   const loadFromId = useCallback(
