@@ -56,7 +56,6 @@ const FALLBACK_URL = `${process.env.basePath}/puzzles/{}.json`
 const FALLBACK_URL2 = "https://sudokupad.app.com/api/puzzle/{}"
 const FALLBACK_URL3 = "https://app.crackingthecryptic.com/api/puzzle/{}"
 
-
 const Index = () => {
   const game = useContext(GameContext.State)
   const updateGame = useContext(GameContext.Dispatch)
