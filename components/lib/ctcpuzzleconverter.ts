@@ -86,11 +86,13 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let overlays: Overlay[] = puzzle.overlays?.map((o: any) => {
     // empirically determined values for size and center to make font look right
     let r = { ...o }
-    if (r.fontSize !== undefined) {
-      r.fontSize = r.fontSize * 0.85
+    if (r["dominant-baseline"] !== undefined) {
+      if (r.fontSize !== undefined) {
+        r.fontSize = r.fontSize * 0.85
+      }
+      // TODO do not move all overlays, instead move just the text!!!
+      r.center = [r.center[0] - (r.fontSize ?? 0) / 125, r.center[1]]
     }
-    // TODO do not move all overlays, instead move just the text!!!
-    r.center = [r.center[0] - (r.fontSize ?? 0) / 125, r.center[1]]
     return r
   })
 
