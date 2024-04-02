@@ -100,6 +100,16 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
       // TODO do not move all overlays, instead move just the text!!!
       r.center = [r.center[0] - (r.fontSize ?? 0) / 125, r.center[1]]
     }
+
+    if (
+      r.text !== undefined &&
+      r.text !== "" &&
+      r.fontSize === undefined &&
+      r.height < 0.5
+    ) {
+      r.fontSize = Math.max(10, 50 * r.height)
+    }
+
     return r
   })
 
