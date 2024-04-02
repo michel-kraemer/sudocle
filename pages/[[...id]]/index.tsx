@@ -53,7 +53,9 @@ import styles from "./index.scss"
 const DATABASE_URL =
   "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media"
 const FALLBACK_URL = `${process.env.basePath}/puzzles/{}.json`
-const FALLBACK_URL2 = "https://app.crackingthecryptic.com/api/puzzle/{}"
+const FALLBACK_URL2 = "https://sudokupad.app.com/api/puzzle/{}"
+const FALLBACK_URL3 = "https://app.crackingthecryptic.com/api/puzzle/{}"
+
 
 const Index = () => {
   const game = useContext(GameContext.State)
@@ -311,7 +313,20 @@ const Index = () => {
 
     async function loadFromApi() {
       let url = FALLBACK_URL2.replace("{}", id)
-      let response = await fetch(url)
+      let fallbackurl = FALLBACK_URL3.replace("{}", id)
+      let response
+      try {
+        response = await fetch(url)
+      }
+      catch (e){
+        try {
+          response = await fetch(fallbackurl)
+        }
+        catch (e2){
+          throw e2
+        }
+      }
+
       if (response.status === 404) {
         // Kein hinterlegter Wert im API => Vielleicht zu altes Puzzle? Versuche andere Methoden an Data zu kommen
         throw new Error("Will be caught later anyway...")
