@@ -864,15 +864,16 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         // circle's background color slightly transparent.
         ou = underlays
       }
-      let fontSize = 20
+      let fontSize = Math.min(20, 40 * circ.width)
       if (circ.value !== undefined) {
         let lines = `${circ.value}`.split("\n")
         if (lines.length > 1) {
-          fontSize = 10
-        }
-        for (let l of lines) {
-          if (l.length > 2) {
-            fontSize = 10
+          fontSize = Math.min(10, 25 * circ.width)
+        } else {
+          for (let l of lines) {
+            if (l.length >= 2) {
+              fontSize = 25 * circ.width
+            }
           }
         }
       }
