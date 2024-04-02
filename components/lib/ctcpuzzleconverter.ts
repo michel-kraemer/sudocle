@@ -84,9 +84,16 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let extraRegions: ExtraRegion[] | undefined = undefined
 
   let overlays: Overlay[] = puzzle.overlays?.map((o: any) => {
-    // empirically determined values for size and center to make font look right
     let r = { ...o }
+
+    // map angle to rotation
+    if (r.angle !== undefined) {
+      r.rotation = (r.angle * (2 * Math.PI)) / 360
+      delete r.angle
+    }
+
     if (r["dominant-baseline"] !== undefined) {
+      // empirically determined values for size and center to make font look right
       if (r.fontSize !== undefined) {
         r.fontSize = r.fontSize * 0.85
       }
