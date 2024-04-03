@@ -45,8 +45,8 @@ URL shown above.
 For example, the “Miracle Sudoku” by Mitchell Lee, one of the most popular
 puzzles ever featured on the channel, has the following URL:
 
-<a href="https://app.crackingthecryptic.com/sudoku/tjN9LtrrTL">https:
-//app.crackingthecryptic.com/sudoku/<strong>tjN9LtrrTL</strong></a>
+<a href="https://app.crackingthecryptic.com/tjN9LtrrTL">https:
+//app.crackingthecryptic.com/<strong>tjN9LtrrTL</strong></a>
 
 This URL becomes:
 
@@ -115,7 +115,7 @@ Alternatively, you can run Sudocle with [Docker](https://www.docker.com/) as
 follows:
 
     docker build -t sudocle .
-    docker run -it -p 80:80 --name sudocle --rm sudocle
+    docker run -it -p 80:3000 --name sudocle --rm sudocle
 
 Then, open <http://localhost/sudocle/>.
 
