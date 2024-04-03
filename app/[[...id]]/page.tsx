@@ -38,6 +38,7 @@ import {
 import { Data } from "../../components/types/Data"
 import { convertCTCPuzzle } from "../../components/lib/ctcpuzzleconverter"
 import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter"
+import { fetchFromApi } from "../../components/lib/fetchFromApi"
 import {
   MouseEvent,
   ReactNode,
@@ -54,12 +55,6 @@ import { enableMapSet } from "immer"
 import { useShallow } from "zustand/react/shallow"
 
 enableMapSet()
-
-const URLS = [
-  "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media",
-  "https://sudokupad.app/api/puzzle/{}",
-  `${process.env.basePath}/puzzles/{}.json`
-]
 
 const IndexPage = () => {
   const game = useContext(GameContextState)
@@ -114,36 +109,6 @@ const IndexPage = () => {
       }
     }
     return [...characters].join("")
-  }
-
-  async function fetchFromApi(id: string): Promise<string> {
-    let urls
-    if (id === null || id === "") {
-      urls = [`${process.env.basePath}/empty-grid.json`]
-    } else {
-      urls = URLS.map(url => url.replace("{}", id))
-    }
-
-    let response: Response | undefined
-    for (let url of urls) {
-      response = await fetch(url)
-      if (response.status === 200) {
-        return response.text()
-      }
-    }
-
-    if (response === undefined) {
-      throw new Error("No puzzle loaded")
-    }
-
-    if (response.status === 404) {
-      throw new Error(`The puzzle with the ID \u2018${id}’ does not exist`)
-    }
-
-    throw new Error(
-      `Failed to load puzzle with ID \u2018${id}’. ` +
-        `Received HTTP status code ${response.status} from server.`
-    )
   }
 
   const loadCompressedPuzzleFromString = useCallback(
