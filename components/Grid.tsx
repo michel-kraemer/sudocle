@@ -1897,6 +1897,10 @@ const Grid = ({
             cap: "round",
             join: "round"
           })
+
+          if (!line.isArrow && (line as Line).backgroundColor !== undefined) {
+            poly.fill((line as Line).backgroundColor)
+          }
         }
       }
       linesContainer.addChild(poly)

@@ -79,7 +79,14 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     return r
   })
 
-  let lines: Line[] = puzzle.lines
+  let lines: Line[] = puzzle.lines?.map((l: any) => {
+    let r = { ...l }
+    if (r.fill !== undefined) {
+      r.backgroundColor = r.fill
+      delete r.fill
+    }
+    return r
+  })
 
   let extraRegions: ExtraRegion[] | undefined = undefined
 

@@ -15,6 +15,7 @@ export interface Line {
   wayPoints: [number, number][]
   color: string
   thickness: number
+  backgroundColor?: string
 }
 
 export interface ExtraRegion {
