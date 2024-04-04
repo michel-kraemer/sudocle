@@ -39,7 +39,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.42.1",
+    "@playwright/test": "^1.43.0",
     "@types/color": "^3.0.6",
     "@types/lodash": "^4.17.0",
     "@types/react": "18.2.73",
