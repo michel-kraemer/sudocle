@@ -38,7 +38,6 @@ import {
 import { Data } from "../../components/types/Data"
 import { convertCTCPuzzle } from "../../components/lib/ctcpuzzleconverter"
 import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter"
-import { fetchFromApi } from "../../components/lib/fetchFromApi"
 import {
   MouseEvent,
   ReactNode,
