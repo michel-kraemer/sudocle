@@ -19,6 +19,8 @@ const config = {
   // create a folder for each page
   trailingSlash: true,
 
+  output: "standalone",
+
   env: {
     basePath,
     matomoUrl: process.env.MATOMO_URL,

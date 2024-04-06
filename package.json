@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "next",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build && cp -r .next/static .next/standalone/.next && cp -r public .next/standalone",
+    "start": "node .next/standalone/server.js",
     "lint": "next lint",
     "test": "playwright test",
     "ci": "WAIT_ON_INTERVAL=100 start-server-and-test http://localhost:3000/sudocle test"
