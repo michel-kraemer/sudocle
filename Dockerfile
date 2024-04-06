@@ -14,6 +14,9 @@ ARG SUDOCLE_CORS_ALLOW_ORIGIN
 COPY . /sudocle
 RUN npm run build
 
+RUN mkdir -p /sudocle/.next/cache/fetch-cache && \
+    chown -R sudocle /sudocle/.next/cache/fetch-cache
+
 EXPOSE 3000
 
 USER sudocle
