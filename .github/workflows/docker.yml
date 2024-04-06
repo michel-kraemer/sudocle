@@ -54,6 +54,7 @@ jobs:
           build-args: |
             MATOMO_URL=${{ secrets.MATOMO_URL }}
             MATOMO_SITE_ID=${{ secrets.MATOMO_SITE_ID }}
+            SUDOCLE_CORS_ALLOW_ORIGIN=https://michelkraemer.com
 
       - name: Remove untagged container images
         uses: actions/delete-package-versions@v5

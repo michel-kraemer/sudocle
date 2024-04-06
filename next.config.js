@@ -8,6 +8,9 @@ const basePath =
       ? "/sudocle"
       : ""
     : process.env.SUDOCLE_BASE_PATH
+
+const corsAllowOrigin = process.env.SUDOCLE_CORS_ALLOW_ORIGIN ?? "*"
+
 const eslintDirs = ["app", "components", "cypress/plugins", "cypress/support"]
 
 const config = {
@@ -30,6 +33,28 @@ const config = {
   images: {
     // disable built-in image support
     disableStaticImages: true
+  },
+
+  async headers() {
+    return [
+      {
+        source: "/puzzles/:path*",
+        headers: [
+          {
+            key: "Access-Control-Allow-Origin",
+            value: corsAllowOrigin
+          },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET"
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value: "Content-Type"
+          }
+        ]
+      }
+    ]
   },
 
   webpack: (config, { dev, defaultLoaders }) => {

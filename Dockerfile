@@ -1,14 +1,15 @@
 FROM node:20-slim as build
 
-ARG MATOMO_URL
-ARG MATOMO_SITE_ID
-
 RUN useradd -s /bin/bash -m sudocle
 RUN mkdir /sudocle
 COPY package.json /sudocle
 COPY package-lock.json /sudocle
 WORKDIR /sudocle
 RUN npm ci
+
+ARG MATOMO_URL
+ARG MATOMO_SITE_ID
+ARG SUDOCLE_CORS_ALLOW_ORIGIN
 
 COPY . /sudocle
 RUN npm run build
