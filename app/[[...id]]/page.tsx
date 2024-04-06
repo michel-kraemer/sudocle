@@ -226,9 +226,17 @@ const IndexPage = () => {
           data: json
         })
       } else {
-        let response
+        let responseBody
         try {
-          response = await fetchFromApi(data)
+          let u = `${process.env.basePath}/puzzles/`
+          if (data !== "") {
+            u += `${data}/`
+          }
+          let response = await fetch(u)
+          responseBody = await response.text()
+          if (response.status !== 200) {
+            throw new Error(responseBody)
+          }
         } catch (e: any) {
           if (e.message !== undefined) {
             setError(e.message)
@@ -237,7 +245,7 @@ const IndexPage = () => {
           }
           throw e
         }
-        await loadFromId(id, response)
+        await loadFromId(id, responseBody)
       }
     },
     [loadCompressedPuzzleFromString, loadFromTest, updateGame]
