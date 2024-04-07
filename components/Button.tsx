@@ -1,5 +1,5 @@
-import { MouseEvent, MouseEventHandler, ReactNode, useState } from "react"
 import clsx from "clsx"
+import { MouseEvent, MouseEventHandler, ReactNode, useState } from "react"
 
 interface ButtonProps {
   active?: boolean
@@ -32,8 +32,8 @@ const Button = ({
         active
           ? "bg-button-active"
           : pulsating
-          ? "[&:not(:hover)]:animate-pulsating"
-          : "bg-grey-700"
+            ? "[&:not(:hover)]:animate-pulsating"
+            : "bg-grey-700"
       )}
       onClick={onClickInternal}
     >

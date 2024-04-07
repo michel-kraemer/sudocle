@@ -1,43 +1,47 @@
 "use client"
 
-import {
-  Dispatch as GameContextDispatch,
-  State as GameContextState
-} from "../../components/contexts/GameContext"
-import { useSettings } from "../../components/hooks/useSettings"
 import Grid from "../../components/Grid"
 import Modal from "../../components/Modal"
 import Pad from "../../components/Pad"
 import Sidebar from "../../components/Sidebar"
 import StatusBar from "../../components/StatusBar"
 import {
+  Dispatch as GameContextDispatch,
+  State as GameContextState
+} from "../../components/contexts/GameContext"
+import { useSettings } from "../../components/hooks/useSettings"
+import {
+  ACTION_ALL,
+  ACTION_CLEAR,
+  ACTION_DOWN,
+  ACTION_LEFT,
+  ACTION_PUSH,
+  ACTION_REMOVE,
+  ACTION_RIGHT,
+  ACTION_ROTATE,
+  ACTION_SET,
+  ACTION_UP,
+  TYPE_INIT,
   TYPE_MODE,
   TYPE_MODE_GROUP,
-  TYPE_SELECTION,
-  TYPE_UNDO,
   TYPE_REDO,
-  TYPE_INIT,
-  ACTION_ALL,
-  ACTION_SET,
-  ACTION_PUSH,
-  ACTION_CLEAR,
-  ACTION_REMOVE,
-  ACTION_ROTATE,
-  ACTION_RIGHT,
-  ACTION_LEFT,
-  ACTION_UP,
-  ACTION_DOWN
+  TYPE_SELECTION,
+  TYPE_UNDO
 } from "../../components/lib/Actions"
 import {
-  MODE_NORMAL,
-  MODE_CORNER,
   MODE_CENTRE,
   MODE_COLOUR,
+  MODE_CORNER,
+  MODE_NORMAL,
   MODE_PEN
 } from "../../components/lib/Modes"
-import { Data } from "../../components/types/Data"
 import { convertCTCPuzzle } from "../../components/lib/ctcpuzzleconverter"
 import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter"
+import lzwDecompress from "../../components/lib/lzwdecompressor"
+import { Data } from "../../components/types/Data"
+import FontFaceObserver from "fontfaceobserver"
+import { enableMapSet } from "immer"
+import { Frown, ThumbsUp } from "lucide-react"
 import {
   MouseEvent,
   ReactNode,
@@ -47,10 +51,6 @@ import {
   useRef,
   useState
 } from "react"
-import FontFaceObserver from "fontfaceobserver"
-import { Frown, ThumbsUp } from "lucide-react"
-import lzwDecompress from "../../components/lib/lzwdecompressor"
-import { enableMapSet } from "immer"
 import { useShallow } from "zustand/react/shallow"
 
 enableMapSet()

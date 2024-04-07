@@ -1,7 +1,7 @@
+import Timer from "./Timer"
 import { State as GameContextState } from "./contexts/GameContext"
 import { useSidebar } from "./hooks/useSidebar"
-import { ID_RULES, ID_SETTINGS, ID_HELP, ID_ABOUT } from "./lib/SidebarTabs"
-import Timer from "./Timer"
+import { ID_ABOUT, ID_HELP, ID_RULES, ID_SETTINGS } from "./lib/SidebarTabs"
 import { BookOpen, HelpCircle, Info, Sliders } from "lucide-react"
 import { useContext } from "react"
 

@@ -1,11 +1,11 @@
-import clsx from "clsx"
+import MatomoInit from "../components/MatomoInit"
 import { Provider as GameContextProvider } from "../components/contexts/GameContext"
+import "../css/colour-palettes.css"
 import "../css/main.css"
 import "../css/themes.css"
-import "../css/colour-palettes.css"
-import MatomoInit from "../components/MatomoInit"
-import { Baloo_2, Roboto, Roboto_Condensed } from "next/font/google"
+import clsx from "clsx"
 import type { Metadata } from "next"
+import { Baloo_2, Roboto, Roboto_Condensed } from "next/font/google"
 
 const baloo = Baloo_2({
   weight: ["700"],

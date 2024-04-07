@@ -23,7 +23,11 @@ export function pltok(x: number, y: number, type: number): number {
   return (x << 20) | (y << 8) | type
 }
 
-export function hasFog(fogRaster: number[][] | undefined, x: number, y: number): boolean {
+export function hasFog(
+  fogRaster: number[][] | undefined,
+  x: number,
+  y: number
+): boolean {
   if (fogRaster !== undefined) {
     return fogRaster[y]?.[x] === 1
   }

@@ -2,8 +2,8 @@ import Palette from "./Palette"
 import RadioGroup from "./RadioGroup"
 import RangeSlider from "./RangeSlider"
 import { useSettings } from "./hooks/useSettings"
-import { useShallow } from "zustand/react/shallow"
 import { useEffect, useRef, useState } from "react"
+import { useShallow } from "zustand/react/shallow"
 
 const Slider = ({ children }: { children: React.ReactNode }) => (
   <div className="mb-4 max-w-[7rem]">{children}</div>

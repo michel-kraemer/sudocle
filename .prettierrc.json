@@ -1,5 +1,8 @@
 {
+  "plugins": ["@trivago/prettier-plugin-sort-imports"],
   "semi": false,
   "trailingComma": "none",
-  "arrowParens": "avoid"
+  "arrowParens": "avoid",
+  "importOrderSortSpecifiers": true,
+  "importOrderGroupNamespaceSpecifiers": true
 }

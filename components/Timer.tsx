@@ -4,8 +4,8 @@ import {
   State as GameContextState
 } from "./contexts/GameContext"
 import { TYPE_PAUSE } from "./lib/Actions"
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Pause } from "lucide-react"
+import { useCallback, useContext, useEffect, useRef, useState } from "react"
 
 interface TimerProps {
   solved: boolean

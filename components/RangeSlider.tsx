@@ -1,6 +1,6 @@
-import { ReactNode, useState } from "react"
 import * as Slider from "@radix-ui/react-slider"
 import clsx from "clsx"
+import { ReactNode, useState } from "react"
 
 interface RangeSliderProps {
   id: string

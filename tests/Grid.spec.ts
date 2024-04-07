@@ -1,9 +1,9 @@
-import { test, expect, Page } from "@playwright/test"
-import fs from "fs/promises"
+import { Page, expect, test } from "@playwright/test"
+import { EventEmitter } from "events"
 import fsSync from "fs"
+import fs from "fs/promises"
 import { compare } from "odiff-bin"
 import path from "path"
-import { EventEmitter } from "events"
 
 const fixturesDir = path.join(__dirname, "fixtures/grids")
 const fixtures = fsSync

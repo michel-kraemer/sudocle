@@ -4,17 +4,17 @@ import Rules from "./Rules"
 import Settings from "./Settings"
 import { State as GameContextState } from "./contexts/GameContext"
 import { useSidebar } from "./hooks/useSidebar"
-import { useShallow } from "zustand/react/shallow"
+import {
+  ID_ABOUT,
+  ID_HELP,
+  ID_RULES,
+  ID_SETTINGS,
+  SidebarTab
+} from "./lib/SidebarTabs"
 import clsx from "clsx"
 import { BookOpen, HelpCircle, Info, Sliders, X } from "lucide-react"
 import { ReactNode, useContext, useEffect, useRef, useState } from "react"
-import {
-  ID_RULES,
-  ID_SETTINGS,
-  ID_HELP,
-  ID_ABOUT,
-  SidebarTab
-} from "./lib/SidebarTabs"
+import { useShallow } from "zustand/react/shallow"
 
 interface Tab {
   id: SidebarTab

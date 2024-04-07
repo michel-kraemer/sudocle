@@ -1,5 +1,5 @@
-import { Minus, Plus } from "lucide-react"
 import Color from "color"
+import { Minus, Plus } from "lucide-react"
 import { FormEvent } from "react"
 
 interface PaletteProps {

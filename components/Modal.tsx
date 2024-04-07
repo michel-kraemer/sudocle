@@ -1,7 +1,7 @@
+import * as Dialog from "@radix-ui/react-dialog"
 import Button from "./Button"
 import clsx from "clsx"
 import { ReactNode } from "react"
-import * as Dialog from "@radix-ui/react-dialog"
 
 interface ModalProps {
   isOpen: boolean

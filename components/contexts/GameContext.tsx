@@ -1,7 +1,16 @@
 "use client"
 
-import { xytok, ktoxy, hasFog } from "../lib/utils"
 import {
+  ACTION_ALL,
+  ACTION_CLEAR,
+  ACTION_DOWN,
+  ACTION_LEFT,
+  ACTION_PUSH,
+  ACTION_REMOVE,
+  ACTION_RIGHT,
+  ACTION_ROTATE,
+  ACTION_SET,
+  ACTION_UP,
   Action,
   ColoursAction,
   DigitsAction,
@@ -9,42 +18,33 @@ import {
   ModeGroupAction,
   PenLinesAction,
   SelectionAction,
-  ACTION_ALL,
-  ACTION_SET,
-  ACTION_PUSH,
-  ACTION_CLEAR,
-  ACTION_REMOVE,
-  ACTION_ROTATE,
-  ACTION_RIGHT,
-  ACTION_LEFT,
-  ACTION_UP,
-  ACTION_DOWN,
+  TYPE_CHECK,
+  TYPE_COLOURS,
+  TYPE_DIGITS,
+  TYPE_INIT,
   TYPE_MODE,
   TYPE_MODE_GROUP,
-  TYPE_DIGITS,
-  TYPE_COLOURS,
+  TYPE_PAUSE,
   TYPE_PENLINES,
-  TYPE_SELECTION,
-  TYPE_UNDO,
   TYPE_REDO,
-  TYPE_INIT,
-  TYPE_CHECK,
-  TYPE_PAUSE
+  TYPE_SELECTION,
+  TYPE_UNDO
 } from "../lib/Actions"
-import { Data, DataCell, FogLight } from "../types/Data"
-import { Digit } from "../types/Game"
 import {
-  MODE_NORMAL,
-  MODE_CORNER,
   MODE_CENTRE,
   MODE_COLOUR,
+  MODE_CORNER,
+  MODE_NORMAL,
   MODE_PEN,
   Mode,
   getModeGroup
 } from "../lib/Modes"
-import { createContext, ReactNode, useReducer } from "react"
+import { hasFog, ktoxy, xytok } from "../lib/utils"
+import { Data, DataCell, FogLight } from "../types/Data"
+import { Digit } from "../types/Game"
 import { produce } from "immer"
 import { isEqual, isString } from "lodash"
+import { ReactNode, createContext, useReducer } from "react"
 
 const EmptyData: Data = {
   cellSize: 50,

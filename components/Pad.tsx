@@ -1,32 +1,32 @@
 import Button from "./Button"
-import { useSettings } from "./hooks/useSettings"
 import {
   Dispatch as GameContextDispatch,
   State as GameContextState
 } from "./contexts/GameContext"
+import { useSettings } from "./hooks/useSettings"
 import {
-  TYPE_MODE,
-  TYPE_DIGITS,
-  TYPE_COLOURS,
-  TYPE_UNDO,
-  TYPE_REDO,
-  TYPE_CHECK,
+  ACTION_REMOVE,
   ACTION_SET,
-  ACTION_REMOVE
+  TYPE_CHECK,
+  TYPE_COLOURS,
+  TYPE_DIGITS,
+  TYPE_MODE,
+  TYPE_REDO,
+  TYPE_UNDO
 } from "./lib/Actions"
 import {
-  MODE_NORMAL,
-  MODE_CORNER,
   MODE_CENTRE,
   MODE_COLOUR,
+  MODE_CORNER,
+  MODE_NORMAL,
   MODE_PEN,
   Mode,
   getModeGroup
 } from "./lib/Modes"
-import { useContext, useEffect, useRef, useState } from "react"
-import { Check, Delete, Redo, Undo } from "lucide-react"
-import Color from "color"
 import clsx from "clsx"
+import Color from "color"
+import { Check, Delete, Redo, Undo } from "lucide-react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { useShallow } from "zustand/react/shallow"
 
 interface Colour {

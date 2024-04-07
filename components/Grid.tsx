@@ -2,23 +2,40 @@ import {
   Dispatch as GameContextDispatch,
   State as GameContextState
 } from "./contexts/GameContext"
+import { useAsyncEffect } from "./hooks/useAsyncEffect"
 import { useSettings } from "./hooks/useSettings"
 import {
-  PenLinesAction,
-  SelectionAction,
   ACTION_CLEAR,
-  ACTION_SET,
   ACTION_PUSH,
   ACTION_REMOVE,
+  ACTION_SET,
+  PenLinesAction,
+  SelectionAction,
   TYPE_DIGITS,
   TYPE_PENLINES,
   TYPE_SELECTION
 } from "./lib/Actions"
-import { Digit } from "./types/Game"
-import { Arrow, DataCell, FogLight, Line, Overlay } from "./types/Data"
 import { MODE_PEN } from "./lib/Modes"
-import { ktoxy, xytok, pltok, hasFog } from "./lib/utils"
+import { hasFog, ktoxy, pltok, xytok } from "./lib/utils"
+import { Arrow, DataCell, FogLight, Line, Overlay } from "./types/Data"
+import { Digit } from "./types/Game"
 import Color from "color"
+import { produce } from "immer"
+import { flatten, isEqual } from "lodash"
+import memoizeOne from "memoize-one"
+import { DropShadowFilter } from "pixi-filters/drop-shadow"
+import {
+  Application,
+  Bounds,
+  Container,
+  FederatedPointerEvent,
+  Graphics,
+  Rectangle,
+  Sprite,
+  Text,
+  TextStyleFontWeight,
+  Ticker
+} from "pixi.js"
 import polygonClipping, { Polygon } from "polygon-clipping"
 import {
   MouseEvent,
@@ -28,23 +45,6 @@ import {
   useMemo,
   useRef
 } from "react"
-import { useAsyncEffect } from "./hooks/useAsyncEffect"
-import {
-  Application,
-  Bounds,
-  Container,
-  FederatedPointerEvent,
-  Graphics,
-  Text,
-  TextStyleFontWeight,
-  Rectangle,
-  Sprite,
-  Ticker
-} from "pixi.js"
-import { flatten, isEqual } from "lodash"
-import { DropShadowFilter } from "pixi-filters/drop-shadow"
-import memoizeOne from "memoize-one"
-import { produce } from "immer"
 import { useShallow } from "zustand/react/shallow"
 
 const SCALE_FACTOR = 1.2

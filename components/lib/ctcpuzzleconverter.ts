@@ -8,9 +8,9 @@ import {
   Line,
   Overlay
 } from "../types/Data"
-import JSON5 from "json5"
-import rename from "deep-rename-keys"
 import Color from "color"
+import rename from "deep-rename-keys"
+import JSON5 from "json5"
 
 const KEYS: Record<string, string> = {
   c: "color",

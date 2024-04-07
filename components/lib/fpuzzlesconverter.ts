@@ -1,4 +1,3 @@
-import { chunk, mean, isString } from "lodash"
 import {
   Arrow,
   Cage,
@@ -10,6 +9,7 @@ import {
   Metadata,
   Overlay
 } from "../types/Data"
+import { chunk, isString, mean } from "lodash"
 
 interface FPuzzlesCell {
   value?: number | string
