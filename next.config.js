@@ -25,16 +25,16 @@ const config = {
     basePath,
     matomoUrl: process.env.MATOMO_URL,
     matomoSiteId: process.env.MATOMO_SITE_ID,
-    version
+    version,
   },
 
   eslint: {
-    dirs: eslintDirs
+    dirs: eslintDirs,
   },
 
   images: {
     // disable built-in image support
-    disableStaticImages: true
+    disableStaticImages: true,
   },
 
   async headers() {
@@ -44,18 +44,18 @@ const config = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: corsAllowOrigin
+            value: corsAllowOrigin,
           },
           {
             key: "Access-Control-Allow-Methods",
-            value: "GET"
+            value: "GET",
           },
           {
             key: "Access-Control-Allow-Headers",
-            value: "Content-Type"
-          }
-        ]
-      }
+            value: "Content-Type",
+          },
+        ],
+      },
     ]
   },
 
@@ -63,7 +63,7 @@ const config = {
     config.module.rules.push({
       test: /\.(gif|png|jpe?g)$/i,
       type: "asset",
-      use: "image-webpack-loader"
+      use: "image-webpack-loader",
     })
 
     config.module.rules.push({
@@ -74,20 +74,20 @@ const config = {
         dataUrl: content => {
           content = content.toString()
           return svgToMiniDataURI(content)
-        }
-      }
+        },
+      },
     })
 
     if (dev) {
       config.plugins.push(
         new ESLintPlugin({
-          extensions: ["js", "jsx"]
-        })
+          extensions: ["js", "jsx"],
+        }),
       )
     }
 
     return config
-  }
+  },
 }
 
 module.exports = config

@@ -73,10 +73,10 @@ export const useSettings = create<Settings>()(
       setFontSizeFactorCentreMarks: (fontSizeFactorCentreMarks: number) =>
         set(draft => {
           draft.fontSizeFactorCentreMarks = fontSizeFactorCentreMarks
-        })
+        }),
     })),
     {
-      name: "SudocleSettings"
-    }
-  )
+      name: "SudocleSettings",
+    },
+  ),
 )

@@ -7,7 +7,7 @@ import {
   FogLight,
   Line,
   Metadata,
-  Overlay
+  Overlay,
 } from "../types/Data"
 import { chunk, isString, mean } from "lodash"
 
@@ -186,13 +186,13 @@ const GRID_SIZES = [
   { width: 13, height: 1 },
   { width: 7, height: 2 },
   { width: 5, height: 3 },
-  { width: 4, height: 4 }
+  { width: 4, height: 4 },
 ]
 
 function cellToCell(
   cell: string,
   offsetX = 0.5,
-  offsetY = 0.5
+  offsetY = 0.5,
 ): [number, number] {
   let m = cell.match(/R([0-9]+)C([0-9]+)/)!
   return [+m[1] - 1 + offsetX, +m[2] - 1 + offsetY]
@@ -245,45 +245,45 @@ function convertMinMax(
   m: FPuzzlesMinMax,
   isMax: boolean,
   arrows: Arrow[],
-  underlays: Overlay[]
+  underlays: Overlay[],
 ) {
   let center = cellToCell(m.cell)
   let newArrows: Arrow[] = []
   newArrows.push({
     wayPoints: [
       [center[0] - 0.3, center[1]],
-      [center[0] - 0.5, center[1]]
+      [center[0] - 0.5, center[1]],
     ],
     color: "#000000",
     thickness: 1,
-    headLength: 0.3
+    headLength: 0.3,
   })
   newArrows.push({
     wayPoints: [
       [center[0] + 0.3, center[1]],
-      [center[0] + 0.5, center[1]]
+      [center[0] + 0.5, center[1]],
     ],
     color: "#000000",
     thickness: 1,
-    headLength: 0.3
+    headLength: 0.3,
   })
   newArrows.push({
     wayPoints: [
       [center[0], center[1] - 0.3],
-      [center[0], center[1] - 0.5]
+      [center[0], center[1] - 0.5],
     ],
     color: "#000000",
     thickness: 1,
-    headLength: 0.3
+    headLength: 0.3,
   })
   newArrows.push({
     wayPoints: [
       [center[0], center[1] + 0.3],
-      [center[0], center[1] + 0.5]
+      [center[0], center[1] + 0.5],
     ],
     color: "#000000",
     thickness: 1,
-    headLength: 0.3
+    headLength: 0.3,
   })
 
   for (let na of newArrows) {
@@ -301,7 +301,7 @@ function convertMinMax(
     height: 1,
     borderColor: "#CFCFCF",
     backgroundColor: "#CFCFCF",
-    rounded: false
+    rounded: false,
   })
 }
 
@@ -345,9 +345,9 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       return {
         value: col.given ? col.value : undefined,
         centremarks: col.centerPencilMarks,
-        cornermarks: col.cornerPencilMarks
+        cornermarks: col.cornerPencilMarks,
       }
-    })
+    }),
   )
 
   // make sure all regions are initialized
@@ -363,7 +363,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     for (let c of puzzle.fogofwar) {
       fogLights.push({
         center: cellToCell(c, 0, 0),
-        size: 3
+        size: 3,
       })
     }
   }
@@ -374,7 +374,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       }
       fogLights.push({
         center: cellToCell(c, 0, 0),
-        size: 1
+        size: 1,
       })
     }
   }
@@ -394,7 +394,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
       for (let c of cage.cells) {
         fogLights.push({
           center: cellToCell(c, 0, 0),
-          size: cage.value.toLowerCase() === "fow" ? 3 : 1
+          size: cage.value.toLowerCase() === "fow" ? 3 : 1,
         })
       }
     } else if (
@@ -411,7 +411,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     } else {
       let r: Cage = {
         cells: cage.cells.map(c => cellToCell(c, 0, 0)),
-        value: cage.value
+        value: cage.value,
       }
       if (cage.outlineC) {
         r.borderColor = cage.outlineC
@@ -423,21 +423,21 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   if (puzzle.title) {
     cages.push({
       cells: [],
-      value: `title: ${puzzle.title}`
+      value: `title: ${puzzle.title}`,
     })
   }
 
   if (puzzle.author) {
     cages.push({
       cells: [],
-      value: `author: ${puzzle.author}`
+      value: `author: ${puzzle.author}`,
     })
   }
 
   if (puzzle.ruleset) {
     cages.push({
       cells: [],
-      value: `rules: ${puzzle.ruleset}`
+      value: `rules: ${puzzle.ruleset}`,
     })
   }
 
@@ -447,10 +447,10 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     lines.push({
       wayPoints: [
         [0, 9],
-        [9, 0]
+        [9, 0],
       ],
       color: "#34BBE6",
-      thickness: 1
+      thickness: 1,
     })
   }
 
@@ -458,10 +458,10 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     lines.push({
       wayPoints: [
         [0, 0],
-        [9, 9]
+        [9, 9],
       ],
       color: "#34BBE6",
-      thickness: 1
+      thickness: 1,
     })
   }
 
@@ -471,7 +471,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         lines.push({
           wayPoints: m.map(c => cellToCell(c)),
           color: l.outlineC ?? "#000000",
-          thickness: (l.width ?? 0.05) * 20
+          thickness: (l.width ?? 0.05) * 20,
         })
       }
     }
@@ -490,7 +490,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           width: 1,
           height: 1,
           backgroundColor: "#CFCFCF",
-          rounded: false
+          rounded: false,
         })
       }
     }
@@ -505,7 +505,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           center: [r + 0.5, c + 0.5],
           width: 1,
           height: 1,
-          backgroundColor: row[c].c
+          backgroundColor: row[c].c,
         })
       }
     }
@@ -520,7 +520,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           center: cellToCell(c),
           width: 1,
           height: 1,
-          backgroundColor: "#E6261F"
+          backgroundColor: "#E6261F",
         })
       }
     }
@@ -534,7 +534,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         height: 0.8,
         borderColor: "#CFCFCF",
         backgroundColor: "#CFCFCF",
-        rounded: true
+        rounded: true,
       })
     }
   }
@@ -547,7 +547,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         height: 0.8,
         borderColor: "#CFCFCF",
         backgroundColor: "#CFCFCF",
-        rounded: false
+        rounded: false,
       })
     }
   }
@@ -559,7 +559,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     for (let e of puzzle.extraregion) {
       extraRegions.push({
         cells: e.cells.map(c => cellToCell(c, 0, 0)),
-        backgroundColor: "#CFCFCF"
+        backgroundColor: "#CFCFCF",
       })
     }
   }
@@ -580,7 +580,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           borderColor: customStyle?.bulb?.color ?? "#CFCFCF",
           backgroundColor: "#FFFFFF",
           rounded: true,
-          thickness: customStyle?.bulb?.thickness
+          thickness: customStyle?.bulb?.thickness,
         })
       }
       if (a.lines !== undefined && a.lines !== null) {
@@ -589,7 +589,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
             wayPoints: l.map(c => cellToCell(c)),
             color: customStyle?.arrow?.color ?? "#CFCFCF",
             thickness: customStyle?.arrow?.thickness ?? 2,
-            headLength: customStyle?.arrow?.headLength ?? 0.3
+            headLength: customStyle?.arrow?.headLength ?? 0.3,
           }
           if (
             a.cells !== undefined &&
@@ -623,7 +623,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         borderColor: r.outlineC ?? "#000000",
         backgroundColor: r.baseC ?? "#FFFFFF",
         rounded: false,
-        rotation
+        rotation,
       })
     }
   }
@@ -636,41 +636,41 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         arrow = {
           wayPoints: [
             [center[0] - 0.05, center[1] + 0.05],
-            [center[0] - 0.5, center[1] + 0.5]
+            [center[0] - 0.5, center[1] + 0.5],
           ],
           color: "#CFCFCF",
           thickness: 5,
-          headLength: 0.3
+          headLength: 0.3,
         }
       } else if (l.direction === "DR") {
         arrow = {
           wayPoints: [
             [center[0] + 0.05, center[1] + 0.05],
-            [center[0] + 0.5, center[1] + 0.5]
+            [center[0] + 0.5, center[1] + 0.5],
           ],
           color: "#CFCFCF",
           thickness: 5,
-          headLength: 0.3
+          headLength: 0.3,
         }
       } else if (l.direction === "UL") {
         arrow = {
           wayPoints: [
             [center[0] - 0.05, center[1] - 0.05],
-            [center[0] - 0.5, center[1] - 0.5]
+            [center[0] - 0.5, center[1] - 0.5],
           ],
           color: "#CFCFCF",
           thickness: 5,
-          headLength: 0.3
+          headLength: 0.3,
         }
       } else if (l.direction === "DL") {
         arrow = {
           wayPoints: [
             [center[0] + 0.05, center[1] - 0.05],
-            [center[0] + 0.5, center[1] - 0.5]
+            [center[0] + 0.5, center[1] - 0.5],
           ],
           color: "#CFCFCF",
           thickness: 5,
-          headLength: 0.3
+          headLength: 0.3,
         }
       }
       overlays.push({
@@ -679,7 +679,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         height: 0.5,
         rounded: false,
         fontSize: 20,
-        text: l.value
+        text: l.value,
       })
       if (arrow !== undefined) {
         arrows.push(arrow)
@@ -709,7 +709,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         backgroundColor: "#FFFFFF",
         rounded: true,
         fontSize: fontSize,
-        text: ""
+        text: "",
       })
       for (let t = 0; t < texts.length; ++t) {
         let dx = (t - (texts.length - 1) / 2) * 0.19
@@ -719,7 +719,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           height: 0.6,
           rounded: true,
           fontSize: fontSize,
-          text: texts[t]
+          text: texts[t],
         })
       }
     }
@@ -731,7 +731,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         lines.push({
           wayPoints: l.map(c => cellToCell(c)),
           color: "#CFCFCF",
-          thickness: 10
+          thickness: 10,
         })
       }
     }
@@ -744,14 +744,14 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           let newLine = {
             wayPoints: l.map(c => cellToCell(c)),
             color: "#D23BE7",
-            thickness: 2
+            thickness: 2,
           }
 
           fixLineConnector(l[0], l[1], newLine.wayPoints[0])
           fixLineConnector(
             l[l.length - 1],
             l[l.length - 2],
-            newLine.wayPoints[l.length - 1]
+            newLine.wayPoints[l.length - 1],
           )
 
           lines.push(newLine)
@@ -762,7 +762,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
             height: 0.7,
             borderColor: "#000000",
             backgroundColor: "#CFCFCF",
-            rounded: true
+            rounded: true,
           })
           underlays.push({
             center: cellToCell(l[l.length - 1]),
@@ -770,7 +770,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
             height: 0.7,
             borderColor: "#000000",
             backgroundColor: "#CFCFCF",
-            rounded: true
+            rounded: true,
           })
         }
       }
@@ -800,7 +800,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         backgroundColor: "#FFFFFF",
         rounded: true,
         fontSize: 10,
-        text: r.value
+        text: r.value,
       })
     }
   }
@@ -817,7 +817,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         rounded: true,
         fontSize: 10,
         fontColor: "#FFFFFF",
-        text: r.value
+        text: r.value,
       })
     }
   }
@@ -833,7 +833,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         backgroundColor: "#FFFFFF",
         rounded: false,
         fontSize: 16,
-        text: xv.value
+        text: xv.value,
       })
     }
   }
@@ -848,7 +848,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         backgroundColor: "#FFFFFF",
         rounded: true,
         fontSize: 20,
-        text: s.value
+        text: s.value,
       })
     }
   }
@@ -885,7 +885,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         backgroundColor: circ.baseC,
         rounded: true,
         fontSize: fontSize,
-        text: circ.value
+        text: circ.value,
       })
     }
   }
@@ -897,7 +897,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           lines.push({
             wayPoints: l.map(c => cellToCell(c)),
             color: "#CFCFCF",
-            thickness: 10
+            thickness: 10,
           })
           overlays.push({
             center: cellToCell(l[0]),
@@ -905,7 +905,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
             height: 0.65,
             borderColor: "#CFCFCF",
             backgroundColor: "#CFCFCF",
-            rounded: true
+            rounded: true,
           })
         }
       }
@@ -926,7 +926,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         fontSize: 28 * (t.size ?? 1),
         fontColor: t.fontC,
         text: t.value,
-        rotation
+        rotation,
       })
     }
   }
@@ -967,7 +967,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     solution,
     fogLights,
     metadata: puzzle.metadata,
-    solved: false
+    solved: false,
   }
 
   return result

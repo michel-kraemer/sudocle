@@ -7,7 +7,7 @@ import Sidebar from "../../components/Sidebar"
 import StatusBar from "../../components/StatusBar"
 import {
   Dispatch as GameContextDispatch,
-  State as GameContextState
+  State as GameContextState,
 } from "../../components/contexts/GameContext"
 import { useSettings } from "../../components/hooks/useSettings"
 import {
@@ -26,14 +26,14 @@ import {
   TYPE_MODE_GROUP,
   TYPE_REDO,
   TYPE_SELECTION,
-  TYPE_UNDO
+  TYPE_UNDO,
 } from "../../components/lib/Actions"
 import {
   MODE_CENTRE,
   MODE_COLOUR,
   MODE_CORNER,
   MODE_NORMAL,
-  MODE_PEN
+  MODE_PEN,
 } from "../../components/lib/Modes"
 import { convertCTCPuzzle } from "../../components/lib/ctcpuzzleconverter"
 import { convertFPuzzle } from "../../components/lib/fpuzzlesconverter"
@@ -49,7 +49,7 @@ import {
   useContext,
   useEffect,
   useRef,
-  useState
+  useState,
 } from "react"
 import { useShallow } from "zustand/react/shallow"
 
@@ -61,8 +61,8 @@ const IndexPage = () => {
   const { theme, colourPalette } = useSettings(
     useShallow(state => ({
       theme: state.theme,
-      colourPalette: state.colourPalette
-    }))
+      colourPalette: state.colourPalette,
+    })),
   )
   const appRef = useRef<HTMLDivElement>(null)
   const gameContainerRef = useRef<HTMLDivElement>(null)
@@ -91,7 +91,7 @@ const IndexPage = () => {
     if (shouldClearSelection) {
       updateGame({
         type: TYPE_SELECTION,
-        action: ACTION_CLEAR
+        action: ACTION_CLEAR,
       })
     }
   }
@@ -160,10 +160,10 @@ const IndexPage = () => {
 
       updateGame({
         type: TYPE_INIT,
-        data: convertedPuzzle
+        data: convertedPuzzle,
       })
     },
-    [updateGame]
+    [updateGame],
   )
 
   const loadFromTest = useCallback(() => {
@@ -189,7 +189,7 @@ const IndexPage = () => {
       setIsTest(true)
       updateGame({
         type: TYPE_INIT,
-        data: json
+        data: json,
       })
       return json
     }
@@ -215,14 +215,14 @@ const IndexPage = () => {
             json = convertCTCPuzzle(data)
           } catch (e) {
             setError(
-              <>Failed to load puzzle with ID &lsquo;{id}’. Parse error.</>
+              <>Failed to load puzzle with ID &lsquo;{id}’. Parse error.</>,
             )
             throw e
           }
         }
         updateGame({
           type: TYPE_INIT,
-          data: json
+          data: json,
         })
       } else {
         let responseBody
@@ -247,7 +247,7 @@ const IndexPage = () => {
         await loadFromId(id, responseBody)
       }
     },
-    [loadCompressedPuzzleFromString, loadFromTest, updateGame]
+    [loadCompressedPuzzleFromString, loadFromTest, updateGame],
   )
 
   // load game data
@@ -340,10 +340,10 @@ const IndexPage = () => {
     let observers: FontFaceObserver[] = []
     for (let family of families) {
       let font400 = new FontFaceObserver(family, {
-        weight: 400
+        weight: 400,
       })
       let font700 = new FontFaceObserver(family, {
-        weight: 700
+        weight: 700,
       })
       observers.push(font400, font700)
     }
@@ -355,7 +355,7 @@ const IndexPage = () => {
       () => {
         console.warn("Roboto font is not available. Using fallback font.")
         setFontsLoaded(true)
-      }
+      },
     )
   }, [game.data])
 
@@ -369,7 +369,7 @@ const IndexPage = () => {
       if (e.key === " ") {
         updateGame({
           type: TYPE_MODE,
-          action: ACTION_ROTATE
+          action: ACTION_ROTATE,
         })
         e.preventDefault()
       } else if (
@@ -380,14 +380,14 @@ const IndexPage = () => {
       ) {
         updateGame({
           type: TYPE_MODE_GROUP,
-          action: ACTION_ROTATE
+          action: ACTION_ROTATE,
         })
         e.preventDefault()
       } else if (e.key === "Meta" || e.key === "Control") {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_PUSH,
-          mode: MODE_CENTRE
+          mode: MODE_CENTRE,
         })
         metaPressed = true
         e.preventDefault()
@@ -395,7 +395,7 @@ const IndexPage = () => {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_PUSH,
-          mode: MODE_CORNER
+          mode: MODE_CORNER,
         })
         shiftPressed = true
         e.preventDefault()
@@ -403,87 +403,87 @@ const IndexPage = () => {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_PUSH,
-          mode: MODE_COLOUR
+          mode: MODE_COLOUR,
         })
         altPressed = true
         e.preventDefault()
       } else if ((e.key === "z" || e.key === "Z") && (e.metaKey || e.ctrlKey)) {
         updateGame({
-          type: e.shiftKey ? TYPE_REDO : TYPE_UNDO
+          type: e.shiftKey ? TYPE_REDO : TYPE_UNDO,
         })
         e.preventDefault()
       } else if (e.key === "y" && (e.metaKey || e.ctrlKey)) {
         updateGame({
-          type: TYPE_REDO
+          type: TYPE_REDO,
         })
         e.preventDefault()
       } else if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
         updateGame({
           type: TYPE_SELECTION,
-          action: ACTION_ALL
+          action: ACTION_ALL,
         })
         e.preventDefault()
       } else if (e.code === "KeyZ") {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_SET,
-          mode: MODE_NORMAL
+          mode: MODE_NORMAL,
         })
         e.preventDefault()
       } else if (e.code === "KeyX") {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_SET,
-          mode: MODE_CORNER
+          mode: MODE_CORNER,
         })
         e.preventDefault()
       } else if (e.code === "KeyC") {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_SET,
-          mode: MODE_CENTRE
+          mode: MODE_CENTRE,
         })
         e.preventDefault()
       } else if (e.code === "KeyV") {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_SET,
-          mode: MODE_COLOUR
+          mode: MODE_COLOUR,
         })
         e.preventDefault()
       } else if (e.code === "KeyP") {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_SET,
-          mode: MODE_PEN
+          mode: MODE_PEN,
         })
         e.preventDefault()
       } else if (e.key === "ArrowRight") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_RIGHT,
-          append: e.metaKey || e.ctrlKey
+          append: e.metaKey || e.ctrlKey,
         })
         e.preventDefault()
       } else if (e.key === "ArrowLeft") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_LEFT,
-          append: e.metaKey || e.ctrlKey
+          append: e.metaKey || e.ctrlKey,
         })
         e.preventDefault()
       } else if (e.key === "ArrowUp") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_UP,
-          append: e.metaKey || e.ctrlKey
+          append: e.metaKey || e.ctrlKey,
         })
         e.preventDefault()
       } else if (e.key === "ArrowDown") {
         updateGame({
           type: TYPE_SELECTION,
           action: ACTION_DOWN,
-          append: e.metaKey || e.ctrlKey
+          append: e.metaKey || e.ctrlKey,
         })
         e.preventDefault()
       }
@@ -494,7 +494,7 @@ const IndexPage = () => {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_REMOVE,
-          mode: MODE_CENTRE
+          mode: MODE_CENTRE,
         })
         metaPressed = false
         e.preventDefault()
@@ -502,7 +502,7 @@ const IndexPage = () => {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_REMOVE,
-          mode: MODE_CORNER
+          mode: MODE_CORNER,
         })
         shiftPressed = false
         e.preventDefault()
@@ -510,7 +510,7 @@ const IndexPage = () => {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_REMOVE,
-          mode: MODE_COLOUR
+          mode: MODE_COLOUR,
         })
         altPressed = false
         e.preventDefault()
@@ -522,21 +522,21 @@ const IndexPage = () => {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_REMOVE,
-          mode: MODE_CENTRE
+          mode: MODE_CENTRE,
         })
         metaPressed = false
       } else if (shiftPressed) {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_REMOVE,
-          mode: MODE_CORNER
+          mode: MODE_CORNER,
         })
         shiftPressed = false
       } else if (altPressed) {
         updateGame({
           type: TYPE_MODE,
           action: ACTION_REMOVE,
-          mode: MODE_COLOUR
+          mode: MODE_COLOUR,
         })
         altPressed = false
       }
@@ -659,7 +659,7 @@ const IndexPage = () => {
                 onFinishRender={onFinishRender}
                 fogDisplayOptions={{
                   enableFog: true,
-                  enableDropShadow: !isTest
+                  enableDropShadow: !isTest,
                 }}
               />
             )}

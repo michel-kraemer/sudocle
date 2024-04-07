@@ -19,7 +19,7 @@ const RadioGroup = ({
   ariaLabel,
   value,
   options,
-  onChange
+  onChange,
 }: RadioGroupProps) => {
   return (
     <form>

@@ -12,7 +12,7 @@ export default defineConfig({
       // args: ["--use-gl=egl"]
       // args: ["--use-angle=gles-egl"]
       // args: ["--use-gl=angle"]
-      args: ["--use-gl=angle", "--use-angle=metal"]
-    }
-  }
+      args: ["--use-gl=angle", "--use-angle=metal"],
+    },
+  },
 })

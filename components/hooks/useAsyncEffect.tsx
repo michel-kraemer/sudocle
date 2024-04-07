@@ -14,7 +14,7 @@ export interface UseAsyncEffectResult {
 export const useAsyncEffect = (
   mountCallback: () => Promise<any>,
   unmountCallback: () => Promise<any>,
-  deps: any[] = []
+  deps: any[] = [],
 ): UseAsyncEffectResult => {
   const isMounted = useRef(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -77,6 +77,6 @@ export const useAsyncEffect = (
 
   return useMemo(
     () => ({ result, error, isLoading }),
-    [result, error, isLoading]
+    [result, error, isLoading],
   )
 }

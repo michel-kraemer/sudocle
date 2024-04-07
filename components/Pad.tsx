@@ -1,7 +1,7 @@
 import Button from "./Button"
 import {
   Dispatch as GameContextDispatch,
-  State as GameContextState
+  State as GameContextState,
 } from "./contexts/GameContext"
 import { useSettings } from "./hooks/useSettings"
 import {
@@ -12,7 +12,7 @@ import {
   TYPE_DIGITS,
   TYPE_MODE,
   TYPE_REDO,
-  TYPE_UNDO
+  TYPE_UNDO,
 } from "./lib/Actions"
 import {
   MODE_CENTRE,
@@ -21,7 +21,7 @@ import {
   MODE_NORMAL,
   MODE_PEN,
   Mode,
-  getModeGroup
+  getModeGroup,
 } from "./lib/Modes"
 import clsx from "clsx"
 import Color from "color"
@@ -46,8 +46,8 @@ const Pad = () => {
   const { colourPalette, customColours } = useSettings(
     useShallow(state => ({
       colourPalette: state.colourPalette,
-      customColours: state.customColours
-    }))
+      customColours: state.customColours,
+    })),
   )
   const game = useContext(GameContextState)
   const updateGame = useContext(GameContextDispatch)
@@ -65,7 +65,7 @@ const Pad = () => {
         newColours[pos - 1] = {
           colour: col,
           digit: i + 1,
-          light: Color(col.trim()).luminosity() > 0.9
+          light: Color(col.trim()).luminosity() > 0.9,
         }
       }
     } else {
@@ -74,7 +74,7 @@ const Pad = () => {
         newColours[i] = {
           colour: col,
           digit: i + 1,
-          light: Color(col.trim()).luminosity() > 0.9
+          light: Color(col.trim()).luminosity() > 0.9,
         }
       }
     }
@@ -95,7 +95,7 @@ const Pad = () => {
     updateGame({
       type: TYPE_DIGITS,
       action: ACTION_SET,
-      digit
+      digit,
     })
   }
 
@@ -103,7 +103,7 @@ const Pad = () => {
     updateGame({
       type: TYPE_COLOURS,
       action: ACTION_SET,
-      digit
+      digit,
     })
   }
 
@@ -111,32 +111,32 @@ const Pad = () => {
     updateGame({
       type: TYPE_MODE,
       action: ACTION_SET,
-      mode
+      mode,
     })
   }
 
   function onDelete() {
     updateGame({
       type: TYPE_DIGITS,
-      action: ACTION_REMOVE
+      action: ACTION_REMOVE,
     })
   }
 
   function onUndo() {
     updateGame({
-      type: TYPE_UNDO
+      type: TYPE_UNDO,
     })
   }
 
   function onRedo() {
     updateGame({
-      type: TYPE_REDO
+      type: TYPE_REDO,
     })
   }
 
   function onCheck() {
     updateGame({
-      type: TYPE_CHECK
+      type: TYPE_CHECK,
     })
   }
 
@@ -162,13 +162,13 @@ const Pad = () => {
                   "right-[0.4rem]": digit === 6,
                   "bottom-[0.2rem] left-[0.4rem]": digit === 7,
                   "bottom-[0.2rem]": digit === 8,
-                  "bottom-[0.2rem] right-[0.4rem]": digit === 9
-                })]: game.mode === MODE_CORNER
+                  "bottom-[0.2rem] right-[0.4rem]": digit === 9,
+                })]: game.mode === MODE_CORNER,
               })}
             >
               <div>{digit}</div>
             </div>
-          </Button>
+          </Button>,
         )
       }
     } else if (game.mode === MODE_COLOUR) {
@@ -180,11 +180,11 @@ const Pad = () => {
           <Button key={c.digit} noPadding onClick={() => onColour(c.digit)}>
             <div
               className={clsx("flex flex-1 h-full rounded", {
-                "border border-grey-500": c.light
+                "border border-grey-500": c.light,
               })}
               style={{ backgroundColor: c.colour }}
             ></div>
-          </Button>
+          </Button>,
         )
       }
       while (digitButtons.length < 12) {

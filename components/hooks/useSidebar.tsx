@@ -37,6 +37,6 @@ export const useSidebar = create<SidebarState>()(
         }
 
         draft.activeTabId = id
-      })
-  }))
+      }),
+  })),
 )

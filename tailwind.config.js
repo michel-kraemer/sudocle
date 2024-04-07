@@ -21,7 +21,7 @@ function withOpacity(variableName) {
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}"
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     screens: {
@@ -30,16 +30,16 @@ module.exports = {
       md: "800px",
       lg: "1000px",
       xl: "1250px",
-      "2xl": "1500px"
+      "2xl": "1500px",
     },
     fontFamily: {
       sans: ["var(--font-roboto)", ...defaultTheme.fontFamily.sans],
       condensed: [
         "var(--font-roboto-condensed)",
         "var(--font-roboto)",
-        ...defaultTheme.fontFamily.sans
+        ...defaultTheme.fontFamily.sans,
       ],
-      baloo: ["var(--font-baloo)", ...defaultTheme.fontFamily.sans]
+      baloo: ["var(--font-baloo)", ...defaultTheme.fontFamily.sans],
     },
     colors: {
       black: withOpacity("black"),
@@ -63,34 +63,34 @@ module.exports = {
       "selection-yellow": withOpacity("selection-yellow"),
       "selection-red": withOpacity("selection-red"),
       "selection-green": withOpacity("selection-green"),
-      "selection-blue": withOpacity("selection-blue")
+      "selection-blue": withOpacity("selection-blue"),
     },
     animation: {
       pulsating: "1s infinite pulsating ease-out alternate",
-      "fade-in": "200ms fade-in"
+      "fade-in": "200ms fade-in",
     },
     keyframes: {
       "fade-in": {
         "0%": {
-          opacity: "0"
+          opacity: "0",
         },
         "100%": {
-          opacity: "1"
-        }
+          opacity: "1",
+        },
       },
       pulsating: {
         "0%": {
-          "background-color": "rgb(var(--grey-700))"
+          "background-color": "rgb(var(--grey-700))",
         },
         "100%": {
-          "background-color": "rgb(var(--button-active))"
-        }
-      }
+          "background-color": "rgb(var(--button-active))",
+        },
+      },
     },
     borderRadius: {
       DEFAULT: "10px",
-      mini: "4px"
-    }
+      mini: "4px",
+    },
   },
-  plugins: []
+  plugins: [],
 }

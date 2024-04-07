@@ -28,7 +28,7 @@ const Settings = () => {
     setZoom,
     setFontSizeFactorDigits,
     setFontSizeFactorCornerMarks,
-    setFontSizeFactorCentreMarks
+    setFontSizeFactorCentreMarks,
   } = useSettings(
     useShallow(state => ({
       colourPalette: state.colourPalette,
@@ -44,8 +44,8 @@ const Settings = () => {
       setZoom: state.setZoom,
       setFontSizeFactorDigits: state.setFontSizeFactorDigits,
       setFontSizeFactorCornerMarks: state.setFontSizeFactorCornerMarks,
-      setFontSizeFactorCentreMarks: state.setFontSizeFactorCentreMarks
-    }))
+      setFontSizeFactorCentreMarks: state.setFontSizeFactorCentreMarks,
+    })),
   )
 
   const refPlaceholderCTC = useRef<HTMLDivElement>(null)
@@ -118,12 +118,12 @@ const Settings = () => {
         options={[
           {
             id: "default",
-            label: "Sudocle"
+            label: "Sudocle",
           },
           {
             id: "dark",
-            label: "Dark"
-          }
+            label: "Dark",
+          },
         ]}
         onChange={setTheme}
       />
@@ -143,7 +143,7 @@ const Settings = () => {
                 <div>Sudocle</div>
                 <Palette colours={coloursDefault} />
               </PaletteLabel>
-            )
+            ),
           },
           {
             id: "ctc",
@@ -152,7 +152,7 @@ const Settings = () => {
                 <div>Cracking the Cryptic</div>
                 <Palette colours={coloursCTC} />
               </PaletteLabel>
-            )
+            ),
           },
           {
             id: "wong",
@@ -161,7 +161,7 @@ const Settings = () => {
                 <div>Wong (optimised for colour-blindness)</div>
                 <Palette colours={coloursWong} />
               </PaletteLabel>
-            )
+            ),
           },
           {
             id: "custom",
@@ -174,8 +174,8 @@ const Settings = () => {
                   updatePalette={onUpdateCustomColours}
                 />
               </PaletteLabel>
-            )
-          }
+            ),
+          },
         ]}
         onChange={setColourPalette}
       />

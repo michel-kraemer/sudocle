@@ -1,7 +1,7 @@
 import Button from "./Button"
 import {
   Dispatch as GameContextDispatch,
-  State as GameContextState
+  State as GameContextState,
 } from "./contexts/GameContext"
 import { TYPE_PAUSE } from "./lib/Actions"
 import { Pause } from "lucide-react"
@@ -38,11 +38,11 @@ const Timer = ({ solved }: TimerProps) => {
       setPausedElapsed(oldElapsed => oldElapsed + elapsed)
       setNext(+new Date())
       updateGame({
-        type: TYPE_PAUSE
+        type: TYPE_PAUSE,
       })
     } else {
       updateGame({
-        type: TYPE_PAUSE
+        type: TYPE_PAUSE,
       })
       setContinueVisible(true)
       setPauseStart(+new Date())

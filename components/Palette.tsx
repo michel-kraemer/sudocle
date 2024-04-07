@@ -11,7 +11,7 @@ interface PaletteProps {
 const Palette = ({
   colours,
   customisable = false,
-  updatePalette
+  updatePalette,
 }: PaletteProps) => {
   let gridTemplateColumns = `repeat(${colours.length}, 1fr)`
   if (customisable) {
@@ -36,8 +36,8 @@ const Palette = ({
       Color({
         r: Math.random() * 255,
         g: Math.random() * 255,
-        b: Math.random() * 255
-      }).hex()
+        b: Math.random() * 255,
+      }).hex(),
     ]
     updatePalette(newColours)
   }

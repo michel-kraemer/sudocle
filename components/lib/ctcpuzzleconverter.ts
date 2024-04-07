@@ -6,7 +6,7 @@ import {
   ExtraRegion,
   FogLight,
   Line,
-  Overlay
+  Overlay,
 } from "../types/Data"
 import Color from "color"
 import rename from "deep-rename-keys"
@@ -33,7 +33,7 @@ const KEYS: Record<string, string> = {
   th: "thickness",
   hl: "headLength",
   wp: "wayPoints",
-  te: "text"
+  te: "text",
 }
 
 function convertNewPuzzle(data: string): any {
@@ -66,7 +66,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let regions: [number, number][][] = puzzle.regions
 
   let cages: Cage[] = puzzle.cages.filter(
-    (c: any) => c.hidden === undefined || c.hidden === false
+    (c: any) => c.hidden === undefined || c.hidden === false,
   )
 
   // map outlineC to borderColor
@@ -169,7 +169,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     solution,
     fogLights,
     metadata,
-    solved: false
+    solved: false,
   }
 
   return result

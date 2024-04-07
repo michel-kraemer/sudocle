@@ -12,7 +12,7 @@ const baloo = Baloo_2({
   style: ["normal"],
   subsets: ["latin"],
   display: "swap", // force "swap" even in production mode
-  variable: "--font-baloo"
+  variable: "--font-baloo",
 })
 
 const roboto = Roboto({
@@ -20,7 +20,7 @@ const roboto = Roboto({
   style: ["normal", "italic"],
   subsets: ["latin"],
   display: "swap", // force "swap" even in production mode
-  variable: "--font-roboto"
+  variable: "--font-roboto",
 })
 
 const robotoCondensed = Roboto_Condensed({
@@ -28,18 +28,18 @@ const robotoCondensed = Roboto_Condensed({
   style: ["normal"],
   subsets: ["latin"],
   display: "swap", // force "swap" even in production mode
-  variable: "--font-roboto-condensed"
+  variable: "--font-roboto-condensed",
 })
 
 export const metadata: Metadata = {
   title: "Sudocle",
-  description: "A modern web app for Sudoku inspired by Cracking the Cryptic"
+  description: "A modern web app for Sudoku inspired by Cracking the Cryptic",
 }
 
 export default function RootLayout({
   // Layouts must accept a children prop.
   // This will be populated with nested layouts or pages
-  children
+  children,
 }: {
   children: React.ReactNode
 }) {
@@ -47,7 +47,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={clsx(
-        `${baloo.variable} ${roboto.variable} ${robotoCondensed.variable}`
+        `${baloo.variable} ${roboto.variable} ${robotoCondensed.variable}`,
       )}
     >
       <head>

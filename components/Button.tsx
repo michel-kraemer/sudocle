@@ -14,7 +14,7 @@ const Button = ({
   onClick,
   noPadding = false,
   pulsating = false,
-  children
+  children,
 }: ButtonProps) => {
   function onClickInternal(e: MouseEvent) {
     if (onClick !== undefined) {
@@ -33,7 +33,7 @@ const Button = ({
           ? "bg-button-active"
           : pulsating
             ? "[&:not(:hover)]:animate-pulsating"
-            : "bg-grey-700"
+            : "bg-grey-700",
       )}
       onClick={onClickInternal}
     >

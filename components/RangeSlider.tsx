@@ -22,7 +22,7 @@ const RangeSlider = ({
   label,
   value,
   onChange,
-  valueToDescription
+  valueToDescription,
 }: RangeSliderProps) => {
   const [currentValue, setCurrentValue] = useState(value)
 
@@ -86,8 +86,8 @@ const RangeSlider = ({
                   "relative rounded-mini transition-opacity select-none touch-none pointer-events-none whitespace-nowrap -translate-x-1/2 bg-fg text-bg px-1 py-0.5 text-[0.75em] font-medium inline-flex",
                   {
                     "opacity-100": descriptionVisible,
-                    "opacity-0 delay-100": !descriptionVisible
-                  }
+                    "opacity-0 delay-100": !descriptionVisible,
+                  },
                 )}
                 style={{ left: `${descriptionPosition}%` }}
               >

@@ -15,8 +15,8 @@ const config = {
     coast: false,
     firefox: false,
     windows: false,
-    yandex: false
-  }
+    yandex: false,
+  },
 }
 
 favicons("../../assets/sudocle-favicon.svg", config, (error, response) => {

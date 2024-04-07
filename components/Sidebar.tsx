@@ -9,7 +9,7 @@ import {
   ID_HELP,
   ID_RULES,
   ID_SETTINGS,
-  SidebarTab
+  SidebarTab,
 } from "./lib/SidebarTabs"
 import clsx from "clsx"
 import { BookOpen, HelpCircle, Info, Sliders, X } from "lucide-react"
@@ -27,14 +27,14 @@ const Sidebar = () => {
     activeTabId,
     visible,
     onTabClick,
-    expanded: expandedDirect
+    expanded: expandedDirect,
   } = useSidebar(
     useShallow(state => ({
       activeTabId: state.activeTabId,
       visible: state.visible,
       onTabClick: state.onTabClick,
-      expanded: state.expanded
-    }))
+      expanded: state.expanded,
+    })),
   )
   const game = useContext(GameContextState)
 
@@ -51,7 +51,7 @@ const Sidebar = () => {
     } else {
       setExpandedTimer.current = window.setTimeout(
         () => setExpanded(false),
-        300
+        300,
       )
     }
   }, [expandedDirect])
@@ -60,18 +60,18 @@ const Sidebar = () => {
     {
       id: ID_SETTINGS,
       icon: <Sliders />,
-      y: 0
+      y: 0,
     },
     {
       id: ID_HELP,
       icon: <HelpCircle />,
-      y: 0
+      y: 0,
     },
     {
       id: ID_ABOUT,
       icon: <Info />,
-      y: 0
-    }
+      y: 0,
+    },
   ]
 
   if (game.data.title !== undefined && game.data.rules !== undefined) {
@@ -79,7 +79,7 @@ const Sidebar = () => {
     tabs.unshift({
       id: ID_RULES,
       icon: <BookOpen />,
-      y: 0
+      y: 0,
     })
   }
 
@@ -94,7 +94,7 @@ const Sidebar = () => {
   tabs = [
     ...tabs.slice(0, activeTabIndex),
     ...tabs.slice(activeTabIndex + 1),
-    tabs[activeTabIndex]
+    tabs[activeTabIndex],
   ]
 
   return (
@@ -105,8 +105,8 @@ const Sidebar = () => {
           ? "translate-x-0 duration-300 ease-in-out"
           : "translate-x-[calc(100%-2.5rem)] duration-200 ease-in",
         {
-          "w-10 portrait:z-[-2000]": !expanded
-        }
+          "w-10 portrait:z-[-2000]": !expanded,
+        },
       )}
     >
       <div className="w-8 mt-8 portrait:hidden">
@@ -134,7 +134,7 @@ const Sidebar = () => {
                 "fill-bg hover:fill-button-hover":
                   expanded && t.id !== activeTabId,
                 "fill-primary hover:fill-primary-highlight":
-                  expanded && t.id === activeTabId
+                  expanded && t.id === activeTabId,
               })}
               onClick={() => onTabClick(t.id)}
             >
@@ -142,7 +142,7 @@ const Sidebar = () => {
                 xlinkHref="#tab-handle"
                 className={clsx(
                   "transition-opacity duration-200 ease-in-out",
-                  visible ? "opacity-100" : "opacity-0"
+                  visible ? "opacity-100" : "opacity-0",
                 )}
               />
               <g
@@ -150,7 +150,7 @@ const Sidebar = () => {
                   "pointer-events-none",
                   expanded && t.id === activeTabId
                     ? "text-bg"
-                    : "text-fg-500 group-hover:text-primary"
+                    : "text-fg-500 group-hover:text-primary",
                 )}
               >
                 <g transform="translate(25, 47)">{t.icon}</g>
@@ -164,8 +164,8 @@ const Sidebar = () => {
           "bg-bg/75 shadow-[-2px_0_5px_0_rgba(0_0_0/20%)] pt-4 pr-8 pb-8 pl-8 flex-1 opacity-0 transition-opacity duration-[150ms] ease-[cubic-bezier(1,0,1,0)] overflow-y-auto backdrop-blur-sm",
           {
             "opacity-100 duration-0 ease-linear": visible,
-            hidden: !expanded
-          }
+            hidden: !expanded,
+          },
         )}
       >
         {expanded && activeTabId === ID_RULES && <Rules />}
@@ -176,7 +176,7 @@ const Sidebar = () => {
       <div
         className={clsx(
           "absolute top-8 right-8 cursor-pointer hover:text-primary",
-          { hidden: !expanded }
+          { hidden: !expanded },
         )}
       >
         <X size="1rem" onClick={() => onTabClick(activeTabId)} />

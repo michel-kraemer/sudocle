@@ -18,7 +18,7 @@ const Modal = ({
   icon,
   title,
   onOpenChange,
-  children
+  children,
 }: ModalProps) => (
   <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
     <Dialog.Portal>
@@ -27,7 +27,7 @@ const Modal = ({
           <div
             className={clsx(
               "py-4 px-12",
-              alert ? "bg-modal-alert" : "bg-modal-success"
+              alert ? "bg-modal-alert" : "bg-modal-success",
             )}
           >
             <Dialog.Title className="font-medium flex flex-col items-center gap-0.5">

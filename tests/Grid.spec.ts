@@ -10,21 +10,21 @@ const fixtures = fsSync
   .readdirSync(fixturesDir)
   .filter(
     f =>
-      f.endsWith(".json") && f !== "package.json" && f !== "package-lock.json"
+      f.endsWith(".json") && f !== "package.json" && f !== "package-lock.json",
   )
 
 const testResultsDir = path.join(
   __dirname,
   "..",
   "test-results",
-  path.basename(__filename)
+  path.basename(__filename),
 )
 const tempScreenshotsDir = path.join(testResultsDir, "temp")
 fsSync.mkdirSync(tempScreenshotsDir, { recursive: true })
 
 const expectedScreenshotsDir = path.join(
   __dirname,
-  `${path.basename(__filename)}-snapshots`
+  `${path.basename(__filename)}-snapshots`,
 )
 fsSync.mkdirSync(expectedScreenshotsDir, { recursive: true })
 
@@ -77,7 +77,7 @@ test.describe.parallel("Grid", () => {
       // load puzzle
       let puzzleData = await page.evaluate(
         json => (window as any).initTestGrid(json),
-        data
+        data,
       )
       if (puzzleData.metadata?.bgimage !== undefined) {
         // wait for background image to be loaded
@@ -98,7 +98,7 @@ test.describe.parallel("Grid", () => {
       let expectedImage = path.join(expectedScreenshotsDir, `${f}.png`)
       if (!fsSync.existsSync(expectedImage)) {
         console.warn(
-          `     Screenshot of ${f} does not exist yet. Creating it now ...`
+          `     Screenshot of ${f} does not exist yet. Creating it now ...`,
         )
         await fs.writeFile(expectedImage, screenshot)
       }
@@ -108,7 +108,7 @@ test.describe.parallel("Grid", () => {
       let result = await compare(expectedImage, actualImage, diffImage, {
         antialiasing: true,
         threshold: 0.01,
-        outputDiffMask: true
+        outputDiffMask: true,
       })
 
       // evaluate result
@@ -120,11 +120,11 @@ test.describe.parallel("Grid", () => {
         // save actual screenshot and expected screenshot next to diff image
         await fs.writeFile(
           path.join(testResultsDir, `${f}.actual.png`),
-          screenshot
+          screenshot,
         )
         await fs.copyFile(
           expectedImage,
-          path.join(testResultsDir, `${f}.expected.png`)
+          path.join(testResultsDir, `${f}.expected.png`),
         )
         isOK = false
       } else if (!result.match) {
