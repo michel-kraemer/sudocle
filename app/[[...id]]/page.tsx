@@ -1,6 +1,5 @@
 "use client"
 
-import Grid from "../../components/Grid"
 import Modal from "../../components/Modal"
 import Pad from "../../components/Pad"
 import Sidebar from "../../components/Sidebar"
@@ -9,6 +8,7 @@ import {
   Dispatch as GameContextDispatch,
   State as GameContextState,
 } from "../../components/contexts/GameContext"
+import Grid from "../../components/grid/Grid"
 import { useSettings } from "../../components/hooks/useSettings"
 import {
   ACTION_ALL,

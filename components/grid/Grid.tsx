@@ -1,9 +1,9 @@
 import {
   Dispatch as GameContextDispatch,
   State as GameContextState,
-} from "./contexts/GameContext"
-import { useAsyncEffect } from "./hooks/useAsyncEffect"
-import { useSettings } from "./hooks/useSettings"
+} from "../contexts/GameContext"
+import { useAsyncEffect } from "../hooks/useAsyncEffect"
+import { useSettings } from "../hooks/useSettings"
 import {
   ACTION_CLEAR,
   ACTION_PUSH,
@@ -14,11 +14,14 @@ import {
   TYPE_DIGITS,
   TYPE_PENLINES,
   TYPE_SELECTION,
-} from "./lib/Actions"
-import { MODE_PEN } from "./lib/Modes"
-import { hasFog, ktoxy, pltok, xytok } from "./lib/utils"
-import { Arrow, DataCell, FogLight, Line, Overlay } from "./types/Data"
-import { Digit } from "./types/Game"
+} from "../lib/Actions"
+import { MODE_PEN } from "../lib/Modes"
+import { hasFog, ktoxy, pltok, xytok } from "../lib/utils"
+import { Arrow, DataCell, FogLight, Line, Overlay } from "../types/Data"
+import { Digit } from "../types/Game"
+import Cell from "./Cell"
+import { GraphicsEx } from "./GraphicsEx"
+import { ThemeColours } from "./ThemeColours"
 import Color from "color"
 import { produce } from "immer"
 import { flatten, isEqual } from "lodash"
@@ -61,7 +64,8 @@ const PENLINE_TYPE_CENTER_DOWN = 1
 const PENLINE_TYPE_EDGE_RIGHT = 2
 const PENLINE_TYPE_EDGE_DOWN = 3
 
-interface GraphicsExData {
+// TODO remove
+interface OldGraphicsExData {
   k?: number
   borderColor?: number | undefined
   draw: (options: {
@@ -74,15 +78,31 @@ interface GraphicsExData {
   }) => void
 }
 
-interface WithGraphicsExData {
-  data?: GraphicsExData
+interface OldWithGraphicsExData {
+  data?: OldGraphicsExData
 }
 
-type GraphicsEx = Graphics & WithGraphicsExData
+// TODO remove
+type OldGraphicsEx = Graphics & OldWithGraphicsExData
 
-type TextEx = Text & WithGraphicsExData
+// TODO remove
+type OldTextEx = Text & OldWithGraphicsExData
 
-type SpriteEx = Sprite & WithGraphicsExData
+// TODO remove
+type OldSpriteEx = Sprite & OldWithGraphicsExData
+
+// TODO remove
+function wrapOld(g: GraphicsEx): OldWithGraphicsExData {
+  return {
+    data: {
+      k: g.k,
+      borderColor: g.borderColor,
+      draw: options => {
+        g.draw(options)
+      },
+    },
+  }
+}
 
 type PenWaypointGraphics = Graphics & {
   data?: {
@@ -98,7 +118,7 @@ interface CornerMarkElement {
   data: {
     k: number
   }
-  elements: TextEx[]
+  elements: OldTextEx[]
 }
 
 interface GridCage {
@@ -106,19 +126,6 @@ interface GridCage {
   value?: number | string
   borderColor?: string
   topleft: [number, number]
-}
-
-interface ThemeColours {
-  backgroundColor: number
-  foregroundColor: number
-  digitColor: number
-  smallDigitColor: number
-  selection: {
-    yellow: number
-    red: number
-    green: number
-    blue: number
-  }
 }
 
 function unionCells(cells: [number, number][]): number[][][] {
@@ -665,11 +672,11 @@ function makeCornerMarks(
   fontFamily: string,
   fontWeight: TextStyleFontWeight = "normal",
   n = 11,
-): TextEx[] {
+): OldTextEx[] {
   let result = []
 
   for (let i = 0; i < n; ++i) {
-    let text: TextEx = new Text({
+    let text: OldTextEx = new Text({
       style: {
         fontFamily,
         fontSize,
@@ -840,14 +847,14 @@ function drawOverlay(
   mx: number,
   my: number,
   fontFamily: string,
-): (GraphicsEx | TextEx)[] {
+): (OldGraphicsEx | OldTextEx)[] {
   let result = []
 
   if (
     overlay.backgroundColor !== undefined ||
     overlay.borderColor !== undefined
   ) {
-    let g: GraphicsEx = new Graphics()
+    let g: OldGraphicsEx = new Graphics()
 
     if (overlay.rotation !== undefined) {
       g.rotation = overlay.rotation
@@ -912,7 +919,7 @@ function drawOverlay(
       fontSize *= 1 / 0.75
     }
 
-    let text: TextEx = new Text({
+    let text: OldTextEx = new Text({
       text: overlay.text,
       style: {
         fontFamily,
@@ -994,31 +1001,31 @@ const Grid = ({
   const gridElement = useRef<Container>()
   const cellsElement = useRef<Container>()
   const allElement = useRef<Container>()
-  const cellElements = useRef<GraphicsEx[]>([])
-  const regionElements = useRef<GraphicsEx[]>([])
-  const cageElements = useRef<GraphicsEx[]>([])
-  const cageLabelTextElements = useRef<TextEx[]>([])
-  const cageLabelBackgroundElements = useRef<GraphicsEx[]>([])
-  const lineElements = useRef<GraphicsEx[]>([])
-  const extraRegionElements = useRef<GraphicsEx[]>([])
-  const underlayElements = useRef<(GraphicsEx | TextEx)[]>([])
-  const overlayElements = useRef<(GraphicsEx | TextEx)[]>([])
+  const cellElements = useRef<OldWithGraphicsExData[]>([])
+  const regionElements = useRef<OldGraphicsEx[]>([])
+  const cageElements = useRef<OldGraphicsEx[]>([])
+  const cageLabelTextElements = useRef<OldTextEx[]>([])
+  const cageLabelBackgroundElements = useRef<OldGraphicsEx[]>([])
+  const lineElements = useRef<OldGraphicsEx[]>([])
+  const extraRegionElements = useRef<OldGraphicsEx[]>([])
+  const underlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
+  const overlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
   const backgroundElement = useRef<Graphics>()
-  const backgroundImageElements = useRef<SpriteEx[]>([])
-  const fogElements = useRef<GraphicsEx[]>([])
-  const givenCornerMarkElements = useRef<TextEx[]>([])
-  const digitElements = useRef<TextEx[]>([])
-  const centreMarkElements = useRef<TextEx[]>([])
+  const backgroundImageElements = useRef<OldSpriteEx[]>([])
+  const fogElements = useRef<OldGraphicsEx[]>([])
+  const givenCornerMarkElements = useRef<OldTextEx[]>([])
+  const digitElements = useRef<OldTextEx[]>([])
+  const centreMarkElements = useRef<OldTextEx[]>([])
   const cornerMarkElements = useRef<CornerMarkElement[]>([])
-  const colourElements = useRef<GraphicsEx[]>([])
-  const selectionElements = useRef<GraphicsEx[]>([])
-  const errorElements = useRef<GraphicsEx[]>([])
+  const colourElements = useRef<OldGraphicsEx[]>([])
+  const selectionElements = useRef<OldGraphicsEx[]>([])
+  const errorElements = useRef<OldGraphicsEx[]>([])
   const penCurrentWaypoints = useRef<number[]>([])
   const penCurrentWaypointsAdd = useRef(true)
   const penCurrentWaypointsElements = useRef<PenWaypointGraphics[]>([])
-  const penHitareaElements = useRef<GraphicsEx[]>([])
+  const penHitareaElements = useRef<OldGraphicsEx[]>([])
   const penCurrentDrawEdge = useRef(false)
-  const penLineElements = useRef<GraphicsEx[]>([])
+  const penLineElements = useRef<OldGraphicsEx[]>([])
 
   const renderLoopStarted = useRef(0)
   const rendering = useRef(false)
@@ -1538,9 +1545,9 @@ const Grid = ({
     // ***************** render everything that could contribute to bounds
 
     // fog
-    let fogMask: GraphicsEx | null = null
+    let fogMask: OldGraphicsEx | null = null
     if (game.data.fogLights !== undefined) {
-      let fog: GraphicsEx = new Graphics()
+      let fog: OldGraphicsEx = new Graphics()
       fog.zIndex = -1
       fog.data = {
         draw: function ({ cellSize, currentFogRaster }) {
@@ -1641,49 +1648,29 @@ const Grid = ({
     // render cells
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let cell: GraphicsEx = new Graphics()
-        cell.eventMode = "static"
-        cell.cursor = "pointer"
+        let cell = new Cell(x, y)
 
-        cell.data = {
-          k: xytok(x, y),
-          draw: function ({ cellSize, themeColours }) {
-            cell.rect(0, 0, cellSize, cellSize)
-            cell.stroke({
-              width: 1,
-              color: themeColours.foregroundColor,
-            })
-
-            cell.x = x * cellSize
-            cell.y = y * cellSize
-
-            // since our cells have a transparent background, we need to
-            // define a hit area
-            cell.hitArea = new Rectangle(0, 0, cellSize, cellSize)
-          },
-        }
-
-        cell.on("pointerdown", function (e: FederatedPointerEvent) {
-          selectCell(cell!.data!.k!, e)
+        cell.graphics.on("pointerdown", function (e: FederatedPointerEvent) {
+          selectCell(cell!.k!, e)
           e.stopPropagation()
           e.originalEvent.preventDefault()
         })
 
-        cell.on("pointerover", function (e: FederatedPointerEvent) {
+        cell.graphics.on("pointerover", function (e: FederatedPointerEvent) {
           if (e.buttons === 1) {
-            selectCell(cell!.data!.k!, e, true)
+            selectCell(cell!.k!, e, true)
           }
           e.stopPropagation()
         })
 
-        cells.addChild(cell)
-        cellElements.current.push(cell)
+        cells.addChild(cell.graphics)
+        cellElements.current.push(wrapOld(cell))
       })
     })
 
     // render regions
     for (let r of regions) {
-      let poly: GraphicsEx = new Graphics()
+      let poly: OldGraphicsEx = new Graphics()
       poly.data = {
         draw: function ({ cellSize, themeColours }) {
           poly.poly(r.map(v => v * cellSize))
@@ -1707,7 +1694,7 @@ const Grid = ({
     cageTopLeftBgContainer.mask = fogMask
     for (let cage of cages) {
       // draw outline
-      let poly: GraphicsEx = new Graphics()
+      let poly: OldGraphicsEx = new Graphics()
       poly.data = {
         borderColor: cage.borderColor
           ? getRGBColor(cage.borderColor)
@@ -1737,7 +1724,7 @@ const Grid = ({
       ) {
         // create cage label
         // use larger font and scale down afterwards to improve text rendering
-        let topleftText: TextEx = new Text({
+        let topleftText: OldTextEx = new Text({
           text: cage.value,
           style: {
             fontFamily: defaultFontFamily,
@@ -1755,7 +1742,7 @@ const Grid = ({
         cageTopLeftTextContainer.addChild(topleftText)
         cageLabelTextElements.current.push(topleftText)
 
-        let topleftBg: GraphicsEx = new Graphics()
+        let topleftBg: OldGraphicsEx = new Graphics()
         topleftBg.data = {
           draw: function ({ cellSize }) {
             topleftBg.rect(
@@ -1786,7 +1773,7 @@ const Grid = ({
     extraRegionsContainer.zIndex = -30
     extraRegionsContainer.mask = fogMask
     for (let r of extraRegions) {
-      let poly: GraphicsEx = new Graphics()
+      let poly: OldGraphicsEx = new Graphics()
       poly.data = {
         draw: function ({ cellSize }) {
           let disposedOutline = disposePolygon(
@@ -1852,7 +1839,7 @@ const Grid = ({
     linesContainer.zIndex = -10
     linesContainer.mask = fogMask
     lines.forEach(line => {
-      let poly: GraphicsEx = new Graphics()
+      let poly: OldGraphicsEx = new Graphics()
       poly.alpha = getAlpha(line.color)
       poly.data = {
         draw: function ({ cellSize }) {
@@ -1909,7 +1896,7 @@ const Grid = ({
       // arrow heads
       if (line.isArrow && line.wayPoints.length > 1) {
         let arrow = line as Arrow
-        let head: GraphicsEx = new Graphics()
+        let head: OldGraphicsEx = new Graphics()
         head.data = {
           draw: function ({ cellSize }) {
             let points = shortenLine(
@@ -2001,7 +1988,7 @@ const Grid = ({
 
     // add background image
     if (game.data.metadata?.bgimage !== undefined) {
-      let sprite: SpriteEx = Sprite.from(game.data.metadata.bgimage)
+      let sprite: OldSpriteEx = Sprite.from(game.data.metadata.bgimage)
       sprite.zIndex = -40
       sprite.alpha = 0.2
       sprite.data = {
@@ -2061,7 +2048,7 @@ const Grid = ({
     // create empty text elements for all digits
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let text: TextEx = new Text({
+        let text: OldTextEx = new Text({
           style: {
             fontFamily: defaultFontFamily,
             fontSize: FONT_SIZE_DIGITS,
@@ -2089,7 +2076,7 @@ const Grid = ({
           data: {
             k: xytok(x, y),
           },
-          elements: [] as TextEx[],
+          elements: [] as OldTextEx[],
         }
 
         let leaveRoom = hasCageValue(x, y, cages) || hasGivenCornerMarks(col)
@@ -2117,7 +2104,7 @@ const Grid = ({
     // create empty text elements for centre marks
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let text: TextEx = new Text({
+        let text: OldTextEx = new Text({
           style: {
             fontFamily: defaultFontFamily,
             fontSize: FONT_SIZE_CENTRE_MARKS_HIGH_DPI,
@@ -2144,7 +2131,7 @@ const Grid = ({
     // create invisible rectangles for colours
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let rect: GraphicsEx = new Graphics()
+        let rect: OldGraphicsEx = new Graphics()
         rect.alpha = 0
         rect.zIndex = 0
         rect.data = {
@@ -2162,7 +2149,7 @@ const Grid = ({
     // create invisible rectangles for selection
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let rect: GraphicsEx = new Graphics()
+        let rect: OldGraphicsEx = new Graphics()
         rect.visible = false
         rect.zIndex = 20
         rect.data = {
@@ -2182,7 +2169,7 @@ const Grid = ({
     // create invisible rectangles for errors
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let rect: GraphicsEx = new Graphics()
+        let rect: OldGraphicsEx = new Graphics()
         rect.visible = false
         rect.zIndex = 10
         rect.data = {
@@ -2210,7 +2197,7 @@ const Grid = ({
           dy: number,
           type: number,
         ) {
-          let line: GraphicsEx = new Graphics()
+          let line: OldGraphicsEx = new Graphics()
           line.visible = false
           line.zIndex = 60
           line.data = {
@@ -2301,7 +2288,7 @@ const Grid = ({
     penCurrentWaypointsElements.current.push(penWaypoints)
 
     // add invisible hit area for pen tool
-    let penHitArea: GraphicsEx = new Graphics()
+    let penHitArea: OldGraphicsEx = new Graphics()
     penHitArea.eventMode = "static"
     penHitArea.cursor = "crosshair"
     penHitArea.zIndex = 80
@@ -2324,9 +2311,9 @@ const Grid = ({
     // memoize draw calls to improve performance
     const wrapDraw =
       (
-        e: WithGraphicsExData,
-        draw: NonNullable<WithGraphicsExData["data"]>["draw"],
-      ): NonNullable<WithGraphicsExData["data"]>["draw"] =>
+        e: OldWithGraphicsExData,
+        draw: NonNullable<OldWithGraphicsExData["data"]>["draw"],
+      ): NonNullable<OldWithGraphicsExData["data"]>["draw"] =>
       options => {
         if (e instanceof Graphics) {
           e.clear()
