@@ -4,11 +4,8 @@ import Modal from "../../components/Modal"
 import Pad from "../../components/Pad"
 import Sidebar from "../../components/Sidebar"
 import StatusBar from "../../components/StatusBar"
-import {
-  Dispatch as GameContextDispatch,
-  State as GameContextState,
-} from "../../components/contexts/GameContext"
 import Grid from "../../components/grid/Grid"
+import { GameState, useGame } from "../../components/hooks/useGame"
 import { useSettings } from "../../components/hooks/useSettings"
 import {
   ACTION_ALL,
@@ -46,7 +43,6 @@ import {
   MouseEvent,
   ReactNode,
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -56,8 +52,8 @@ import { useShallow } from "zustand/react/shallow"
 enableMapSet()
 
 const IndexPage = () => {
-  const game = useContext(GameContextState)
-  const updateGame = useContext(GameContextDispatch)
+  const game: GameState = useGame()
+  const updateGame = useGame(state => state.updateGame)
   const { theme, colourPalette } = useSettings(
     useShallow(state => ({
       theme: state.theme,

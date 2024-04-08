@@ -1,5 +1,4 @@
 import MatomoInit from "../components/MatomoInit"
-import { Provider as GameContextProvider } from "../components/contexts/GameContext"
 import "../css/colour-palettes.css"
 import "../css/main.css"
 import "../css/themes.css"
@@ -136,7 +135,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="Sudocle" />
       </head>
       <body>
-        <GameContextProvider>{children}</GameContextProvider>
+        {children}
         <MatomoInit />
       </body>
     </html>

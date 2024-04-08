@@ -1,8 +1,5 @@
 import Button from "./Button"
-import {
-  Dispatch as GameContextDispatch,
-  State as GameContextState,
-} from "./contexts/GameContext"
+import { useGame } from "./hooks/useGame"
 import { useSettings } from "./hooks/useSettings"
 import {
   ACTION_REMOVE,
@@ -26,7 +23,7 @@ import {
 import clsx from "clsx"
 import Color from "color"
 import { Check, Delete, Redo, Undo } from "lucide-react"
-import { useContext, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useShallow } from "zustand/react/shallow"
 
 interface Colour {
@@ -49,8 +46,13 @@ const Pad = () => {
       customColours: state.customColours,
     })),
   )
-  const game = useContext(GameContextState)
-  const updateGame = useContext(GameContextDispatch)
+  const { data, digits, mode, solved } = useGame(state => ({
+    data: state.data,
+    digits: state.digits,
+    mode: state.mode,
+    solved: state.solved,
+  }))
+  const updateGame = useGame(state => state.updateGame)
   const [colours, setColours] = useState<Colour[]>([])
   const [checkReady, setCheckReady] = useState(false)
 
@@ -83,13 +85,13 @@ const Pad = () => {
 
   useEffect(() => {
     // check if all cells are filled
-    if (game.data === undefined) {
+    if (data === undefined) {
       setCheckReady(false)
     } else {
-      let nCells = game.data.cells.reduce((acc, v) => acc + v.length, 0)
-      setCheckReady(nCells === game.digits.size)
+      let nCells = data.cells.reduce((acc, v) => acc + v.length, 0)
+      setCheckReady(nCells === digits.size)
     }
-  }, [game.data, game.digits])
+  }, [data, digits])
 
   function onDigit(digit: number) {
     updateGame({
@@ -142,17 +144,17 @@ const Pad = () => {
 
   const digitButtons = []
 
-  let modeGroup = getModeGroup(game.mode)
+  let modeGroup = getModeGroup(mode)
   if (modeGroup === 0) {
-    if (game.mode !== MODE_COLOUR) {
+    if (mode !== MODE_COLOUR) {
       for (let i = 1; i <= 10; ++i) {
         let digit = i % 10
         digitButtons.push(
           <Button key={i} noPadding onClick={() => onDigit(digit)}>
             <div
               className={clsx({
-                "text-[1.15rem]": game.mode === MODE_NORMAL,
-                "text-[0.6rem]": game.mode === MODE_CENTRE,
+                "text-[1.15rem]": mode === MODE_NORMAL,
+                "text-[0.6rem]": mode === MODE_CENTRE,
                 [clsx({
                   "text-[0.55rem] absolute": true,
                   "top-[0.2rem] left-[0.4rem]": digit === 0 || digit === 1,
@@ -163,7 +165,7 @@ const Pad = () => {
                   "bottom-[0.2rem] left-[0.4rem]": digit === 7,
                   "bottom-[0.2rem]": digit === 8,
                   "bottom-[0.2rem] right-[0.4rem]": digit === 9,
-                })]: game.mode === MODE_CORNER,
+                })]: mode === MODE_CORNER,
               })}
             >
               <div>{digit}</div>
@@ -171,7 +173,7 @@ const Pad = () => {
           </Button>,
         )
       }
-    } else if (game.mode === MODE_COLOUR) {
+    } else if (mode === MODE_COLOUR) {
       for (let c of colours) {
         if (c === undefined) {
           continue
@@ -215,7 +217,7 @@ const Pad = () => {
       </Button>
       {(modeGroup === 0 && (
         <Button
-          active={game.mode === MODE_NORMAL}
+          active={mode === MODE_NORMAL}
           noPadding
           onClick={() => onMode(MODE_NORMAL)}
         >
@@ -223,7 +225,7 @@ const Pad = () => {
         </Button>
       )) || (
         <Button
-          active={game.mode === MODE_PEN}
+          active={mode === MODE_PEN}
           noPadding
           onClick={() => onMode(MODE_PEN)}
         >
@@ -235,7 +237,7 @@ const Pad = () => {
       {digitButtons[2]}
       {(modeGroup === 0 && (
         <Button
-          active={game.mode === MODE_CORNER}
+          active={mode === MODE_CORNER}
           noPadding
           onClick={() => onMode(MODE_CORNER)}
         >
@@ -247,7 +249,7 @@ const Pad = () => {
       {digitButtons[5]}
       {(modeGroup === 0 && (
         <Button
-          active={game.mode === MODE_CENTRE}
+          active={mode === MODE_CENTRE}
           noPadding
           onClick={() => onMode(MODE_CENTRE)}
         >
@@ -259,31 +261,27 @@ const Pad = () => {
       {digitButtons[8]}
       {(modeGroup === 0 && (
         <Button
-          active={game.mode === MODE_COLOUR}
+          active={mode === MODE_COLOUR}
           noPadding
           onClick={() => onMode(MODE_COLOUR)}
         >
           <ModeButton>Colour</ModeButton>
         </Button>
       )) || <Placeholder />}
-      {game.mode !== MODE_COLOUR && (
+      {mode !== MODE_COLOUR && (
         <>
           <div className="flex col-span-2">{digitButtons[9]}</div>
           <Placeholder />
         </>
       )}
-      {game.mode === MODE_COLOUR && (
+      {mode === MODE_COLOUR && (
         <>
           {digitButtons[9]}
           {digitButtons[10]}
           {digitButtons[11]}
         </>
       )}
-      <Button
-        noPadding
-        onClick={onCheck}
-        pulsating={!game.solved && checkReady}
-      >
+      <Button noPadding onClick={onCheck} pulsating={!solved && checkReady}>
         <Check size="1.05rem" />
       </Button>
     </div>

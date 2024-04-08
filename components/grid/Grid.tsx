@@ -1,8 +1,5 @@
-import {
-  Dispatch as GameContextDispatch,
-  State as GameContextState,
-} from "../contexts/GameContext"
 import { useAsyncEffect } from "../hooks/useAsyncEffect"
+import { GameState, useGame } from "../hooks/useGame"
 import { useSettings } from "../hooks/useSettings"
 import {
   ACTION_CLEAR,
@@ -40,14 +37,7 @@ import {
   Ticker,
 } from "pixi.js"
 import polygonClipping, { Polygon } from "polygon-clipping"
-import {
-  MouseEvent,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-} from "react"
+import { MouseEvent, useCallback, useEffect, useMemo, useRef } from "react"
 import { useShallow } from "zustand/react/shallow"
 
 const SCALE_FACTOR = 1.2
@@ -1030,8 +1020,8 @@ const Grid = ({
   const renderLoopStarted = useRef(0)
   const rendering = useRef(false)
 
-  const game = useContext(GameContextState)
-  const updateGame = useContext(GameContextDispatch)
+  const game: GameState = useGame()
+  const updateGame = useGame(state => state.updateGame)
 
   const {
     colourPalette,

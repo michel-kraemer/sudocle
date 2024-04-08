@@ -1,19 +1,16 @@
 import Button from "./Button"
-import {
-  Dispatch as GameContextDispatch,
-  State as GameContextState,
-} from "./contexts/GameContext"
+import { useGame } from "./hooks/useGame"
 import { TYPE_PAUSE } from "./lib/Actions"
 import { Pause } from "lucide-react"
-import { useCallback, useContext, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 interface TimerProps {
   solved: boolean
 }
 
 const Timer = ({ solved }: TimerProps) => {
-  const game = useContext(GameContextState)
-  const updateGame = useContext(GameContextDispatch)
+  const paused = useGame(state => state.paused)
+  const updateGame = useGame(state => state.updateGame)
 
   const [start] = useState(+new Date())
   const [end, setEnd] = useState<number>()
@@ -31,7 +28,7 @@ const Timer = ({ solved }: TimerProps) => {
   }
 
   const onPause = useCallback(() => {
-    if (game.paused) {
+    if (paused) {
       let nextRemaining = next - pauseStart!
       setNext(+new Date() - (1000 - nextRemaining))
       let elapsed = +new Date() - pauseStart!
@@ -47,7 +44,7 @@ const Timer = ({ solved }: TimerProps) => {
       setContinueVisible(true)
       setPauseStart(+new Date())
     }
-  }, [game.paused, next, pauseStart, updateGame])
+  }, [paused, next, pauseStart, updateGame])
 
   function onContinue() {
     setContinueVisible(false)
@@ -56,7 +53,7 @@ const Timer = ({ solved }: TimerProps) => {
 
   useEffect(() => {
     clearTimeout(nextTimer.current)
-    if (game.paused) {
+    if (paused) {
       return
     }
 
@@ -79,7 +76,7 @@ const Timer = ({ solved }: TimerProps) => {
     nextTimer.current = window.setTimeout(() => {
       setNext(next + 1000)
     }, next - now)
-  }, [s, m, h, start, end, next, game.paused, pausedElapsed])
+  }, [s, m, h, start, end, next, paused, pausedElapsed])
 
   return (
     <>

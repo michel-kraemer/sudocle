@@ -42,9 +42,9 @@ import {
 import { hasFog, ktoxy, xytok } from "../lib/utils"
 import { Data, DataCell, FogLight } from "../types/Data"
 import { Digit } from "../types/Game"
-import { produce } from "immer"
 import { isEqual, isString } from "lodash"
-import { ReactNode, createContext, useReducer } from "react"
+import { create } from "zustand"
+import { immer } from "zustand/middleware/immer"
 
 const EmptyData: Data = {
   cellSize: 50,
@@ -72,7 +72,7 @@ interface PersistentGameState {
   fogRaster?: number[][]
 }
 
-interface GameState extends PersistentGameState {
+export interface GameState extends PersistentGameState {
   readonly data: Data
   mode: Mode
   modeGroup: number
@@ -87,8 +87,9 @@ interface GameState extends PersistentGameState {
   checkCounter: number
 }
 
-export const State = createContext(makeEmptyState())
-export const Dispatch = createContext((_: Action) => {})
+interface GameStateWithActions extends GameState {
+  updateGame(action: Action): void
+}
 
 function makeGiven<T, R>(
   data: Data | undefined,
@@ -802,212 +803,206 @@ function makeUndoState(state: PersistentGameState): PersistentGameState {
   }
 }
 
-function gameReducer(state: GameState, action: Action) {
-  return produce(state, draft => {
-    if (action.type === TYPE_INIT) {
-      let canonicalData:
-        | {
-            -readonly [P in keyof Data]: Data[P]
-          }
-        | undefined = undefined
-      if (action.data !== undefined) {
-        // Filter out invalid elements. For the time being, these are only
-        // lines without colour. In the future, we might implement more rules
-        // or check the schema against our data model.
-        let data = { ...action.data }
-        if (
-          data.lines !== undefined &&
-          Array.isArray(data.lines) &&
-          data.lines.some((l: any) => l.color === undefined)
-        ) {
-          data.lines = data.lines.filter((l: any) => l.color !== undefined)
-        }
+export const useGame = create<GameStateWithActions>()(
+  immer((set, get) => ({
+    ...makeEmptyState(),
 
-        canonicalData = data as Data
-        canonicalData.cells = canonicalData.cells || []
-        canonicalData.regions = canonicalData.regions || []
-        canonicalData.cages = canonicalData.cages || []
-        canonicalData.lines = canonicalData.lines || []
-        canonicalData.arrows = canonicalData.arrows || []
-        canonicalData.underlays = canonicalData.underlays || []
-        canonicalData.overlays = canonicalData.overlays || []
+    updateGame: (action: Action) =>
+      set(draft => {
+        if (action.type === TYPE_INIT) {
+          let canonicalData:
+            | {
+                -readonly [P in keyof Data]: Data[P]
+              }
+            | undefined = undefined
+          if (action.data !== undefined) {
+            // Filter out invalid elements. For the time being, these are only
+            // lines without colour. In the future, we might implement more rules
+            // or check the schema against our data model.
+            let data = { ...action.data }
+            if (
+              data.lines !== undefined &&
+              Array.isArray(data.lines) &&
+              data.lines.some((l: any) => l.color === undefined)
+            ) {
+              data.lines = data.lines.filter((l: any) => l.color !== undefined)
+            }
 
-        // look for additional embedded attributes
-        let possibleTitles: string[] = []
-        let needToFilterFogLights = false
-        for (let cage of canonicalData.cages) {
-          if (typeof cage.value === "string") {
-            if (cage.value.startsWith("title:")) {
-              canonicalData.title =
-                canonicalData.title ?? cage.value.substring(6).trim()
-            } else if (cage.value.startsWith("author:")) {
-              canonicalData.author =
-                canonicalData.author ?? cage.value.substring(7).trim()
-            } else if (cage.value.startsWith("rules:")) {
-              canonicalData.rules =
-                canonicalData.rules ?? cage.value.substring(6).trim()
-            } else if (cage.value.startsWith("foglight:")) {
-              let str = cage.value.substring(9).trim()
-              canonicalData.fogLights = [
-                ...(canonicalData.fogLights ?? []),
-                ...parseFogLights(str),
-              ]
-            } else if (cage.value.startsWith("solution:")) {
-              let str = cage.value.substring(9).trim()
-              canonicalData.solution =
-                canonicalData.solution ?? parseSolution(canonicalData, str)
-            } else if (cage.value.startsWith("msgcorrect:")) {
-              // Message to be displayed if solution is correct. This is not
-              // implemented yet. Ignore it.
-            } else if (cage.value.toLowerCase() === "foglight") {
-              canonicalData.fogLights = [
-                ...(canonicalData.fogLights ?? []),
-                ...(cage.cells ?? []).map<FogLight>(c => ({
-                  center: c,
-                  size: 1,
-                })),
-              ]
-              needToFilterFogLights = true
-            } else {
-              possibleTitles.push(cage.value)
+            canonicalData = data as Data
+            canonicalData.cells = canonicalData.cells || []
+            canonicalData.regions = canonicalData.regions || []
+            canonicalData.cages = canonicalData.cages || []
+            canonicalData.lines = canonicalData.lines || []
+            canonicalData.arrows = canonicalData.arrows || []
+            canonicalData.underlays = canonicalData.underlays || []
+            canonicalData.overlays = canonicalData.overlays || []
+
+            // look for additional embedded attributes
+            let possibleTitles: string[] = []
+            let needToFilterFogLights = false
+            for (let cage of canonicalData.cages) {
+              if (typeof cage.value === "string") {
+                if (cage.value.startsWith("title:")) {
+                  canonicalData.title =
+                    canonicalData.title ?? cage.value.substring(6).trim()
+                } else if (cage.value.startsWith("author:")) {
+                  canonicalData.author =
+                    canonicalData.author ?? cage.value.substring(7).trim()
+                } else if (cage.value.startsWith("rules:")) {
+                  canonicalData.rules =
+                    canonicalData.rules ?? cage.value.substring(6).trim()
+                } else if (cage.value.startsWith("foglight:")) {
+                  let str = cage.value.substring(9).trim()
+                  canonicalData.fogLights = [
+                    ...(canonicalData.fogLights ?? []),
+                    ...parseFogLights(str),
+                  ]
+                } else if (cage.value.startsWith("solution:")) {
+                  let str = cage.value.substring(9).trim()
+                  canonicalData.solution =
+                    canonicalData.solution ?? parseSolution(canonicalData, str)
+                } else if (cage.value.startsWith("msgcorrect:")) {
+                  // Message to be displayed if solution is correct. This is not
+                  // implemented yet. Ignore it.
+                } else if (cage.value.toLowerCase() === "foglight") {
+                  canonicalData.fogLights = [
+                    ...(canonicalData.fogLights ?? []),
+                    ...(cage.cells ?? []).map<FogLight>(c => ({
+                      center: c,
+                      size: 1,
+                    })),
+                  ]
+                  needToFilterFogLights = true
+                } else {
+                  possibleTitles.push(cage.value)
+                }
+              }
+            }
+            if (
+              canonicalData.title === undefined &&
+              possibleTitles.length > 0
+            ) {
+              canonicalData.title = possibleTitles[0]
+            }
+            if (needToFilterFogLights) {
+              canonicalData.cages = canonicalData.cages.filter(
+                c =>
+                  typeof c.value !== "string" ||
+                  c.value.toLowerCase() !== "foglight",
+              )
+            }
+            if (canonicalData.rules !== undefined) {
+              // fix invalid line breaks in rules
+              canonicalData.rules = canonicalData.rules.replaceAll(/\\n/g, "\n")
             }
           }
+
+          return makeEmptyState(canonicalData)
         }
-        if (canonicalData.title === undefined && possibleTitles.length > 0) {
-          canonicalData.title = possibleTitles[0]
+
+        if (action.type !== TYPE_PAUSE && draft.paused) {
+          // ignore any interaction when paused
+          return
         }
-        if (needToFilterFogLights) {
-          canonicalData.cages = canonicalData.cages.filter(
-            c =>
-              typeof c.value !== "string" ||
-              c.value.toLowerCase() !== "foglight",
+
+        // clear errors on every interaction
+        if (draft.errors.size > 0) {
+          draft.errors.clear()
+        }
+
+        if (action.type === TYPE_UNDO) {
+          if (draft.nextUndoState === 0) {
+            return
+          }
+          let oldState = draft.undoStates[draft.nextUndoState - 1]
+          if (draft.nextUndoState === draft.undoStates.length) {
+            draft.undoStates.push(makeUndoState(draft))
+          }
+          Object.assign(draft, makeUndoState(oldState))
+          draft.nextUndoState = draft.nextUndoState - 1
+          return
+        }
+
+        if (action.type === TYPE_REDO) {
+          if (draft.nextUndoState >= draft.undoStates.length - 1) {
+            return
+          }
+          let oldState = draft.undoStates[draft.nextUndoState + 1]
+          Object.assign(draft, makeUndoState(oldState))
+          draft.nextUndoState = draft.nextUndoState + 1
+          return
+        }
+
+        if (action.type === TYPE_CHECK) {
+          draft.errors = checkReducer(
+            draft.digits,
+            draft.data?.cells,
+            draft.data?.solution,
           )
-        }
-        if (canonicalData.rules !== undefined) {
-          // fix invalid line breaks in rules
-          canonicalData.rules = canonicalData.rules.replaceAll(/\\n/g, "\n")
-        }
-      }
-
-      return makeEmptyState(canonicalData)
-    }
-
-    if (action.type !== TYPE_PAUSE && state.paused) {
-      // ignore any interaction when paused
-      return
-    }
-
-    // clear errors on every interaction
-    if (draft.errors.size > 0) {
-      draft.errors.clear()
-    }
-
-    if (action.type === TYPE_UNDO) {
-      if (draft.nextUndoState === 0) {
-        return
-      }
-      let oldState = draft.undoStates[draft.nextUndoState - 1]
-      if (draft.nextUndoState === draft.undoStates.length) {
-        draft.undoStates.push(makeUndoState(draft))
-      }
-      Object.assign(draft, makeUndoState(oldState))
-      draft.nextUndoState = draft.nextUndoState - 1
-      return
-    }
-
-    if (action.type === TYPE_REDO) {
-      if (draft.nextUndoState >= draft.undoStates.length - 1) {
-        return
-      }
-      let oldState = draft.undoStates[draft.nextUndoState + 1]
-      Object.assign(draft, makeUndoState(oldState))
-      draft.nextUndoState = draft.nextUndoState + 1
-      return
-    }
-
-    if (action.type === TYPE_CHECK) {
-      draft.errors = checkReducer(
-        draft.digits,
-        draft.data?.cells,
-        draft.data?.solution,
-      )
-      if (!draft.solved) {
-        draft.solved = draft.errors.size === 0
-      }
-      draft.checkCounter++
-      return
-    }
-
-    if (action.type === TYPE_PAUSE) {
-      draft.paused = !draft.paused
-      return
-    }
-
-    if (
-      (action.type === TYPE_DIGITS || action.type === TYPE_COLOURS) &&
-      action.action === ACTION_REMOVE
-    ) {
-      let deleteColour = false
-      if (draft.mode === MODE_COLOUR) {
-        for (let sc of draft.selection) {
-          deleteColour = draft.colours.has(sc)
-          if (deleteColour) {
-            break
+          if (!draft.solved) {
+            draft.solved = draft.errors.size === 0
           }
+          draft.checkCounter++
+          return
         }
-      }
-      let highest = MODE_COLOUR
-      if (!deleteColour) {
-        for (let sc of draft.selection) {
-          let digit = draft.digits.get(sc)
-          if (digit !== undefined && (!digit.given || digit.discovered)) {
-            highest = MODE_NORMAL
-            break
+
+        if (action.type === TYPE_PAUSE) {
+          draft.paused = !draft.paused
+          return
+        }
+
+        if (
+          (action.type === TYPE_DIGITS || action.type === TYPE_COLOURS) &&
+          action.action === ACTION_REMOVE
+        ) {
+          let deleteColour = false
+          if (draft.mode === MODE_COLOUR) {
+            for (let sc of draft.selection) {
+              deleteColour = draft.colours.has(sc)
+              if (deleteColour) {
+                break
+              }
+            }
           }
-          if (highest === MODE_COLOUR && draft.centreMarks.has(sc)) {
-            highest = MODE_CENTRE
-          } else if (highest === MODE_COLOUR && draft.cornerMarks.has(sc)) {
-            highest = MODE_CENTRE
+          let highest = MODE_COLOUR
+          if (!deleteColour) {
+            for (let sc of draft.selection) {
+              let digit = draft.digits.get(sc)
+              if (digit !== undefined && (!digit.given || digit.discovered)) {
+                highest = MODE_NORMAL
+                break
+              }
+              if (highest === MODE_COLOUR && draft.centreMarks.has(sc)) {
+                highest = MODE_CENTRE
+              } else if (highest === MODE_COLOUR && draft.cornerMarks.has(sc)) {
+                highest = MODE_CENTRE
+              }
+            }
+            if (highest === MODE_CENTRE) {
+              gameReducerNoUndo(draft, MODE_CORNER, action)
+            }
           }
+          if (highest === MODE_COLOUR) {
+            gameReducerNoUndo(draft, highest, { ...action, type: TYPE_COLOURS })
+          } else {
+            gameReducerNoUndo(draft, highest, action)
+          }
+        } else {
+          gameReducerNoUndo(draft, draft.mode, action)
         }
-        if (highest === MODE_CENTRE) {
-          gameReducerNoUndo(draft, MODE_CORNER, action)
+
+        let us = makeUndoState(get())
+        let nus = makeUndoState(draft)
+        if (
+          !isEqual(us, nus) &&
+          (draft.nextUndoState === 0 ||
+            !isEqual(draft.undoStates[draft.nextUndoState - 1], us))
+        ) {
+          let newUndoStates = draft.undoStates.slice(0, draft.nextUndoState)
+          newUndoStates[draft.nextUndoState] = us
+          draft.undoStates = newUndoStates
+          draft.nextUndoState = draft.nextUndoState + 1
         }
-      }
-      if (highest === MODE_COLOUR) {
-        gameReducerNoUndo(draft, highest, { ...action, type: TYPE_COLOURS })
-      } else {
-        gameReducerNoUndo(draft, highest, action)
-      }
-    } else {
-      gameReducerNoUndo(draft, draft.mode, action)
-    }
-
-    let us = makeUndoState(state)
-    let nus = makeUndoState(draft)
-    if (
-      !isEqual(us, nus) &&
-      (draft.nextUndoState === 0 ||
-        !isEqual(draft.undoStates[draft.nextUndoState - 1], us))
-    ) {
-      let newUndoStates = draft.undoStates.slice(0, draft.nextUndoState)
-      newUndoStates[draft.nextUndoState] = us
-      draft.undoStates = newUndoStates
-      draft.nextUndoState = draft.nextUndoState + 1
-    }
-  })
-}
-
-interface ProviderProps {
-  children: ReactNode
-}
-
-export const Provider = ({ children }: ProviderProps) => {
-  const [state, dispatch] = useReducer(gameReducer, makeEmptyState())
-
-  return (
-    <State.Provider value={state}>
-      <Dispatch.Provider value={dispatch}>{children}</Dispatch.Provider>
-    </State.Provider>
-  )
-}
+      }),
+  })),
+)

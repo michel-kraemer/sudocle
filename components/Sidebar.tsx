@@ -2,7 +2,7 @@ import About from "./About"
 import Help from "./Help"
 import Rules from "./Rules"
 import Settings from "./Settings"
-import { State as GameContextState } from "./contexts/GameContext"
+import { useGame } from "./hooks/useGame"
 import { useSidebar } from "./hooks/useSidebar"
 import {
   ID_ABOUT,
@@ -13,7 +13,7 @@ import {
 } from "./lib/SidebarTabs"
 import clsx from "clsx"
 import { BookOpen, HelpCircle, Info, Sliders, X } from "lucide-react"
-import { ReactNode, useContext, useEffect, useRef, useState } from "react"
+import { ReactNode, useEffect, useRef, useState } from "react"
 import { useShallow } from "zustand/react/shallow"
 
 interface Tab {
@@ -36,7 +36,10 @@ const Sidebar = () => {
       expanded: state.expanded,
     })),
   )
-  const game = useContext(GameContextState)
+  const { title, rules } = useGame(state => ({
+    title: state.data.title,
+    rules: state.data.rules,
+  }))
 
   const [expanded, setExpanded] = useState(expandedDirect)
   const setExpandedTimer = useRef<number>()
@@ -74,7 +77,7 @@ const Sidebar = () => {
     },
   ]
 
-  if (game.data.title !== undefined && game.data.rules !== undefined) {
+  if (title !== undefined && rules !== undefined) {
     // add rules tab if game data contains rules
     tabs.unshift({
       id: ID_RULES,
