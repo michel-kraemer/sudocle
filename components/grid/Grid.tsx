@@ -18,6 +18,7 @@ import { Arrow, DataCell, FogLight, Line, Overlay } from "../types/Data"
 import { Digit } from "../types/Game"
 import Cell from "./Cell"
 import { GraphicsEx } from "./GraphicsEx"
+import Region from "./Region"
 import { ThemeColours } from "./ThemeColours"
 import Color from "color"
 import { produce } from "immer"
@@ -57,7 +58,6 @@ const PENLINE_TYPE_EDGE_DOWN = 3
 // TODO remove
 interface OldGraphicsExData {
   k?: number
-  borderColor?: number | undefined
   draw: (options: {
     cellSize: number
     zoomFactor: number
@@ -80,19 +80,6 @@ type OldTextEx = Text & OldWithGraphicsExData
 
 // TODO remove
 type OldSpriteEx = Sprite & OldWithGraphicsExData
-
-// TODO remove
-function wrapOld(g: GraphicsEx): OldWithGraphicsExData {
-  return {
-    data: {
-      k: g.k,
-      borderColor: g.borderColor,
-      draw: options => {
-        g.draw(options)
-      },
-    },
-  }
-}
 
 type PenWaypointGraphics = Graphics & {
   data?: {
@@ -991,8 +978,8 @@ const Grid = ({
   const gridElement = useRef<Container>()
   const cellsElement = useRef<Container>()
   const allElement = useRef<Container>()
-  const cellElements = useRef<OldWithGraphicsExData[]>([])
-  const regionElements = useRef<OldGraphicsEx[]>([])
+  const cellElements = useRef<Cell[]>([])
+  const regionElements = useRef<Region[]>([])
   const cageElements = useRef<OldGraphicsEx[]>([])
   const cageLabelTextElements = useRef<OldTextEx[]>([])
   const cageLabelBackgroundElements = useRef<OldGraphicsEx[]>([])
@@ -1609,22 +1596,15 @@ const Grid = ({
       row.forEach((col, x) => {
         let cell = new Cell(x, y)
         cells.addChild(cell.graphics)
-        cellElements.current.push(wrapOld(cell))
+        cellElements.current.push(cell)
       })
     })
 
     // render regions
     for (let r of regions) {
-      let poly: OldGraphicsEx = new Graphics()
-      poly.data = {
-        draw: function ({ cellSize, themeColours }) {
-          poly.poly(r.map(v => v * cellSize))
-          poly.stroke({ width: 3, color: themeColours.foregroundColor })
-        },
-      }
-      poly.zIndex = 10
-      grid.addChild(poly)
-      regionElements.current.push(poly)
+      let region = new Region(r, 10)
+      grid.addChild(region.graphics)
+      regionElements.current.push(region)
     }
 
     // render cages
@@ -1641,9 +1621,6 @@ const Grid = ({
       // draw outline
       let poly: OldGraphicsEx = new Graphics()
       poly.data = {
-        borderColor: cage.borderColor
-          ? getRGBColor(cage.borderColor)
-          : undefined,
         draw: function ({ cellSize, themeColours }) {
           let disposedOutline = disposePolygon(
             cage.outline.map(v => v * cellSize),
@@ -2254,7 +2231,8 @@ const Grid = ({
     penHitareaElements.current.push(penHitArea)
 
     // memoize draw calls to improve performance
-    const wrapDraw =
+    // TODO remove
+    const oldWrapDraw =
       (
         e: OldWithGraphicsExData,
         draw: NonNullable<OldWithGraphicsExData["data"]>["draw"],
@@ -2265,20 +2243,7 @@ const Grid = ({
         }
         draw(options)
       }
-    const wrapDrawWaypoints =
-      (
-        e: PenWaypointGraphics,
-        draw: NonNullable<PenWaypointGraphics["data"]>["draw"],
-      ): NonNullable<PenWaypointGraphics["data"]>["draw"] =>
-      options => {
-        if (e instanceof Graphics) {
-          e.clear()
-        }
-        draw(options)
-      }
-    let elementsToMemoize = [
-      cellElements,
-      regionElements,
+    let oldElementsToMemoize = [
       cageElements,
       cageLabelTextElements,
       cageLabelBackgroundElements,
@@ -2297,20 +2262,47 @@ const Grid = ({
       penHitareaElements,
       backgroundImageElements,
     ]
-    for (let r of elementsToMemoize) {
+    for (let r of oldElementsToMemoize) {
       for (let e of r.current) {
         if (e.data?.draw !== undefined) {
-          e.data.draw = memoizeOne(wrapDraw(e, e.data.draw))
+          e.data.draw = memoizeOne(oldWrapDraw(e, e.data.draw))
         }
       }
     }
     for (let e of cornerMarkElements.current) {
       for (let ce of e.elements) {
         if (ce.data?.draw !== undefined) {
-          ce.data.draw = memoizeOne(wrapDraw(ce, ce.data.draw))
+          ce.data.draw = memoizeOne(oldWrapDraw(ce, ce.data.draw))
         }
       }
     }
+
+    const wrapDraw = (e: GraphicsEx): GraphicsEx["draw"] => {
+      let oldDraw = e.draw.bind(e)
+      return options => {
+        e.graphics.clear()
+        oldDraw(options)
+      }
+    }
+    let elementsToMemoize = [cellElements, regionElements]
+    for (let r of elementsToMemoize) {
+      for (let e of r.current) {
+        e.draw = memoizeOne(wrapDraw(e))
+      }
+    }
+
+    const wrapDrawWaypoints =
+      (
+        e: PenWaypointGraphics,
+        draw: NonNullable<PenWaypointGraphics["data"]>["draw"],
+      ): NonNullable<PenWaypointGraphics["data"]>["draw"] =>
+      options => {
+        // TODO instanceof not necessary in the future
+        if (e instanceof Graphics) {
+          e.clear()
+        }
+        draw(options)
+      }
     for (let e of penCurrentWaypointsElements.current) {
       if (e.data?.draw !== undefined) {
         e.data.draw = memoizeOne(wrapDrawWaypoints(e, e.data.draw))
@@ -2390,9 +2382,8 @@ const Grid = ({
     let themeColours = getThemeColours(ref.current!)
 
     for (let i = 0; i < 10; ++i) {
-      let elementsToRedraw = [
-        cellElements,
-        regionElements,
+      // TODO remove
+      let oldElementsToRedraw = [
         cageElements,
         cageLabelTextElements,
         cageLabelBackgroundElements,
@@ -2411,7 +2402,7 @@ const Grid = ({
         penHitareaElements,
         backgroundImageElements,
       ]
-      for (let r of elementsToRedraw) {
+      for (let r of oldElementsToRedraw) {
         for (let e of r.current) {
           e.data?.draw({
             cellSize: cs,
@@ -2423,6 +2414,20 @@ const Grid = ({
           })
         }
       }
+      let elementsToRedraw = [cellElements, regionElements]
+      for (let r of elementsToRedraw) {
+        for (let e of r.current) {
+          e.draw({
+            cellSize: cs,
+            zoomFactor: cellSizeFactor.current,
+            currentDigits: game.digits,
+            currentFogLights: game.fogLights,
+            currentFogRaster: game.fogRaster,
+            themeColours,
+          })
+        }
+      }
+
       for (let e of cornerMarkElements.current) {
         for (let ce of e.elements) {
           ce.data?.draw({
