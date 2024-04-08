@@ -1156,37 +1156,6 @@ const Grid = ({
     }
   }, [game.data])
 
-  const selectCell = useCallback(
-    (k: number, evt: FederatedPointerEvent | TouchEvent, append = false) => {
-      if (currentMode.current === MODE_PEN) {
-        // do nothing in pen mode
-        return
-      }
-
-      let action: SelectionAction["action"] = append ? ACTION_PUSH : ACTION_SET
-      if (evt instanceof FederatedPointerEvent) {
-        let oe = evt.originalEvent
-        let ne = oe.nativeEvent
-        if ("metaKey" in ne) {
-          if (ne.metaKey || ne.ctrlKey) {
-            if (ne.shiftKey) {
-              action = ACTION_REMOVE
-            } else {
-              action = ACTION_PUSH
-            }
-          }
-        }
-      }
-
-      updateGame({
-        type: TYPE_SELECTION,
-        action,
-        k,
-      })
-    },
-    [updateGame],
-  )
-
   // Custom render loop. Render on demand and then repeat rendering for
   // MAX_RENDER_LOOP_TIME milliseconds. Then pause rendering again. This has
   // two benefits: (1) it forces the browser to refresh the screen as quickly
@@ -1639,20 +1608,6 @@ const Grid = ({
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let cell = new Cell(x, y)
-
-        cell.graphics.on("pointerdown", function (e: FederatedPointerEvent) {
-          selectCell(cell!.k!, e)
-          e.stopPropagation()
-          e.originalEvent.preventDefault()
-        })
-
-        cell.graphics.on("pointerover", function (e: FederatedPointerEvent) {
-          if (e.buttons === 1) {
-            selectCell(cell!.k!, e, true)
-          }
-          e.stopPropagation()
-        })
-
         cells.addChild(cell.graphics)
         cellElements.current.push(wrapOld(cell))
       })
@@ -2406,7 +2361,6 @@ const Grid = ({
     regions,
     cages,
     extraRegions,
-    selectCell,
     onPenMove,
     updateGame,
     onFinishRender,

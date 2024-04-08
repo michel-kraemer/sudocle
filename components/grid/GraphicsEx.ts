@@ -4,7 +4,7 @@ import { ThemeColours } from "./ThemeColours"
 import { Graphics, Sprite, Text } from "pixi.js"
 
 export interface WithGraphicsExData {
-  // TODO why are these fields optional? Is it not necessary for some classes?
+  // TODO why are these fields optional? Are they not necessary for some classes?
   readonly k?: number
   readonly borderColor?: number | undefined
 
