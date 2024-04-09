@@ -10,11 +10,11 @@ import { MODE_PEN } from "../lib/Modes"
 import { xytok } from "../lib/utils"
 import { FogLight } from "../types/Data"
 import { Digit } from "../types/Game"
-import { GraphicsEx } from "./GraphicsEx"
+import { GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { FederatedPointerEvent, Graphics, Rectangle } from "pixi.js"
 
-class Cell implements GraphicsEx {
+class Cell implements GridElement {
   private x: number
   private y: number
   readonly k: number
@@ -41,6 +41,10 @@ class Cell implements GraphicsEx {
       }
       e.stopPropagation()
     })
+  }
+
+  clear() {
+    this.graphics.clear()
   }
 
   draw(options: {

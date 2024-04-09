@@ -13,11 +13,14 @@ import {
   TYPE_SELECTION,
 } from "../lib/Actions"
 import { MODE_PEN } from "../lib/Modes"
+import { getAlpha, getRGBColor } from "../lib/colorutils"
+import { disposePolygon, shrinkPolygon } from "../lib/polygonutils"
 import { hasFog, ktoxy, pltok, xytok } from "../lib/utils"
 import { Arrow, DataCell, FogLight, Line, Overlay } from "../types/Data"
 import { Digit } from "../types/Game"
+import Cage, { GridCage } from "./Cage"
 import Cell from "./Cell"
-import { GraphicsEx } from "./GraphicsEx"
+import { GridElement } from "./GridElement"
 import Region from "./Region"
 import { ThemeColours } from "./ThemeColours"
 import Color from "color"
@@ -96,13 +99,6 @@ interface CornerMarkElement {
     k: number
   }
   elements: OldTextEx[]
-}
-
-interface GridCage {
-  outline: number[]
-  value?: number | string
-  borderColor?: string
-  topleft: [number, number]
 }
 
 function unionCells(cells: [number, number][]): number[][][] {
@@ -185,175 +181,6 @@ function hasGivenCornerMarks(cell: DataCell): boolean {
     return false
   }
   return cell.pencilMarks !== ""
-}
-
-// shrink polygon inwards by distance `d`
-function shrinkPolygon(points: number[], d: number): number[] {
-  let result = []
-
-  for (let i = 0; i < points.length; i += 2) {
-    let p1x = points[(i - 2 + points.length) % points.length]
-    let p1y = points[(i - 1 + points.length) % points.length]
-    let p2x = points[(i + 0) % points.length]
-    let p2y = points[(i + 1) % points.length]
-    let p3x = points[(i + 2) % points.length]
-    let p3y = points[(i + 3) % points.length]
-
-    let ax = p2x - p1x
-    let ay = p2y - p1y
-    let anx = -ay
-    let any = ax
-    let al = Math.sqrt(anx * anx + any * any)
-    anx /= al
-    any /= al
-
-    let bx = p3x - p2x
-    let by = p3y - p2y
-    let bnx = -by
-    let bny = bx
-    let bl = Math.sqrt(bnx * bnx + bny * bny)
-    bnx /= bl
-    bny /= bl
-
-    let nx = anx + bnx
-    let ny = any + bny
-
-    result.push(p2x + nx * d)
-    result.push(p2y + ny * d)
-  }
-
-  return result
-}
-
-// dispose edges of given polygon by distance `d` whenever they lie on an
-// edge of one of the other given polygons
-function disposePolygon(
-  points: number[],
-  otherPolygons: number[][],
-  d: number,
-): number[] {
-  let result = [...points]
-  for (let i = 0; i < points.length; i += 2) {
-    let p1x = points[i]
-    let p1y = points[i + 1]
-    let p2x = points[(i + 2) % points.length]
-    let p2y = points[(i + 3) % points.length]
-
-    let sx = p1y < p2y ? -1 : 1
-    let sy = p1x > p2x ? -1 : 1
-
-    for (let otherPoints of otherPolygons) {
-      let disposed = false
-      for (let j = 0; j < otherPoints.length; j += 2) {
-        let o1x = otherPoints[j]
-        let o1y = otherPoints[j + 1]
-        let o2x = otherPoints[(j + 2) % otherPoints.length]
-        let o2y = otherPoints[(j + 3) % otherPoints.length]
-
-        if (o1x > o2x) {
-          let x = o2x
-          o2x = o1x
-          o1x = x
-        }
-        if (o1y > o2y) {
-          let y = o2y
-          o2y = o1y
-          o1y = y
-        }
-
-        // simplified because we know edges are always vertical or horizontal
-        if (
-          o1x === o2x &&
-          p1x === o1x &&
-          p2x === o2x &&
-          ((o1y <= p1y && o2y >= p1y) || (o1y <= p2y && o2y >= p2y))
-        ) {
-          result[i] = p1x + d * sx
-          result[(i + 2) % points.length] = p2x + d * sx
-          disposed = true
-          break
-        }
-        if (
-          o1y === o2y &&
-          p1y === o1y &&
-          p2y === o2y &&
-          ((o1x <= p1x && o2x >= p1x) || (o1x <= p2x && o2x >= p2x))
-        ) {
-          result[i + 1] = p1y + d * sy
-          result[(i + 3) % points.length] = p2y + d * sy
-          disposed = true
-          break
-        }
-      }
-      if (disposed) {
-        break
-      }
-    }
-  }
-  return result
-}
-
-// based on https://codepen.io/unrealnl/pen/aYaxBW by Erik
-// published under the MIT license
-function drawDashedPolygon(
-  points: number[],
-  dash: number,
-  gap: number,
-  graphics: Graphics,
-) {
-  let dashLeft = 0
-  let gapLeft = 0
-
-  for (let i = 0; i < points.length; i += 2) {
-    let p1x = points[i]
-    let p1y = points[i + 1]
-    let p2x = points[(i + 2) % points.length]
-    let p2y = points[(i + 3) % points.length]
-
-    let dx = p2x - p1x
-    let dy = p2y - p1y
-
-    let len = Math.sqrt(dx * dx + dy * dy)
-    let normalx = dx / len
-    let normaly = dy / len
-    let progressOnLine = 0
-
-    graphics.moveTo(p1x + gapLeft * normalx, p1y + gapLeft * normaly)
-
-    while (progressOnLine <= len) {
-      progressOnLine += gapLeft
-
-      if (dashLeft > 0) {
-        progressOnLine += dashLeft
-      } else {
-        progressOnLine += dash
-      }
-
-      if (progressOnLine > len) {
-        dashLeft = progressOnLine - len
-        progressOnLine = len
-      } else {
-        dashLeft = 0
-      }
-
-      graphics.lineTo(
-        p1x + progressOnLine * normalx,
-        p1y + progressOnLine * normaly,
-      )
-
-      progressOnLine += gap
-
-      if (progressOnLine > len && dashLeft === 0) {
-        gapLeft = progressOnLine - len
-      } else {
-        gapLeft = 0
-        graphics.moveTo(
-          p1x + progressOnLine * normalx,
-          p1y + progressOnLine * normaly,
-        )
-      }
-    }
-  }
 }
 
 function isGrey(nColour: number): boolean {
@@ -733,14 +560,6 @@ function makeCornerMarks(
   return result
 }
 
-function getRGBColor(colorString: string): number {
-  return Color(colorString.trim()).rgbNumber()
-}
-
-function getAlpha(colorString: string): number {
-  return Color(colorString.trim()).alpha()
-}
-
 function getThemeColour(style: CSSStyleDeclaration, color: string): number {
   return getRGBColor(`rgb(${style.getPropertyValue(color)})`)
 }
@@ -980,9 +799,7 @@ const Grid = ({
   const allElement = useRef<Container>()
   const cellElements = useRef<Cell[]>([])
   const regionElements = useRef<Region[]>([])
-  const cageElements = useRef<OldGraphicsEx[]>([])
-  const cageLabelTextElements = useRef<OldTextEx[]>([])
-  const cageLabelBackgroundElements = useRef<OldGraphicsEx[]>([])
+  const cageElements = useRef<Cage[]>([])
   const lineElements = useRef<OldGraphicsEx[]>([])
   const extraRegionElements = useRef<OldGraphicsEx[]>([])
   const underlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
@@ -1446,8 +1263,6 @@ const Grid = ({
       "--font-roboto",
     )
 
-    let fontSizeCageLabels = 26
-
     // create grid
     let all = new Container()
     allElement.current = all
@@ -1474,9 +1289,7 @@ const Grid = ({
     //   selection                20
     //   grid                     30  sortable
     //     region                 10
-    //     cage outline            1
-    //     cage label              3
-    //     cage label background   2
+    //     cage                    1
     //     cells
     //       cell                  0
     //   overlays                 40
@@ -1608,83 +1421,11 @@ const Grid = ({
     }
 
     // render cages
-    let cageOutlinesContainer = new Container()
-    cageOutlinesContainer.zIndex = 1
-    cageOutlinesContainer.mask = fogMask
-    let cageTopLeftTextContainer = new Container()
-    cageTopLeftTextContainer.zIndex = 3
-    cageTopLeftTextContainer.mask = fogMask
-    let cageTopLeftBgContainer = new Container()
-    cageTopLeftBgContainer.zIndex = 2
-    cageTopLeftBgContainer.mask = fogMask
     for (let cage of cages) {
-      // draw outline
-      let poly: OldGraphicsEx = new Graphics()
-      poly.data = {
-        draw: function ({ cellSize, themeColours }) {
-          let disposedOutline = disposePolygon(
-            cage.outline.map(v => v * cellSize),
-            regions.map(rarr => rarr.map(v => v * cellSize)),
-            1,
-          )
-          let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
-          let color = cage.borderColor
-            ? getRGBColor(cage.borderColor)
-            : themeColours.foregroundColor
-          let alpha = cage.borderColor ? getAlpha(cage.borderColor) : 1
-          drawDashedPolygon(shrunkenOutline, 3, 2, poly)
-          poly.stroke({ width: 1, color, alpha: alpha })
-        },
-      }
-      cageOutlinesContainer.addChild(poly)
-      cageElements.current.push(poly)
-
-      if (
-        cage.value !== undefined &&
-        cage.value !== null &&
-        `${cage.value}`.trim() !== ""
-      ) {
-        // create cage label
-        // use larger font and scale down afterwards to improve text rendering
-        let topleftText: OldTextEx = new Text({
-          text: cage.value,
-          style: {
-            fontFamily: defaultFontFamily,
-            fontSize: fontSizeCageLabels,
-          },
-        })
-        topleftText.scale.x = 0.5
-        topleftText.scale.y = 0.5
-        topleftText.data = {
-          draw: function ({ cellSize }) {
-            topleftText.x = cage.topleft[1] * cellSize + cellSize / 20
-            topleftText.y = cage.topleft[0] * cellSize + cellSize / 60 + 0.25
-          },
-        }
-        cageTopLeftTextContainer.addChild(topleftText)
-        cageLabelTextElements.current.push(topleftText)
-
-        let topleftBg: OldGraphicsEx = new Graphics()
-        topleftBg.data = {
-          draw: function ({ cellSize }) {
-            topleftBg.rect(
-              0,
-              0,
-              topleftText.width + cellSize / 10 - 0.5,
-              topleftText.height + cellSize / 60 + 0.5,
-            )
-            topleftBg.fill(0xffffff)
-            topleftBg.x = cage.topleft[1] * cellSize + 0.5
-            topleftBg.y = cage.topleft[0] * cellSize + 0.5
-          },
-        }
-        cageTopLeftBgContainer.addChild(topleftBg)
-        cageLabelBackgroundElements.current.push(topleftBg)
-      }
+      let c = new Cage(cage, regions, defaultFontFamily, 13, 1, fogMask)
+      grid.addChild(c.container)
+      cageElements.current.push(c)
     }
-    grid.addChild(cageOutlinesContainer)
-    grid.addChild(cageTopLeftTextContainer)
-    grid.addChild(cageTopLeftBgContainer)
 
     grid.addChild(cells)
     grid.zIndex = 30
@@ -2244,9 +1985,6 @@ const Grid = ({
         draw(options)
       }
     let oldElementsToMemoize = [
-      cageElements,
-      cageLabelTextElements,
-      cageLabelBackgroundElements,
       lineElements,
       extraRegionElements,
       underlayElements,
@@ -2277,14 +2015,14 @@ const Grid = ({
       }
     }
 
-    const wrapDraw = (e: GraphicsEx): GraphicsEx["draw"] => {
+    const wrapDraw = (e: GridElement): GridElement["draw"] => {
       let oldDraw = e.draw.bind(e)
       return options => {
-        e.graphics.clear()
+        e.clear()
         oldDraw(options)
       }
     }
-    let elementsToMemoize = [cellElements, regionElements]
+    let elementsToMemoize = [cellElements, regionElements, cageElements]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
         e.draw = memoizeOne(wrapDraw(e))
@@ -2324,8 +2062,6 @@ const Grid = ({
       cellElements.current = []
       regionElements.current = []
       cageElements.current = []
-      cageLabelTextElements.current = []
-      cageLabelBackgroundElements.current = []
       lineElements.current = []
       extraRegionElements.current = []
       underlayElements.current = []
@@ -2384,9 +2120,6 @@ const Grid = ({
     for (let i = 0; i < 10; ++i) {
       // TODO remove
       let oldElementsToRedraw = [
-        cageElements,
-        cageLabelTextElements,
-        cageLabelBackgroundElements,
         lineElements,
         extraRegionElements,
         underlayElements,
@@ -2414,7 +2147,7 @@ const Grid = ({
           })
         }
       }
-      let elementsToRedraw = [cellElements, regionElements]
+      let elementsToRedraw = [cellElements, regionElements, cageElements]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
           e.draw({

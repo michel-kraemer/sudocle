@@ -1,10 +1,10 @@
 import { FogLight } from "../types/Data"
 import { Digit } from "../types/Game"
-import { GraphicsEx } from "./GraphicsEx"
+import { GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { Graphics } from "pixi.js"
 
-class Region implements GraphicsEx {
+class Region implements GridElement {
   private region: number[]
   readonly graphics: Graphics
 
@@ -12,6 +12,10 @@ class Region implements GraphicsEx {
     this.region = region
     this.graphics = new Graphics()
     this.graphics.zIndex = zIndex
+  }
+
+  clear() {
+    this.graphics.clear()
   }
 
   draw(options: {
