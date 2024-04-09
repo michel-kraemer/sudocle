@@ -14,12 +14,12 @@ import {
 } from "../lib/Actions"
 import { MODE_PEN } from "../lib/Modes"
 import { getAlpha, getRGBColor } from "../lib/colorutils"
-import { disposePolygon, shrinkPolygon } from "../lib/polygonutils"
 import { hasFog, ktoxy, pltok, xytok } from "../lib/utils"
 import { Arrow, DataCell, FogLight, Line, Overlay } from "../types/Data"
 import { Digit } from "../types/Game"
 import Cage, { GridCage } from "./Cage"
 import Cell from "./Cell"
+import ExtraRegion, { GridExtraRegion } from "./ExtraRegion"
 import { GridElement } from "./GridElement"
 import Region from "./Region"
 import { ThemeColours } from "./ThemeColours"
@@ -801,7 +801,7 @@ const Grid = ({
   const regionElements = useRef<Region[]>([])
   const cageElements = useRef<Cage[]>([])
   const lineElements = useRef<OldGraphicsEx[]>([])
-  const extraRegionElements = useRef<OldGraphicsEx[]>([])
+  const extraRegionElements = useRef<ExtraRegion[]>([])
   const underlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
   const overlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
   const backgroundElement = useRef<Graphics>()
@@ -940,7 +940,7 @@ const Grid = ({
     [game.data],
   )
 
-  const extraRegions = useMemo(() => {
+  const extraRegions = useMemo<GridExtraRegion[]>(() => {
     if (Array.isArray(game.data.extraRegions)) {
       return flatten(
         game.data.extraRegions
@@ -1268,8 +1268,6 @@ const Grid = ({
     allElement.current = all
     let grid = new Container()
     gridElement.current = grid
-    let cells = new Container()
-    cellsElement.current = cells
 
     all.sortableChildren = true
     grid.sortableChildren = true
@@ -1288,10 +1286,9 @@ const Grid = ({
     //   errors                   10
     //   selection                20
     //   grid                     30  sortable
-    //     region                 10
-    //     cage                    1
-    //     cells
-    //       cell                  0
+    //     cells                   0
+    //     cages                   1
+    //     regions                10
     //   overlays                 40
     //   given corner marks       41
     //   digit                    50
@@ -1405,6 +1402,7 @@ const Grid = ({
     }
 
     // render cells
+    let cells = new Container()
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let cell = new Cell(x, y)
@@ -1412,47 +1410,43 @@ const Grid = ({
         cellElements.current.push(cell)
       })
     })
+    cellsElement.current = cells
+    grid.addChild(cells)
 
     // render regions
+    let regionContainer = new Container()
+    regionContainer.zIndex = 10
     for (let r of regions) {
-      let region = new Region(r, 10)
-      grid.addChild(region.graphics)
+      let region = new Region(r)
+      regionContainer.addChild(region.graphics)
       regionElements.current.push(region)
     }
+    grid.addChild(regionContainer)
 
     // render cages
+    let cageContainer = new Container()
+    cageContainer.zIndex = 1
+    cageContainer.mask = fogMask
     for (let cage of cages) {
-      let c = new Cage(cage, regions, defaultFontFamily, 13, 1, fogMask)
-      grid.addChild(c.container)
+      let c = new Cage(cage, regions, defaultFontFamily, 13)
+      cageContainer.addChild(c.container)
       cageElements.current.push(c)
     }
+    grid.addChild(cageContainer)
 
-    grid.addChild(cells)
     grid.zIndex = 30
     all.addChild(grid)
 
     // render extra regions
-    let extraRegionsContainer = new Container()
-    extraRegionsContainer.zIndex = -30
-    extraRegionsContainer.mask = fogMask
+    let extraRegionContainer = new Container()
+    extraRegionContainer.zIndex = -30
+    extraRegionContainer.mask = fogMask
     for (let r of extraRegions) {
-      let poly: OldGraphicsEx = new Graphics()
-      poly.data = {
-        draw: function ({ cellSize }) {
-          let disposedOutline = disposePolygon(
-            r.outline.map(v => v * cellSize),
-            regions.map(rarr => rarr.map(v => v * cellSize)),
-            1,
-          )
-          let shrunkenOutline = shrinkPolygon(disposedOutline, 3)
-          poly.poly(shrunkenOutline)
-          poly.fill(getRGBColor(r.backgroundColor))
-        },
-      }
-      extraRegionsContainer.addChild(poly)
-      extraRegionElements.current.push(poly)
+      let er = new ExtraRegion(r, regions)
+      extraRegionContainer.addChild(er.graphics)
+      extraRegionElements.current.push(er)
     }
-    all.addChild(extraRegionsContainer)
+    all.addChild(extraRegionContainer)
 
     // sort lines and arrows by thickness
     let lines: ((Line | Arrow) & {
@@ -1986,7 +1980,6 @@ const Grid = ({
       }
     let oldElementsToMemoize = [
       lineElements,
-      extraRegionElements,
       underlayElements,
       overlayElements,
       fogElements,
@@ -2022,7 +2015,12 @@ const Grid = ({
         oldDraw(options)
       }
     }
-    let elementsToMemoize = [cellElements, regionElements, cageElements]
+    let elementsToMemoize = [
+      cellElements,
+      regionElements,
+      cageElements,
+      extraRegionElements,
+    ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
         e.draw = memoizeOne(wrapDraw(e))
@@ -2121,7 +2119,6 @@ const Grid = ({
       // TODO remove
       let oldElementsToRedraw = [
         lineElements,
-        extraRegionElements,
         underlayElements,
         overlayElements,
         fogElements,
@@ -2147,7 +2144,12 @@ const Grid = ({
           })
         }
       }
-      let elementsToRedraw = [cellElements, regionElements, cageElements]
+      let elementsToRedraw = [
+        cellElements,
+        regionElements,
+        cageElements,
+        extraRegionElements,
+      ]
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
           e.draw({

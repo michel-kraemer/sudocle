@@ -8,10 +8,9 @@ class Region implements GridElement {
   private region: number[]
   readonly graphics: Graphics
 
-  constructor(region: number[], zIndex: number) {
+  constructor(region: number[]) {
     this.region = region
     this.graphics = new Graphics()
-    this.graphics.zIndex = zIndex
   }
 
   clear() {

@@ -89,15 +89,11 @@ class Cage implements GridElement {
     regions: number[][],
     fontFamily: string,
     fontSize: number,
-    zIndex: number,
-    mask: Container | null,
   ) {
     this.cage = cage
     this.regions = regions
 
     this.container = new Container()
-    this.container.zIndex = zIndex
-    this.container.mask = mask
 
     this.outline = new Graphics()
     this.outline.zIndex = 1
