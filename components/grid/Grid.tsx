@@ -14,13 +14,15 @@ import {
 } from "../lib/Actions"
 import { MODE_PEN } from "../lib/Modes"
 import { getAlpha, getRGBColor } from "../lib/colorutils"
-import { hasFog, ktoxy, pltok, xytok } from "../lib/utils"
+import { cellToScreenCoords, hasFog, ktoxy, pltok, xytok } from "../lib/utils"
 import { Arrow, DataCell, FogLight, Line, Overlay } from "../types/Data"
 import { Digit } from "../types/Game"
+import ArrowElement from "./ArrowElement"
 import Cage, { GridCage } from "./Cage"
 import Cell from "./Cell"
 import ExtraRegion, { GridExtraRegion } from "./ExtraRegion"
 import { GridElement } from "./GridElement"
+import LineElement from "./LineElement"
 import Region from "./Region"
 import { ThemeColours } from "./ThemeColours"
 import Color from "color"
@@ -44,7 +46,7 @@ import polygonClipping, { Polygon } from "polygon-clipping"
 import { MouseEvent, useCallback, useEffect, useMemo, useRef } from "react"
 import { useShallow } from "zustand/react/shallow"
 
-const SCALE_FACTOR = 1.2
+export const SCALE_FACTOR = 1.2
 const ZOOM_DELTA = 0.05
 const FONT_SIZE_DIGITS = 40
 const FONT_SIZE_CORNER_MARKS_HIGH_DPI = 27
@@ -190,235 +192,6 @@ function isGrey(nColour: number): boolean {
   return r === g && r === b
 }
 
-function isReverseEqual(a: [number, number][], b: [number, number][]): boolean {
-  if (a.length !== b.length) {
-    return false
-  }
-  let ai = 0
-  let bi = b.length - 1
-  while (ai < a.length) {
-    if (a[ai][0] !== b[bi][0] || a[ai][1] !== b[bi][1]) {
-      return false
-    }
-    ai++
-    bi--
-  }
-  return true
-}
-
-// do not shorten connected lines of same colour and thickness
-function needsLineShortening(
-  line: Line,
-  allLines: Line[],
-): { shortenStart: boolean; shortenEnd: boolean } {
-  if (line.wayPoints.length < 2) {
-    return { shortenStart: false, shortenEnd: false }
-  }
-  let shortenStart = true
-  let shortenEnd = true
-  let first = line.wayPoints[0]
-  let last = line.wayPoints[line.wayPoints.length - 1]
-  for (let o of allLines) {
-    if (
-      isEqual(o.wayPoints, line.wayPoints) ||
-      isReverseEqual(o.wayPoints, line.wayPoints) ||
-      o.wayPoints.length === 0 ||
-      line.thickness !== o.thickness ||
-      line.color !== o.color
-    ) {
-      continue
-    }
-    if (shortenStart && o.wayPoints.some(p => isEqual(first, p))) {
-      shortenStart = false
-    }
-    if (shortenEnd && o.wayPoints.some(p => isEqual(last, p))) {
-      shortenEnd = false
-    }
-    if (!shortenStart && !shortenEnd) {
-      break
-    }
-  }
-  return { shortenStart, shortenEnd }
-}
-
-// PIXI makes lines with round cap slightly longer. This function shortens them.
-function shortenLine(
-  points: number[],
-  shortenStart: boolean,
-  shortenEnd: boolean,
-  delta = 3,
-): number[] {
-  if (points.length <= 2) {
-    return points
-  }
-  if (!shortenStart && !shortenEnd) {
-    return points
-  }
-
-  let firstPointX = points[0]
-  let firstPointY = points[1]
-  let secondPointX = points[2]
-  let secondPointY = points[3]
-  let lastPointX = points[points.length - 2]
-  let lastPointY = points[points.length - 1]
-  let secondToLastX = points[points.length - 4]
-  let secondToLastY = points[points.length - 3]
-
-  if (firstPointX === lastPointX && firstPointY === lastPointY) {
-    // do not shorten closed loops
-    return points
-  }
-
-  if (shortenStart) {
-    let dx = secondPointX - firstPointX
-    let dy = secondPointY - firstPointY
-    let l = Math.sqrt(dx * dx + dy * dy)
-    if (shortenStart && l > delta * 2.5) {
-      dx /= l
-      dy /= l
-      firstPointX = firstPointX + dx * delta
-      firstPointY = firstPointY + dy * delta
-    }
-  }
-
-  if (shortenEnd) {
-    let dx = secondToLastX - lastPointX
-    let dy = secondToLastY - lastPointY
-    let l = Math.sqrt(dx * dx + dy * dy)
-    if (l > delta * 2.5) {
-      dx /= l
-      dy /= l
-      lastPointX = lastPointX + dx * delta
-      lastPointY = lastPointY + dy * delta
-    }
-  }
-
-  return [
-    firstPointX,
-    firstPointY,
-    ...points.slice(2, points.length - 2),
-    lastPointX,
-    lastPointY,
-  ]
-}
-
-// see https://mathworld.wolfram.com/Circle-LineIntersection.html
-function closestLineCircleIntersection(
-  p1: [number, number],
-  p2: [number, number],
-  center: [number, number],
-  radius: number,
-): [number, number] | undefined {
-  let p1x = p1[0] - center[0]
-  let p1y = p1[1] - center[1]
-  let p2x = p2[0] - center[0]
-  let p2y = p2[1] - center[1]
-
-  let dx = p2x - p1x
-  let dy = p2y - p1y
-  let dr = dx * dx + dy * dy
-  let D = p1x * p2y - p1y * p2x
-
-  let delta = Math.sqrt(radius * radius * dr - D * D)
-  if (delta < 0) {
-    // no intersection
-    return undefined
-  }
-
-  let sgndy = dy < 0 ? -1 : 1
-  let ix1 = (D * dy + sgndy * dx * delta) / dr
-  let iy1 = (-D * dx + Math.abs(dy) * delta) / dr
-
-  if (delta > 0) {
-    let ix2 = (D * dy - sgndy * dx * delta) / dr
-    let iy2 = (-D * dx - Math.abs(dy) * delta) / dr
-
-    let dix1 = p1x - ix1
-    let diy1 = p1y - iy1
-    let dix2 = p1x - ix2
-    let diy2 = p1y - iy2
-    if (dix1 * dix1 + diy1 * diy1 > dix2 * dix2 + diy2 * diy2) {
-      ix1 = ix2
-      iy1 = iy2
-    }
-  }
-
-  return [ix1 + center[0], iy1 + center[1]]
-}
-
-function snapLineToCircle<T extends Arrow | Line>(
-  a: T,
-  overlays: Overlay[],
-  snapAt: "start" | "end",
-): T {
-  if (a.wayPoints.length < 2) {
-    return a
-  }
-
-  let first
-  let second
-  if (snapAt === "start") {
-    first = a.wayPoints[0]
-    second = a.wayPoints[1]
-  } else {
-    first = a.wayPoints[a.wayPoints.length - 1]
-    second = a.wayPoints[a.wayPoints.length - 2]
-  }
-
-  let dx = second[0] - first[0]
-  let dy = second[1] - first[1]
-  let segmentLength = Math.sqrt(dx * dx + dy * dy)
-
-  for (let o of overlays) {
-    if (!o.rounded || o.width !== o.height) {
-      // only consider circles
-      continue
-    }
-
-    if (
-      o.center[0] - Math.floor(o.center[0]) !== 0.5 ||
-      o.center[1] - Math.floor(o.center[1]) !== 0.5
-    ) {
-      // circle must be in the center of a cell
-      continue
-    }
-
-    let radius = o.width / 2
-    if (segmentLength < radius) {
-      // only snap line segment if it's longer than the circle's radius
-      continue
-    }
-
-    let dx = first[0] - o.center[0]
-    let dy = first[1] - o.center[1]
-    let dist = Math.sqrt(dx * dx + dy * dy)
-
-    // 10% tolerance
-    if (Math.abs(dist - radius) < 0.1) {
-      let i = closestLineCircleIntersection(first, second, o.center, radius)
-      if (i !== undefined) {
-        // shorten just a little bit to accomodate for rounded line ends
-        let si = shortenLine([...i, ...second], true, false, a.thickness / 200)
-        i = [si[0], si[1]]
-
-        if (snapAt === "start") {
-          return {
-            ...a,
-            wayPoints: [i, ...a.wayPoints.slice(1)],
-          }
-        } else {
-          return {
-            ...a,
-            wayPoints: [...a.wayPoints.slice(0, a.wayPoints.length - 1), i],
-          }
-        }
-      }
-    }
-  }
-
-  return a
-}
-
 function euclidianBresenhamInterpolate(
   x0: number,
   y0: number,
@@ -450,22 +223,6 @@ function euclidianBresenhamInterpolate(
   }
   result.pop()
   return result
-}
-
-function filterDuplicatePoints(points: number[]): number[] {
-  let i = 3
-  while (i < points.length) {
-    let prevx = points[i - 3]
-    let prevy = points[i - 2]
-    let currx = points[i - 1]
-    let curry = points[i - 0]
-    if (prevx === currx && prevy === curry) {
-      points = [...points.slice(0, i - 1), ...points.slice(i + 1)]
-    } else {
-      i += 2
-    }
-  }
-  return points
 }
 
 function makeCornerMarks(
@@ -599,15 +356,6 @@ function drawBackground(
   graphics.hitArea = new Rectangle(0, 0, width, height)
   graphics.rect(0, 0, width, height)
   graphics.fill(themeColours.backgroundColor)
-}
-
-function cellToScreenCoords(
-  cell: [number, number],
-  mx: number,
-  my: number,
-  cellSize: number,
-): [number, number] {
-  return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
 }
 
 function penWaypointsToKey(
@@ -800,7 +548,7 @@ const Grid = ({
   const cellElements = useRef<Cell[]>([])
   const regionElements = useRef<Region[]>([])
   const cageElements = useRef<Cage[]>([])
-  const lineElements = useRef<OldGraphicsEx[]>([])
+  const lineElements = useRef<(LineElement | ArrowElement)[]>([])
   const extraRegionElements = useRef<ExtraRegion[]>([])
   const underlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
   const overlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
@@ -1300,7 +1048,7 @@ const Grid = ({
 
     // ***************** render everything that could contribute to bounds
 
-    // fog
+    // add fog
     let fogMask: OldGraphicsEx | null = null
     if (game.data.fogLights !== undefined) {
       let fog: OldGraphicsEx = new Graphics()
@@ -1401,7 +1149,7 @@ const Grid = ({
       all.addChild(fogMask)
     }
 
-    // render cells
+    // add cells
     let cells = new Container()
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
@@ -1413,7 +1161,7 @@ const Grid = ({
     cellsElement.current = cells
     grid.addChild(cells)
 
-    // render regions
+    // add regions
     let regionContainer = new Container()
     regionContainer.zIndex = 10
     for (let r of regions) {
@@ -1423,7 +1171,7 @@ const Grid = ({
     }
     grid.addChild(regionContainer)
 
-    // render cages
+    // add cages
     let cageContainer = new Container()
     cageContainer.zIndex = 1
     cageContainer.mask = fogMask
@@ -1437,7 +1185,7 @@ const Grid = ({
     grid.zIndex = 30
     all.addChild(grid)
 
-    // render extra regions
+    // add extra regions
     let extraRegionContainer = new Container()
     extraRegionContainer.zIndex = -30
     extraRegionContainer.mask = fogMask
@@ -1449,155 +1197,47 @@ const Grid = ({
     all.addChild(extraRegionContainer)
 
     // sort lines and arrows by thickness
-    let lines: ((Line | Arrow) & {
-      isArrow: boolean
-      shortenStart: boolean
-      shortenEnd: boolean
-    })[] = [
+    let lines: (
+      | {
+          line: Line
+          arrow?: never
+        }
+      | {
+          line?: never
+          arrow: Arrow
+        }
+    )[] = [
       ...game.data.lines.map(l => {
-        let os = [...game.data.underlays, ...game.data.overlays]
-        let { shortenStart, shortenEnd } = needsLineShortening(
-          l,
-          game.data.lines,
-        )
-        let startSnappedLine = snapLineToCircle(l, os, "start")
-        if (startSnappedLine !== l) {
-          shortenStart = false
-        }
-        let endSnappedLine = snapLineToCircle(startSnappedLine, os, "end")
-        if (endSnappedLine !== startSnappedLine) {
-          shortenEnd = false
-        }
         return {
-          ...endSnappedLine,
-          isArrow: false,
-          shortenStart,
-          shortenEnd,
+          line: l,
         }
       }),
       ...game.data.arrows.map(a => {
-        let snappedArrow = snapLineToCircle(
-          a,
-          [...game.data.underlays, ...game.data.overlays],
-          "start",
-        )
         return {
-          ...snappedArrow,
-          isArrow: true,
-          shortenStart: snappedArrow === a,
-          shortenEnd: true,
+          arrow: a,
         }
       }),
     ]
-    lines.sort((a, b) => b.thickness - a.thickness)
+    lines.sort(
+      (a, b) =>
+        (b.line !== undefined ? b.line.thickness : b.arrow.thickness) -
+        (a.line !== undefined ? a.line.thickness : a.arrow.thickness),
+    )
 
     // add lines and arrows
     let linesContainer = new Container()
     linesContainer.zIndex = -10
     linesContainer.mask = fogMask
     lines.forEach(line => {
-      let poly: OldGraphicsEx = new Graphics()
-      poly.alpha = getAlpha(line.color)
-      poly.data = {
-        draw: function ({ cellSize }) {
-          let points = shortenLine(
-            filterDuplicatePoints(
-              flatten(
-                line.wayPoints.map(wp =>
-                  cellToScreenCoords(wp, grid.x, grid.y, cellSize),
-                ),
-              ),
-            ),
-            line.shortenStart,
-            line.shortenEnd,
-          )
-          let lvx = 0
-          let lvy = 0
-          poly.moveTo(points[0], points[1])
-          for (let i = 2; i < points.length; i += 2) {
-            // calculate direction
-            let vx = points[i] - points[i - 2]
-            let vy = points[i + 1] - points[i - 1]
-            let vl = Math.sqrt(vx * vx + vy * vy)
-            vx /= vl
-            vy /= vl
-
-            // Start new line if we're going backwards (i.e. if the direction
-            // of the current line segement is opposite the direction of the
-            // last segment. We need to do this to make caps at such turning
-            // points actually round and to avoid other drawing issues.
-            if ((vx === lvx && vy === -lvy) || (vx === -lvx && vy === lvy)) {
-              poly.moveTo(points[i - 2], points[i - 1])
-            }
-
-            poly.lineTo(points[i], points[i + 1])
-
-            lvx = vx
-            lvy = vy
-          }
-          poly.stroke({
-            width: line.thickness * SCALE_FACTOR,
-            color: getRGBColor(line.color),
-            cap: "round",
-            join: "round",
-          })
-
-          if (!line.isArrow && (line as Line).backgroundColor !== undefined) {
-            poly.fill((line as Line).backgroundColor)
-          }
-        },
-      }
-      linesContainer.addChild(poly)
-      lineElements.current.push(poly)
-
-      // arrow heads
-      if (line.isArrow && line.wayPoints.length > 1) {
-        let arrow = line as Arrow
-        let head: OldGraphicsEx = new Graphics()
-        head.data = {
-          draw: function ({ cellSize }) {
-            let points = shortenLine(
-              filterDuplicatePoints(
-                flatten(
-                  arrow.wayPoints.map(wp =>
-                    cellToScreenCoords(wp, grid.x, grid.y, cellSize),
-                  ),
-                ),
-              ),
-              line.shortenStart,
-              line.shortenEnd,
-            )
-            let lastPointX = points[points.length - 2]
-            let lastPointY = points[points.length - 1]
-            let secondToLastX = points[points.length - 4]
-            let secondToLastY = points[points.length - 3]
-            let dx = lastPointX - secondToLastX
-            let dy = lastPointY - secondToLastY
-            let l = Math.sqrt(dx * dx + dy * dy)
-            dx /= l
-            dy /= l
-            let f = Math.min(arrow.headLength * cellSize * 0.7, l / 3)
-            let ex = lastPointX - dx * f
-            let ey = lastPointY - dy * f
-            let ex1 = ex - dy * f
-            let ey1 = ey + dx * f
-            let ex2 = ex + dy * f
-            let ey2 = ey - dx * f
-            head.moveTo(lastPointX, lastPointY)
-            head.lineTo(ex1, ey1)
-            head.moveTo(lastPointX, lastPointY)
-            head.lineTo(ex2, ey2)
-            head.stroke({
-              alpha: getAlpha(arrow.color),
-              width: arrow.thickness * SCALE_FACTOR,
-              color: getRGBColor(arrow.color),
-              cap: "round",
-              join: "round",
-            })
-          },
-        }
-        linesContainer.addChild(head)
-        lineElements.current.push(head)
+      let overlays = [...game.data.underlays, ...game.data.overlays]
+      if (line.line !== undefined) {
+        let l = new LineElement(line.line, game.data.lines, overlays)
+        linesContainer.addChild(l.container)
+        lineElements.current.push(l)
+      } else if (line.arrow.wayPoints.length > 1) {
+        let a = new ArrowElement(line.arrow, overlays)
+        linesContainer.addChild(a.container)
+        lineElements.current.push(a)
       }
     })
     all.addChild(linesContainer)
@@ -1979,7 +1619,6 @@ const Grid = ({
         draw(options)
       }
     let oldElementsToMemoize = [
-      lineElements,
       underlayElements,
       overlayElements,
       fogElements,
@@ -2020,6 +1659,7 @@ const Grid = ({
       regionElements,
       cageElements,
       extraRegionElements,
+      lineElements,
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
@@ -2118,7 +1758,6 @@ const Grid = ({
     for (let i = 0; i < 10; ++i) {
       // TODO remove
       let oldElementsToRedraw = [
-        lineElements,
         underlayElements,
         overlayElements,
         fogElements,
@@ -2149,16 +1788,19 @@ const Grid = ({
         regionElements,
         cageElements,
         extraRegionElements,
+        lineElements,
       ]
+      let gridOffset = { x: gridElement.current!.x, y: gridElement.current!.y }
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
           e.draw({
             cellSize: cs,
-            zoomFactor: cellSizeFactor.current,
-            currentDigits: game.digits,
-            currentFogLights: game.fogLights,
-            currentFogRaster: game.fogRaster,
+            // zoomFactor: cellSizeFactor.current,
+            // currentDigits: game.digits,
+            // currentFogLights: game.fogLights,
+            // currentFogRaster: game.fogRaster,
             themeColours,
+            gridOffset,
           })
         }
       }

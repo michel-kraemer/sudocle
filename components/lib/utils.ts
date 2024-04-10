@@ -33,3 +33,12 @@ export function hasFog(
   }
   return false
 }
+
+export function cellToScreenCoords(
+  cell: [number, number],
+  mx: number,
+  my: number,
+  cellSize: number,
+): [number, number] {
+  return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
+}

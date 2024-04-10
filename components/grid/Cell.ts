@@ -8,8 +8,6 @@ import {
 } from "../lib/Actions"
 import { MODE_PEN } from "../lib/Modes"
 import { xytok } from "../lib/utils"
-import { FogLight } from "../types/Data"
-import { Digit } from "../types/Game"
 import { GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { FederatedPointerEvent, Graphics, Rectangle } from "pixi.js"
@@ -47,14 +45,7 @@ class Cell implements GridElement {
     this.graphics.clear()
   }
 
-  draw(options: {
-    cellSize: number
-    zoomFactor: number
-    currentDigits: Map<number, Digit>
-    currentFogLights: FogLight[] | undefined
-    currentFogRaster: number[][] | undefined
-    themeColours: ThemeColours
-  }) {
+  draw(options: { cellSize: number; themeColours: ThemeColours }) {
     this.graphics.rect(0, 0, options.cellSize, options.cellSize)
     this.graphics.stroke({
       width: 1,

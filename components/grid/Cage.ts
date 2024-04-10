@@ -1,7 +1,5 @@
 import { getAlpha, getRGBColor } from "../lib/colorutils"
 import { disposePolygon, shrinkPolygon } from "../lib/polygonutils"
-import { FogLight } from "../types/Data"
-import { Digit } from "../types/Game"
 import { GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { Container, Graphics, Text } from "pixi.js"
@@ -130,14 +128,7 @@ class Cage implements GridElement {
     this.topleftBg?.clear()
   }
 
-  draw(options: {
-    cellSize: number
-    zoomFactor: number
-    currentDigits: Map<number, Digit>
-    currentFogLights: FogLight[] | undefined
-    currentFogRaster: number[][] | undefined
-    themeColours: ThemeColours
-  }): void {
+  draw(options: { cellSize: number; themeColours: ThemeColours }): void {
     // draw outline
     let disposedOutline = disposePolygon(
       this.cage.outline.map(v => v * options.cellSize),

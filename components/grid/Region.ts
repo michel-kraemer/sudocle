@@ -1,5 +1,3 @@
-import { FogLight } from "../types/Data"
-import { Digit } from "../types/Game"
 import { GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { Graphics } from "pixi.js"
@@ -17,14 +15,7 @@ class Region implements GridElement {
     this.graphics.clear()
   }
 
-  draw(options: {
-    cellSize: number
-    zoomFactor: number
-    currentDigits: Map<number, Digit>
-    currentFogLights: FogLight[] | undefined
-    currentFogRaster: number[][] | undefined
-    themeColours: ThemeColours
-  }) {
+  draw(options: { cellSize: number; themeColours: ThemeColours }) {
     this.graphics.poly(this.region.map(v => v * options.cellSize))
     this.graphics.stroke({
       width: 3,

@@ -12,5 +12,6 @@ export interface GridElement {
     currentFogLights: FogLight[] | undefined
     currentFogRaster: number[][] | undefined
     themeColours: ThemeColours
+    gridOffset: { x: number; y: number }
   }): void
 }
