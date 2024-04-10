@@ -2,7 +2,7 @@ import { GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { Graphics } from "pixi.js"
 
-class Region implements GridElement {
+class RegionElement implements GridElement {
   private region: number[]
   readonly graphics: Graphics
 
@@ -24,4 +24,4 @@ class Region implements GridElement {
   }
 }
 
-export default Region
+export default RegionElement

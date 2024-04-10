@@ -18,12 +18,12 @@ import { cellToScreenCoords, hasFog, ktoxy, pltok, xytok } from "../lib/utils"
 import { Arrow, DataCell, FogLight, Line, Overlay } from "../types/Data"
 import { Digit } from "../types/Game"
 import ArrowElement from "./ArrowElement"
-import Cage, { GridCage } from "./Cage"
-import Cell from "./Cell"
-import ExtraRegion, { GridExtraRegion } from "./ExtraRegion"
+import CageElement, { GridCage } from "./CageElement"
+import CellElement from "./CellElement"
+import ExtraRegionElement, { GridExtraRegion } from "./ExtraRegionElement"
 import { GridElement } from "./GridElement"
 import LineElement from "./LineElement"
-import Region from "./Region"
+import RegionElement from "./RegionElement"
 import { ThemeColours } from "./ThemeColours"
 import Color from "color"
 import { produce } from "immer"
@@ -545,11 +545,11 @@ const Grid = ({
   const gridElement = useRef<Container>()
   const cellsElement = useRef<Container>()
   const allElement = useRef<Container>()
-  const cellElements = useRef<Cell[]>([])
-  const regionElements = useRef<Region[]>([])
-  const cageElements = useRef<Cage[]>([])
+  const cellElements = useRef<CellElement[]>([])
+  const regionElements = useRef<RegionElement[]>([])
+  const cageElements = useRef<CageElement[]>([])
   const lineElements = useRef<(LineElement | ArrowElement)[]>([])
-  const extraRegionElements = useRef<ExtraRegion[]>([])
+  const extraRegionElements = useRef<ExtraRegionElement[]>([])
   const underlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
   const overlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
   const backgroundElement = useRef<Graphics>()
@@ -1153,7 +1153,7 @@ const Grid = ({
     let cells = new Container()
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let cell = new Cell(x, y)
+        let cell = new CellElement(x, y)
         cells.addChild(cell.graphics)
         cellElements.current.push(cell)
       })
@@ -1165,7 +1165,7 @@ const Grid = ({
     let regionContainer = new Container()
     regionContainer.zIndex = 10
     for (let r of regions) {
-      let region = new Region(r)
+      let region = new RegionElement(r)
       regionContainer.addChild(region.graphics)
       regionElements.current.push(region)
     }
@@ -1176,7 +1176,7 @@ const Grid = ({
     cageContainer.zIndex = 1
     cageContainer.mask = fogMask
     for (let cage of cages) {
-      let c = new Cage(cage, regions, defaultFontFamily, 13)
+      let c = new CageElement(cage, regions, defaultFontFamily, 13)
       cageContainer.addChild(c.container)
       cageElements.current.push(c)
     }
@@ -1190,7 +1190,7 @@ const Grid = ({
     extraRegionContainer.zIndex = -30
     extraRegionContainer.mask = fogMask
     for (let r of extraRegions) {
-      let er = new ExtraRegion(r, regions)
+      let er = new ExtraRegionElement(r, regions)
       extraRegionContainer.addChild(er.graphics)
       extraRegionElements.current.push(er)
     }

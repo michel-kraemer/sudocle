@@ -8,7 +8,7 @@ export interface GridExtraRegion {
   backgroundColor: string
 }
 
-class ExtraRegion implements GridElement {
+class ExtraRegionElement implements GridElement {
   private readonly extraRegion: GridExtraRegion
   private readonly regions: number[][]
   readonly graphics: Graphics
@@ -35,4 +35,4 @@ class ExtraRegion implements GridElement {
   }
 }
 
-export default ExtraRegion
+export default ExtraRegionElement

@@ -74,7 +74,7 @@ function drawDashedPolygon(
   }
 }
 
-class Cage implements GridElement {
+class CageElement implements GridElement {
   private readonly cage: GridCage
   private readonly regions: number[][]
   readonly container: Container
@@ -164,4 +164,4 @@ class Cage implements GridElement {
   }
 }
 
-export default Cage
+export default CageElement

@@ -12,7 +12,7 @@ import { GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { FederatedPointerEvent, Graphics, Rectangle } from "pixi.js"
 
-class Cell implements GridElement {
+class CellElement implements GridElement {
   private x: number
   private y: number
   readonly k: number
@@ -98,4 +98,4 @@ class Cell implements GridElement {
   }
 }
 
-export default Cell
+export default CellElement
