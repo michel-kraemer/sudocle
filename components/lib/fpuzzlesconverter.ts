@@ -885,6 +885,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         backgroundColor: circ.baseC,
         rounded: true,
         fontSize: fontSize,
+        fontColor: circ.fontC,
         text: circ.value,
       })
     }
