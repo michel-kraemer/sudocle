@@ -13,9 +13,9 @@ import {
   TYPE_SELECTION,
 } from "../lib/Actions"
 import { MODE_PEN } from "../lib/Modes"
-import { getAlpha, getRGBColor } from "../lib/colorutils"
-import { cellToScreenCoords, hasFog, ktoxy, pltok, xytok } from "../lib/utils"
-import { Arrow, DataCell, FogLight, Line, Overlay } from "../types/Data"
+import { getRGBColor } from "../lib/colorutils"
+import { hasFog, ktoxy, pltok, xytok } from "../lib/utils"
+import { Arrow, DataCell, FogLight, Line } from "../types/Data"
 import { Digit } from "../types/Game"
 import ArrowElement from "./ArrowElement"
 import CageElement, { GridCage } from "./CageElement"
@@ -23,11 +23,11 @@ import CellElement from "./CellElement"
 import ExtraRegionElement, { GridExtraRegion } from "./ExtraRegionElement"
 import { GridElement } from "./GridElement"
 import LineElement from "./LineElement"
+import OverlayElement from "./OverlayElement"
 import RegionElement from "./RegionElement"
 import { ThemeColours } from "./ThemeColours"
-import Color from "color"
 import { produce } from "immer"
-import { flatten, isEqual } from "lodash"
+import { flatten } from "lodash"
 import memoizeOne from "memoize-one"
 import { DropShadowFilter } from "pixi-filters/drop-shadow"
 import {
@@ -183,13 +183,6 @@ function hasGivenCornerMarks(cell: DataCell): boolean {
     return false
   }
   return cell.pencilMarks !== ""
-}
-
-function isGrey(nColour: number): boolean {
-  let r = (nColour >> 16) & 0xff
-  let g = (nColour >> 8) & 0xff
-  let b = nColour & 0xff
-  return r === g && r === b
 }
 
 function euclidianBresenhamInterpolate(
@@ -386,134 +379,6 @@ function penWaypointsToKey(
   return undefined
 }
 
-function drawOverlay(
-  overlay: Overlay,
-  mx: number,
-  my: number,
-  fontFamily: string,
-): (OldGraphicsEx | OldTextEx)[] {
-  let result = []
-
-  if (
-    overlay.backgroundColor !== undefined ||
-    overlay.borderColor !== undefined
-  ) {
-    let g: OldGraphicsEx = new Graphics()
-
-    if (overlay.rotation !== undefined) {
-      g.rotation = overlay.rotation
-    }
-
-    g.data = {
-      draw: function ({ cellSize }) {
-        let center = cellToScreenCoords(overlay.center, mx, my, cellSize)
-        g.x = center[0]
-        g.y = center[1]
-        let w = overlay.width * cellSize
-        let h = overlay.height * cellSize
-        if (overlay.rounded) {
-          if (w === h) {
-            g.ellipse(0, 0, w / 2, h / 2)
-          } else {
-            // we divide by 2.27 instead of 2 here because we want the same
-            // look as we had with Pixi 6, which wasn't able to correctly round
-            // the rectangle
-            g.roundRect(-w / 2, -h / 2, w, h, Math.min(w, h) / 2.27 - 1)
-          }
-        } else {
-          g.rect(-w / 2, -h / 2, w, h)
-        }
-        let nBackgroundColour
-        if (overlay.backgroundColor !== undefined) {
-          nBackgroundColour = getRGBColor(overlay.backgroundColor)
-          let alpha = getAlpha(overlay.backgroundColor)
-          if (alpha === 1) {
-            alpha = isGrey(nBackgroundColour) ? 1 : 0.5
-          }
-          g.fill({ color: nBackgroundColour, alpha })
-        }
-        if (overlay.borderColor !== undefined) {
-          let nBorderColour = getRGBColor(overlay.borderColor)
-          if (
-            nBorderColour !== nBackgroundColour &&
-            !(
-              overlay.width === 1 &&
-              overlay.height === 1 &&
-              !overlay.rounded &&
-              isGrey(nBorderColour)
-            )
-          ) {
-            g.stroke({
-              width: overlay.thickness ?? 2,
-              color: nBorderColour,
-              alpha: isGrey(nBorderColour) ? 1 : 0.5,
-              alignment: 1,
-            })
-          }
-        }
-      },
-    }
-
-    result.push(g)
-  }
-
-  if (overlay.text !== undefined && overlay.text !== "") {
-    let fontSize = (overlay.fontSize ?? 20) * SCALE_FACTOR
-    if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
-      fontSize *= 1 / 0.75
-    }
-
-    let text: OldTextEx = new Text({
-      text: overlay.text,
-      style: {
-        fontFamily,
-        fontSize,
-      },
-    })
-
-    if (overlay.fontColor) {
-      text.style.fill = overlay.fontColor
-    }
-
-    if (overlay.backgroundColor !== undefined) {
-      let bgc = Color(overlay.backgroundColor)
-      if (Color(overlay.fontColor ?? "#000").contrast(bgc) < 2) {
-        // text would be invisible on top of background
-        if (bgc.isDark()) {
-          text.style.stroke = { color: "#fff", width: 3 }
-        } else {
-          text.style.stroke = { color: "#000", width: 3 }
-        }
-      }
-    }
-
-    if (overlay.rotation !== undefined) {
-      text.rotation = overlay.rotation
-    }
-
-    text.anchor.set(0.5)
-    text.style.align = "center"
-
-    if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
-      text.scale.x = 0.75
-      text.scale.y = 0.75
-    }
-
-    text.data = {
-      draw: function ({ cellSize, zoomFactor }) {
-        let center = cellToScreenCoords(overlay.center, mx, my, cellSize)
-        text.x = center[0]
-        text.y = center[1]
-        text.style.fontSize = Math.round(fontSize * zoomFactor)
-      },
-    }
-
-    result.push(text)
-  }
-
-  return result
-}
-
 interface FogDisplayOptions {
   /**
    * `true` if fog should be visible, `false` if it should be completely disabled
@@ -550,8 +415,8 @@ const Grid = ({
   const cageElements = useRef<CageElement[]>([])
   const lineElements = useRef<(LineElement | ArrowElement)[]>([])
   const extraRegionElements = useRef<ExtraRegionElement[]>([])
-  const underlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
-  const overlayElements = useRef<(OldGraphicsEx | OldTextEx)[]>([])
+  const underlayElements = useRef<OverlayElement[]>([])
+  const overlayElements = useRef<OverlayElement[]>([])
   const backgroundElement = useRef<Graphics>()
   const backgroundImageElements = useRef<OldSpriteEx[]>([])
   const fogElements = useRef<OldGraphicsEx[]>([])
@@ -1207,16 +1072,8 @@ const Grid = ({
           arrow: Arrow
         }
     )[] = [
-      ...game.data.lines.map(l => {
-        return {
-          line: l,
-        }
-      }),
-      ...game.data.arrows.map(a => {
-        return {
-          arrow: a,
-        }
-      }),
+      ...game.data.lines.map(l => ({ line: l })),
+      ...game.data.arrows.map(a => ({ arrow: a })),
     ]
     lines.sort(
       (a, b) =>
@@ -1247,11 +1104,9 @@ const Grid = ({
     underlaysContainer.zIndex = -20
     underlaysContainer.mask = fogMask
     game.data.underlays.forEach(underlay => {
-      let es = drawOverlay(underlay, grid.x, grid.y, defaultFontFamily)
-      for (let e of es) {
-        underlaysContainer.addChild(e)
-        underlayElements.current.push(e)
-      }
+      let o = new OverlayElement(underlay, defaultFontFamily)
+      underlaysContainer.addChild(o.container)
+      underlayElements.current.push(o)
     })
     all.addChild(underlaysContainer)
 
@@ -1260,11 +1115,9 @@ const Grid = ({
     overlaysContainer.zIndex = 40
     overlaysContainer.mask = fogMask
     game.data.overlays.forEach(overlay => {
-      let es = drawOverlay(overlay, grid.x, grid.y, defaultFontFamily)
-      for (let e of es) {
-        overlaysContainer.addChild(e)
-        overlayElements.current.push(e)
-      }
+      let o = new OverlayElement(overlay, defaultFontFamily)
+      overlaysContainer.addChild(o.container)
+      overlayElements.current.push(o)
     })
     all.addChild(overlaysContainer)
 
@@ -1619,8 +1472,6 @@ const Grid = ({
         draw(options)
       }
     let oldElementsToMemoize = [
-      underlayElements,
-      overlayElements,
       fogElements,
       givenCornerMarkElements,
       digitElements,
@@ -1660,6 +1511,8 @@ const Grid = ({
       cageElements,
       extraRegionElements,
       lineElements,
+      underlayElements,
+      overlayElements,
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
@@ -1758,8 +1611,6 @@ const Grid = ({
     for (let i = 0; i < 10; ++i) {
       // TODO remove
       let oldElementsToRedraw = [
-        underlayElements,
-        overlayElements,
         fogElements,
         givenCornerMarkElements,
         digitElements,
@@ -1789,13 +1640,15 @@ const Grid = ({
         cageElements,
         extraRegionElements,
         lineElements,
+        underlayElements,
+        overlayElements,
       ]
       let gridOffset = { x: gridElement.current!.x, y: gridElement.current!.y }
       for (let r of elementsToRedraw) {
         for (let e of r.current) {
           e.draw({
             cellSize: cs,
-            // zoomFactor: cellSizeFactor.current,
+            zoomFactor: cellSizeFactor.current,
             // currentDigits: game.digits,
             // currentFogLights: game.fogLights,
             // currentFogRaster: game.fogRaster,
