@@ -59,6 +59,42 @@ function convertNewPuzzle(data: string): any {
   return o
 }
 
+function mapOverlay(o: any): Overlay {
+  let r = { ...o }
+
+  // map angle to rotation
+  if (r.angle !== undefined) {
+    r.rotation = (r.angle * (2 * Math.PI)) / 360
+    delete r.angle
+  }
+
+  if (r["dominant-baseline"] !== undefined) {
+    // empirically determined values for size and center to make font look right
+    if (r.fontSize !== undefined) {
+      r.fontSize = r.fontSize * 0.85
+    }
+    // TODO do not move all overlays, instead move just the text!!!
+    r.center = [r.center[0] - (r.fontSize ?? 0) / 125, r.center[1]]
+  }
+
+  // map color to fontColor
+  if (r.color !== undefined) {
+    r.fontColor = r.color
+    delete r.color
+  }
+
+  if (
+    r.text !== undefined &&
+    r.text !== "" &&
+    r.fontSize === undefined &&
+    r.height < 0.5
+  ) {
+    r.fontSize = Math.max(10, 50 * r.height)
+  }
+
+  return r
+}
+
 export function convertCTCPuzzle(strPuzzle: string): Data {
   let puzzle = convertNewPuzzle(strPuzzle)
 
@@ -90,49 +126,10 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
 
   let extraRegions: ExtraRegion[] | undefined = undefined
 
-  let overlays: Overlay[] = puzzle.overlays?.map((o: any) => {
-    let r = { ...o }
-
-    // map angle to rotation
-    if (r.angle !== undefined) {
-      r.rotation = (r.angle * (2 * Math.PI)) / 360
-      delete r.angle
-    }
-
-    if (r["dominant-baseline"] !== undefined) {
-      // empirically determined values for size and center to make font look right
-      if (r.fontSize !== undefined) {
-        r.fontSize = r.fontSize * 0.85
-      }
-      // TODO do not move all overlays, instead move just the text!!!
-      r.center = [r.center[0] - (r.fontSize ?? 0) / 125, r.center[1]]
-    }
-
-    if (
-      r.text !== undefined &&
-      r.text !== "" &&
-      r.fontSize === undefined &&
-      r.height < 0.5
-    ) {
-      r.fontSize = Math.max(10, 50 * r.height)
-    }
-
-    return r
-  })
+  let overlays: Overlay[] = puzzle.overlays?.map(mapOverlay)
 
   let underlays: Overlay[] = puzzle.underlays?.map((o: any) => {
-    // map angle to rotation
-    let r = { ...o }
-    if (r.angle !== undefined) {
-      r.rotation = (r.angle * (2 * Math.PI)) / 360
-      delete r.angle
-    }
-
-    // map color to fontColor
-    if (r.color !== undefined) {
-      r.fontColor = r.color
-      delete r.color
-    }
+    let r = mapOverlay(o)
 
     // In Grid.tsx, we apply an opacity of 0.5 if the colour is not grey (see
     // drawOverlay()). But for this kind of puzzle, we need to always apply an
