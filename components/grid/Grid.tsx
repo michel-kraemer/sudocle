@@ -18,6 +18,7 @@ import { hasFog, ktoxy, pltok, xytok } from "../lib/utils"
 import { Arrow, DataCell, FogLight, Line } from "../types/Data"
 import { Digit } from "../types/Game"
 import ArrowElement from "./ArrowElement"
+import BackgroundImageElement from "./BackgroundImageElement"
 import CageElement, { GridCage } from "./CageElement"
 import CellElement from "./CellElement"
 import ExtraRegionElement, { GridExtraRegion } from "./ExtraRegionElement"
@@ -43,7 +44,14 @@ import {
   Ticker,
 } from "pixi.js"
 import polygonClipping, { Polygon } from "polygon-clipping"
-import { MouseEvent, useCallback, useEffect, useMemo, useRef } from "react"
+import {
+  MouseEvent,
+  MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react"
 import { useShallow } from "zustand/react/shallow"
 
 export const SCALE_FACTOR = 1.2
@@ -83,9 +91,6 @@ type OldGraphicsEx = Graphics & OldWithGraphicsExData
 // TODO remove
 type OldTextEx = Text & OldWithGraphicsExData
 
-// TODO remove
-type OldSpriteEx = Sprite & OldWithGraphicsExData
-
 type PenWaypointGraphics = Graphics & {
   data?: {
     cellSize?: number
@@ -96,7 +101,7 @@ type PenWaypointGraphics = Graphics & {
   }
 }
 
-interface CornerMarkElement {
+interface OldCornerMarkElement {
   data: {
     k: number
   }
@@ -418,12 +423,12 @@ const Grid = ({
   const underlayElements = useRef<OverlayElement[]>([])
   const overlayElements = useRef<OverlayElement[]>([])
   const backgroundElement = useRef<Graphics>()
-  const backgroundImageElements = useRef<OldSpriteEx[]>([])
+  const backgroundImageElements = useRef<BackgroundImageElement[]>([])
   const fogElements = useRef<OldGraphicsEx[]>([])
   const givenCornerMarkElements = useRef<OldTextEx[]>([])
   const digitElements = useRef<OldTextEx[]>([])
   const centreMarkElements = useRef<OldTextEx[]>([])
-  const cornerMarkElements = useRef<CornerMarkElement[]>([])
+  const cornerMarkElements = useRef<OldCornerMarkElement[]>([])
   const colourElements = useRef<OldGraphicsEx[]>([])
   const selectionElements = useRef<OldGraphicsEx[]>([])
   const errorElements = useRef<OldGraphicsEx[]>([])
@@ -1138,19 +1143,20 @@ const Grid = ({
 
     // add background image
     if (game.data.metadata?.bgimage !== undefined) {
-      let sprite: OldSpriteEx = Sprite.from(game.data.metadata.bgimage)
-      sprite.zIndex = -40
-      sprite.alpha = 0.2
-      sprite.data = {
-        draw: function ({ cellSize }) {
-          sprite.x = -cellSize / 4
-          sprite.y = -cellSize / 4
-          sprite.width = cellSize * game.data.cells[0].length + cellSize / 2
-          sprite.height = cellSize * game.data.cells.length + cellSize / 2
-        },
-      }
-      backgroundImageElements.current.push(sprite)
-      all.addChild(sprite)
+      let bgContainer = new Container()
+      bgContainer.zIndex = -40
+      bgContainer.mask = fogMask
+
+      let bg = new BackgroundImageElement(
+        game.data.metadata?.bgimage,
+        game.data.metadata.bgimageopacity ?? 0.2,
+        game.data.cells[0].length,
+        game.data.cells.length,
+      )
+      bgContainer.addChild(bg.container)
+      backgroundImageElements.current.push(bg)
+
+      all.addChild(bgContainer)
     }
 
     app.stage.addChild(all)
@@ -1222,7 +1228,7 @@ const Grid = ({
     // create empty text elements for corner marks
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let cell: CornerMarkElement = {
+        let cell: OldCornerMarkElement = {
           data: {
             k: xytok(x, y),
           },
@@ -1481,7 +1487,6 @@ const Grid = ({
       errorElements,
       penLineElements,
       penHitareaElements,
-      backgroundImageElements,
     ]
     for (let r of oldElementsToMemoize) {
       for (let e of r.current) {
@@ -1513,6 +1518,7 @@ const Grid = ({
       lineElements,
       underlayElements,
       overlayElements,
+      backgroundImageElements,
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
@@ -1620,7 +1626,6 @@ const Grid = ({
         errorElements,
         penLineElements,
         penHitareaElements,
-        backgroundImageElements,
       ]
       for (let r of oldElementsToRedraw) {
         for (let e of r.current) {
@@ -1634,7 +1639,7 @@ const Grid = ({
           })
         }
       }
-      let elementsToRedraw = [
+      let elementsToRedraw: MutableRefObject<GridElement[]>[] = [
         cellElements,
         regionElements,
         cageElements,
@@ -1642,6 +1647,7 @@ const Grid = ({
         lineElements,
         underlayElements,
         overlayElements,
+        backgroundImageElements,
       ]
       let gridOffset = { x: gridElement.current!.x, y: gridElement.current!.y }
       for (let r of elementsToRedraw) {
@@ -1649,9 +1655,9 @@ const Grid = ({
           e.draw({
             cellSize: cs,
             zoomFactor: cellSizeFactor.current,
-            // currentDigits: game.digits,
-            // currentFogLights: game.fogLights,
-            // currentFogRaster: game.fogRaster,
+            currentDigits: game.digits,
+            currentFogLights: game.fogLights,
+            currentFogRaster: game.fogRaster,
             themeColours,
             gridOffset,
           })

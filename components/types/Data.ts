@@ -51,6 +51,7 @@ export interface FogLight {
 
 export interface Metadata {
   bgimage?: string
+  bgimageopacity?: number
 }
 
 export interface Data {
