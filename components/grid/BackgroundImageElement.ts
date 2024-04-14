@@ -9,6 +9,7 @@ class BackgroundImageElement implements GridElement {
   private readonly columns: number
   private readonly rows: number
   readonly container: Container
+  readonly readyPromise: Promise<void>
   private readonly mask: Graphics
 
   constructor(url: string, alpha: number, columns: number, rows: number) {
@@ -19,7 +20,7 @@ class BackgroundImageElement implements GridElement {
     this.mask = new Graphics()
     this.container.mask = this.mask
 
-    Assets.load(url).then(asset => {
+    this.readyPromise = Assets.load(url).then(asset => {
       if (!this.container.destroyed) {
         this.sprite = new Sprite(asset)
         this.sprite.alpha = alpha

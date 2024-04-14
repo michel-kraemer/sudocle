@@ -1974,7 +1974,13 @@ const Grid = ({
     renderNow()
 
     if ("_SUDOCLE_IS_TEST" in window) {
-      screenshotNow()
+      let promises = []
+      for (let bg of backgroundImageElements.current) {
+        promises.push(bg.readyPromise)
+      }
+      Promise.all(promises).then(() => {
+        screenshotNow()
+      })
     }
   }, [
     app,
