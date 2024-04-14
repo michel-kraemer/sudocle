@@ -955,8 +955,8 @@ const Grid = ({
       if (fogDisplayOptions.enableDropShadow) {
         let dropShadow = new DropShadowFilter({
           offset: { x: 0, y: 0 },
-          blur: 35,
-          quality: 35,
+          blur: 5,
+          quality: 6,
           alpha: 0.9,
           color: 0x272e31,
         })
