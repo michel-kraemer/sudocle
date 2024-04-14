@@ -223,7 +223,7 @@ const IndexPage = () => {
       } else {
         let responseBody
         try {
-          let u = `${process.env.basePath}/puzzles/`
+          let u = `${process.env.__NEXT_ROUTER_BASEPATH}/puzzles/`
           if (data !== "") {
             u += `${data}/`
           }
@@ -254,8 +254,8 @@ const IndexPage = () => {
     }
 
     let id = window.location.pathname
-    if (process.env.basePath) {
-      id = id.substring(process.env.basePath.length)
+    if (process.env.__NEXT_ROUTER_BASEPATH) {
+      id = id.substring(process.env.__NEXT_ROUTER_BASEPATH.length)
     }
     if (id.endsWith("/")) {
       id = id.substring(0, id.length - 1)

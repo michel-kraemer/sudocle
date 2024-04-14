@@ -52,80 +52,80 @@ export default function RootLayout({
       <head>
         <link
           rel="shortcut icon"
-          href={`${process.env.basePath}/favicons/favicon.ico`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/favicon.ico`}
         />
         <link
           rel="icon"
           type="image/png"
           sizes="16x16"
-          href={`${process.env.basePath}/favicons/favicon-16x16.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/favicon-16x16.png`}
         />
         <link
           rel="icon"
           type="image/png"
           sizes="32x32"
-          href={`${process.env.basePath}/favicons/favicon-32x32.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/favicon-32x32.png`}
         />
         <link
           rel="icon"
           type="image/png"
           sizes="48x48"
-          href={`${process.env.basePath}/favicons/favicon-48x48.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/favicon-48x48.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="57x57"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-57x57.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-57x57.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="60x60"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-60x60.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-60x60.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="72x72"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-72x72.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-72x72.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="76x76"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-76x76.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-76x76.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="114x114"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-114x114.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-114x114.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="120x120"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-120x120.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-120x120.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="144x144"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-144x144.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-144x144.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="152x152"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-152x152.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-152x152.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="167x167"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-167x167.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-167x167.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="180x180"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-180x180.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-180x180.png`}
         />
         <link
           rel="apple-touch-icon"
           sizes="1024x1024"
-          href={`${process.env.basePath}/favicons/apple-touch-icon-1024x1024.png`}
+          href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-1024x1024.png`}
         />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta

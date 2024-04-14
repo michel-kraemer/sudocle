@@ -22,7 +22,6 @@ const config = {
   output: "standalone",
 
   env: {
-    basePath,
     matomoUrl: process.env.MATOMO_URL,
     matomoSiteId: process.env.MATOMO_SITE_ID,
     version,
