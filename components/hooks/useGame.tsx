@@ -817,15 +817,19 @@ export const useGame = create<GameStateWithActions>()(
             | undefined = undefined
           if (action.data !== undefined) {
             // Filter out invalid elements. For the time being, these are only
-            // lines without colour. In the future, we might implement more rules
-            // or check the schema against our data model.
+            // lines without colour or waypoints. In the future, we might
+            // implement more rules or check the schema against our data model.
             let data = { ...action.data }
             if (
               data.lines !== undefined &&
               Array.isArray(data.lines) &&
-              data.lines.some((l: any) => l.color === undefined)
+              data.lines.some(
+                (l: any) => l.color === undefined || l.wayPoints === undefined,
+              )
             ) {
-              data.lines = data.lines.filter((l: any) => l.color !== undefined)
+              data.lines = data.lines.filter(
+                (l: any) => l.color !== undefined && l.wayPoints !== undefined,
+              )
             }
 
             canonicalData = data as Data
