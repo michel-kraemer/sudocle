@@ -21,6 +21,7 @@ import ArrowElement from "./ArrowElement"
 import BackgroundImageElement from "./BackgroundImageElement"
 import CageElement, { GridCage } from "./CageElement"
 import CellElement from "./CellElement"
+import CornerMarksElement from "./CornerMarksElement"
 import ExtraRegionElement, { GridExtraRegion } from "./ExtraRegionElement"
 import { GridElement } from "./GridElement"
 import LineElement from "./LineElement"
@@ -99,13 +100,6 @@ type PenWaypointGraphics = Graphics & {
       penCurrentWaypoints: number[]
     }) => void
   }
-}
-
-interface OldCornerMarkElement {
-  data: {
-    k: number
-  }
-  elements: OldTextEx[]
 }
 
 function unionCells(cells: [number, number][]): number[][][] {
@@ -223,98 +217,6 @@ function euclidianBresenhamInterpolate(
   return result
 }
 
-function makeCornerMarks(
-  x: number,
-  y: number,
-  fontSize: number,
-  leaveRoom: boolean,
-  fontFamily: string,
-  fontWeight: TextStyleFontWeight = "normal",
-  n = 11,
-): OldTextEx[] {
-  let result = []
-
-  for (let i = 0; i < n; ++i) {
-    let text: OldTextEx = new Text({
-      style: {
-        fontFamily,
-        fontSize,
-        fontWeight,
-      },
-    })
-
-    text.data = {
-      draw: function ({ cellSize, currentFogRaster }) {
-        let cx = x * cellSize + cellSize / 2
-        let cy = y * cellSize + cellSize / 2
-        let mx = cellSize / 3.2
-        let my = cellSize / 3.4
-
-        let fog = hasFog(currentFogRaster, x, y)
-
-        switch (i) {
-          case 0:
-            if (leaveRoom && !fog) {
-              text.x = cx - mx / 3
-            } else {
-              text.x = cx - mx
-            }
-            text.y = cy - my
-            break
-          case 4:
-            if (leaveRoom && !fog) {
-              text.x = cx + mx / 3
-            } else {
-              text.x = cx
-            }
-            text.y = cy - my
-            break
-          case 1:
-            text.x = cx + mx
-            text.y = cy - my
-            break
-          case 6:
-            text.x = cx - mx
-            text.y = cy
-            break
-          case 7:
-            text.x = cx + mx
-            text.y = cy
-            break
-          case 2:
-            text.x = cx - mx
-            text.y = cy + my
-            break
-          case 5:
-            text.x = cx
-            text.y = cy + my
-            break
-          case 3:
-            text.x = cx + mx
-            text.y = cy + my
-            break
-          case 8:
-            text.x = cx - mx / 3
-            text.y = cy + my
-            break
-          case 9:
-            text.x = cx + mx / 3
-            text.y = cy + my
-            break
-        }
-      },
-    }
-
-    text.anchor.set(0.5)
-    text.scale.x = 0.5
-    text.scale.y = 0.5
-
-    result.push(text)
-  }
-
-  return result
-}
-
 function getThemeColour(style: CSSStyleDeclaration, color: string): number {
   return getRGBColor(`rgb(${style.getPropertyValue(color)})`)
 }
@@ -425,10 +327,10 @@ const Grid = ({
   const backgroundElement = useRef<Graphics>()
   const backgroundImageElements = useRef<BackgroundImageElement[]>([])
   const fogElements = useRef<OldGraphicsEx[]>([])
-  const givenCornerMarkElements = useRef<OldTextEx[]>([])
+  const givenCornerMarkElements = useRef<CornerMarksElement[]>([])
   const digitElements = useRef<OldTextEx[]>([])
   const centreMarkElements = useRef<OldTextEx[]>([])
-  const cornerMarkElements = useRef<OldCornerMarkElement[]>([])
+  const cornerMarkElements = useRef<CornerMarksElement[]>([])
   const colourElements = useRef<OldGraphicsEx[]>([])
   const selectionElements = useRef<OldGraphicsEx[]>([])
   const errorElements = useRef<OldGraphicsEx[]>([])
@@ -1166,6 +1068,8 @@ const Grid = ({
     let themeColours = getThemeColours(ref.current!)
 
     // create text elements for given corner marks
+    let givenCornerMarksContainer = new Container()
+    givenCornerMarksContainer.zIndex = 41
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let pms = col.pencilMarks
@@ -1179,25 +1083,26 @@ const Grid = ({
           arr = [pms]
         }
 
-        let hcv = hasCageValue(x, y, cages)
-        let cms = makeCornerMarks(
+        let cm = new CornerMarksElement(
+          arr.length,
           x,
           y,
-          FONT_SIZE_CORNER_MARKS_HIGH_DPI,
-          hcv,
+          hasCageValue(x, y, cages),
           defaultFontFamily,
+          FONT_SIZE_CORNER_MARKS_HIGH_DPI,
           "700",
-          arr.length,
+          themeColours.foregroundColor,
         )
-        cms.forEach((cm, i) => {
-          cm.zIndex = 41
-          cm.style.fill = themeColours.foregroundColor
-          cm.text = arr[i]
-          all.addChild(cm)
-          givenCornerMarkElements.current.push(cm)
-        })
+
+        for (let i = 0; i < arr.length; ++i) {
+          cm.setValue(i, arr[i])
+        }
+
+        givenCornerMarksContainer.addChild(cm.container)
+        givenCornerMarkElements.current.push(cm)
       })
     })
+    all.addChild(givenCornerMarksContainer)
 
     // ***************** draw invisible elements but don't call render() again!
 
@@ -1226,36 +1131,29 @@ const Grid = ({
     })
 
     // create empty text elements for corner marks
+    let cornerMarksContainer = new Container()
+    cornerMarksContainer.zIndex = 50
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let cell: OldCornerMarkElement = {
-          data: {
-            k: xytok(x, y),
-          },
-          elements: [] as OldTextEx[],
-        }
-
         let leaveRoom = hasCageValue(x, y, cages) || hasGivenCornerMarks(col)
-        let cms = makeCornerMarks(
+        let cm = new CornerMarksElement(
+          11,
           x,
           y,
-          FONT_SIZE_CORNER_MARKS_HIGH_DPI,
           leaveRoom,
           defaultFontFamily,
+          FONT_SIZE_CORNER_MARKS_HIGH_DPI,
           "normal",
-          11,
+          themeColours.digitColor,
         )
-        for (let cm of cms) {
-          cm.visible = false
-          cm.zIndex = 50
-          cm.style.fill = themeColours.digitColor
-          all.addChild(cm)
-          cell.elements.push(cm)
-        }
 
-        cornerMarkElements.current.push(cell)
+        cm.setAllVisible(false)
+
+        cornerMarksContainer.addChild(cm.container)
+        cornerMarkElements.current.push(cm)
       })
     })
+    all.addChild(cornerMarksContainer)
 
     // create empty text elements for centre marks
     game.data.cells.forEach((row, y) => {
@@ -1479,7 +1377,6 @@ const Grid = ({
       }
     let oldElementsToMemoize = [
       fogElements,
-      givenCornerMarkElements,
       digitElements,
       centreMarkElements,
       colourElements,
@@ -1492,13 +1389,6 @@ const Grid = ({
       for (let e of r.current) {
         if (e.data?.draw !== undefined) {
           e.data.draw = memoizeOne(oldWrapDraw(e, e.data.draw))
-        }
-      }
-    }
-    for (let e of cornerMarkElements.current) {
-      for (let ce of e.elements) {
-        if (ce.data?.draw !== undefined) {
-          ce.data.draw = memoizeOne(oldWrapDraw(ce, ce.data.draw))
         }
       }
     }
@@ -1519,6 +1409,8 @@ const Grid = ({
       underlayElements,
       overlayElements,
       backgroundImageElements,
+      givenCornerMarkElements,
+      cornerMarkElements,
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
@@ -1618,7 +1510,6 @@ const Grid = ({
       // TODO remove
       let oldElementsToRedraw = [
         fogElements,
-        givenCornerMarkElements,
         digitElements,
         centreMarkElements,
         colourElements,
@@ -1648,6 +1539,8 @@ const Grid = ({
         underlayElements,
         overlayElements,
         backgroundImageElements,
+        givenCornerMarkElements,
+        cornerMarkElements,
       ]
       let gridOffset = { x: gridElement.current!.x, y: gridElement.current!.y }
       for (let r of elementsToRedraw) {
@@ -1664,18 +1557,6 @@ const Grid = ({
         }
       }
 
-      for (let e of cornerMarkElements.current) {
-        for (let ce of e.elements) {
-          ce.data?.draw({
-            cellSize: cs,
-            zoomFactor: cellSizeFactor.current,
-            currentDigits: game.digits,
-            currentFogLights: game.fogLights,
-            currentFogRaster: game.fogRaster,
-            themeColours,
-          })
-        }
-      }
       for (let e of penCurrentWaypointsElements.current) {
         e.data?.draw({
           cellSize: cs,
@@ -1804,11 +1685,7 @@ const Grid = ({
 
     // change font size of corner marks
     for (let e of cornerMarkElements.current) {
-      for (let ce of e.elements) {
-        ce.style.fontSize = Math.round(
-          fontSizeCornerMarks * cellSizeFactor.current,
-        )
-      }
+      e.fontSize = Math.round(fontSizeCornerMarks * cellSizeFactor.current)
     }
 
     // change font size of centre marks
@@ -1820,10 +1697,8 @@ const Grid = ({
 
     // change font size and colour of given corner marks
     for (let e of givenCornerMarkElements.current) {
-      e.style.fontSize = Math.round(
-        fontSizeCornerMarks * cellSizeFactor.current,
-      )
-      e.style.fill = themeColours.foregroundColor
+      e.fontSize = Math.round(fontSizeCornerMarks * cellSizeFactor.current)
+      e.fill = themeColours.foregroundColor
     }
 
     // change selection colour
@@ -1867,25 +1742,23 @@ const Grid = ({
     }
 
     let themeColours = getThemeColours(ref.current!)
-    let cornerMarks = new Map()
-    let centreMarks = new Map()
+    let cornerMarks = new Map<number, CornerMarksElement>()
+    let centreMarks = new Map<number, OldTextEx>()
 
     for (let e of cornerMarkElements.current) {
-      let digits = game.cornerMarks.get(e.data.k)
-      for (let ce of e.elements) {
-        ce.visible = false
-      }
+      let digits = game.cornerMarks.get(e.k)
+      e.setAllVisible(false)
       if (digits !== undefined) {
         for (let [i, d] of [...digits].sort().entries()) {
           let n = i
           if (digits.size > 8 && n > 4) {
             n++
           }
-          e.elements[n].text = d
-          e.elements[n].style.fill = themeColours.smallDigitColor
-          e.elements[n].visible = true
+          e.fill = themeColours.smallDigitColor
+          e.setValue(n, d)
+          e.setVisible(n, true)
         }
-        cornerMarks.set(e.data.k, e)
+        cornerMarks.set(e.k, e)
       }
     }
 
@@ -1916,9 +1789,7 @@ const Grid = ({
 
           let com = cornerMarks.get(e.data!.k!)
           if (com !== undefined) {
-            for (let ce of com.elements) {
-              ce.visible = false
-            }
+            com.setAllVisible(false)
           }
 
           let cem = centreMarks.get(e.data!.k!)

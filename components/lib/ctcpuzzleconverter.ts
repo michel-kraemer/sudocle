@@ -131,9 +131,9 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let underlays: Overlay[] = puzzle.underlays?.map((o: any) => {
     let r = mapOverlay(o)
 
-    // In Grid.tsx, we apply an opacity of 0.5 if the colour is not grey (see
-    // drawOverlay()). But for this kind of puzzle, we need to always apply an
-    // opacity of 0.5, regardless of the colour.
+    // In OverlayElement.ts, we apply an opacity of 0.5 if the colour is not
+    // grey (see OverlayElement.draw()). But for this kind of puzzle, we need
+    // to always apply an opacity of 0.5, regardless of the colour.
     if (r.backgroundColor !== undefined) {
       let bc = Color(r.backgroundColor.trim())
       let alpha = bc.alpha()
