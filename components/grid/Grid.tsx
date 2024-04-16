@@ -22,6 +22,7 @@ import BackgroundImageElement from "./BackgroundImageElement"
 import CageElement, { GridCage } from "./CageElement"
 import CellElement from "./CellElement"
 import CornerMarksElement from "./CornerMarksElement"
+import DigitElement from "./DigitElement"
 import ExtraRegionElement, { GridExtraRegion } from "./ExtraRegionElement"
 import { GridElement } from "./GridElement"
 import LineElement from "./LineElement"
@@ -328,7 +329,7 @@ const Grid = ({
   const backgroundImageElements = useRef<BackgroundImageElement[]>([])
   const fogElements = useRef<OldGraphicsEx[]>([])
   const givenCornerMarkElements = useRef<CornerMarksElement[]>([])
-  const digitElements = useRef<OldTextEx[]>([])
+  const digitElements = useRef<DigitElement[]>([])
   const centreMarkElements = useRef<OldTextEx[]>([])
   const cornerMarkElements = useRef<CornerMarksElement[]>([])
   const colourElements = useRef<OldGraphicsEx[]>([])
@@ -1107,28 +1108,17 @@ const Grid = ({
     // ***************** draw invisible elements but don't call render() again!
 
     // create empty text elements for all digits
+    let digitsContainer = new Container()
+    digitsContainer.zIndex = 50
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let text: OldTextEx = new Text({
-          style: {
-            fontFamily: defaultFontFamily,
-            fontSize: FONT_SIZE_DIGITS,
-          },
-        })
-        text.visible = false
-        text.zIndex = 50
-        text.anchor.set(0.5)
-        text.data = {
-          k: xytok(x, y),
-          draw: function ({ cellSize }) {
-            text.x = x * cellSize + cellSize / 2
-            text.y = y * cellSize + cellSize / 2
-          },
-        }
-        all.addChild(text)
-        digitElements.current.push(text)
+        let d = new DigitElement(x, y, defaultFontFamily, FONT_SIZE_DIGITS)
+        d.visible = false
+        digitsContainer.addChild(d.text)
+        digitElements.current.push(d)
       })
     })
+    all.addChild(digitsContainer)
 
     // create empty text elements for corner marks
     let cornerMarksContainer = new Container()
@@ -1377,7 +1367,6 @@ const Grid = ({
       }
     let oldElementsToMemoize = [
       fogElements,
-      digitElements,
       centreMarkElements,
       colourElements,
       selectionElements,
@@ -1411,6 +1400,7 @@ const Grid = ({
       backgroundImageElements,
       givenCornerMarkElements,
       cornerMarkElements,
+      digitElements,
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
@@ -1510,7 +1500,6 @@ const Grid = ({
       // TODO remove
       let oldElementsToRedraw = [
         fogElements,
-        digitElements,
         centreMarkElements,
         colourElements,
         selectionElements,
@@ -1541,6 +1530,7 @@ const Grid = ({
         backgroundImageElements,
         givenCornerMarkElements,
         cornerMarkElements,
+        digitElements,
       ]
       let gridOffset = { x: gridElement.current!.x, y: gridElement.current!.y }
       for (let r of elementsToRedraw) {
@@ -1680,7 +1670,7 @@ const Grid = ({
 
     // change font size of digits
     for (let e of digitElements.current) {
-      e.style.fontSize = Math.round(fontSizeDigits * cellSizeFactor.current)
+      e.fontSize = Math.round(fontSizeDigits * cellSizeFactor.current)
     }
 
     // change font size of corner marks
@@ -1775,24 +1765,24 @@ const Grid = ({
     }
 
     for (let e of digitElements.current) {
-      let digit = game.digits.get(e.data!.k!)
+      let digit = game.digits.get(e.k)
       if (digit !== undefined) {
-        let [x, y] = ktoxy(e.data!.k!)
+        let [x, y] = ktoxy(e.k)
         if (digit.given && !digit.discovered && hasFog(game.fogRaster, x, y)) {
           e.visible = false
         } else {
-          e.text = digit.digit
-          e.style.fill = digit.given
+          e.value = digit.digit
+          e.fill = digit.given
             ? themeColours.foregroundColor
             : themeColours.digitColor
           e.visible = true
 
-          let com = cornerMarks.get(e.data!.k!)
+          let com = cornerMarks.get(e.k)
           if (com !== undefined) {
             com.setAllVisible(false)
           }
 
-          let cem = centreMarks.get(e.data!.k!)
+          let cem = centreMarks.get(e.k)
           if (cem !== undefined) {
             cem.visible = false
           }
