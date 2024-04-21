@@ -22,6 +22,7 @@ import BackgroundImageElement from "./BackgroundImageElement"
 import CageElement, { GridCage } from "./CageElement"
 import CellElement from "./CellElement"
 import CentreMarksElement from "./CentreMarksElement"
+import ColourElement from "./ColourElement"
 import CornerMarksElement from "./CornerMarksElement"
 import DigitElement from "./DigitElement"
 import ExtraRegionElement, { GridExtraRegion } from "./ExtraRegionElement"
@@ -41,9 +42,6 @@ import {
   FederatedPointerEvent,
   Graphics,
   Rectangle,
-  Sprite,
-  Text,
-  TextStyleFontWeight,
   Ticker,
 } from "pixi.js"
 import polygonClipping, { Polygon } from "polygon-clipping"
@@ -330,7 +328,7 @@ const Grid = ({
   const digitElements = useRef<DigitElement[]>([])
   const centreMarkElements = useRef<CentreMarksElement[]>([])
   const cornerMarkElements = useRef<CornerMarksElement[]>([])
-  const colourElements = useRef<OldGraphicsEx[]>([])
+  const colourElements = useRef<ColourElement[]>([])
   const selectionElements = useRef<OldGraphicsEx[]>([])
   const errorElements = useRef<OldGraphicsEx[]>([])
   const penCurrentWaypoints = useRef<number[]>([])
@@ -1165,22 +1163,16 @@ const Grid = ({
     all.addChild(centreMarksContainer)
 
     // create invisible rectangles for colours
+    let colourContainer = new Container()
+    colourContainer.zIndex = 0
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let rect: OldGraphicsEx = new Graphics()
-        rect.alpha = 0
-        rect.zIndex = 0
-        rect.data = {
-          k: xytok(x, y),
-          draw: function ({ cellSize }) {
-            rect.x = x * cellSize
-            rect.y = y * cellSize
-          },
-        }
-        all.addChild(rect)
-        colourElements.current.push(rect)
+        let ce = new ColourElement(x, y, 0)
+        colourContainer.addChild(ce.graphics)
+        colourElements.current.push(ce)
       })
     })
+    all.addChild(colourContainer)
 
     // create invisible rectangles for selection
     game.data.cells.forEach((row, y) => {
@@ -1359,7 +1351,6 @@ const Grid = ({
       }
     let oldElementsToMemoize = [
       fogElements,
-      colourElements,
       selectionElements,
       errorElements,
       penLineElements,
@@ -1393,6 +1384,7 @@ const Grid = ({
       digitElements,
       cornerMarkElements,
       centreMarkElements,
+      colourElements,
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
@@ -1468,6 +1460,117 @@ const Grid = ({
   ])
 
   useEffect(() => {
+    if (app === undefined) {
+      return
+    }
+
+    let themeColours = getThemeColours(ref.current!)
+    let cornerMarks = new Map<number, CornerMarksElement>()
+    let centreMarks = new Map<number, CentreMarksElement>()
+
+    for (let e of cornerMarkElements.current) {
+      let digits = game.cornerMarks.get(e.k)
+      e.setAllVisible(false)
+      if (digits !== undefined) {
+        for (let [i, d] of [...digits].sort().entries()) {
+          let n = i
+          if (digits.size > 8 && n > 4) {
+            n++
+          }
+          e.fill = themeColours.smallDigitColor
+          e.setValue(n, d)
+          e.setVisible(n, true)
+        }
+        cornerMarks.set(e.k, e)
+      }
+    }
+
+    for (let e of centreMarkElements.current) {
+      let digits = game.centreMarks.get(e.k)
+      if (digits !== undefined) {
+        e.value = [...digits].sort().join("")
+        e.fill = themeColours.smallDigitColor
+        e.visible = true
+        centreMarks.set(e.k, e)
+      } else {
+        e.visible = false
+      }
+    }
+
+    for (let e of digitElements.current) {
+      let digit = game.digits.get(e.k)
+      if (digit !== undefined) {
+        let [x, y] = ktoxy(e.k)
+        if (digit.given && !digit.discovered && hasFog(game.fogRaster, x, y)) {
+          e.visible = false
+        } else {
+          e.value = digit.digit
+          e.fill = digit.given
+            ? themeColours.foregroundColor
+            : themeColours.digitColor
+          e.visible = true
+
+          let com = cornerMarks.get(e.k)
+          if (com !== undefined) {
+            com.setAllVisible(false)
+          }
+
+          let cem = centreMarks.get(e.k)
+          if (cem !== undefined) {
+            cem.visible = false
+          }
+        }
+      } else {
+        e.visible = false
+      }
+    }
+
+    let colours = []
+    if (colourPalette !== "custom" || customColours.length === 0) {
+      let computedStyle = getComputedStyle(ref.current!)
+      let nColours = +computedStyle.getPropertyValue("--colors")
+      for (let i = 0; i < nColours; ++i) {
+        colours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
+      }
+    } else {
+      colours = customColours
+    }
+    for (let e of colourElements.current) {
+      let colour = game.colours.get(e.k)
+      if (colour !== undefined) {
+        let palCol = colours[colour.colour - 1]
+        if (palCol === undefined) {
+          palCol = colours[1] || colours[0]
+        }
+        let colourNumber = getRGBColor(palCol)
+        e.colour = colourNumber
+        e.visible = true
+      } else {
+        e.visible = false
+      }
+    }
+
+    for (let pl of penLineElements.current) {
+      pl.visible = game.penLines.has(pl.data!.k!)
+    }
+
+    for (let e of errorElements.current) {
+      e.visible = game.errors.has(e.data!.k!)
+    }
+  }, [
+    app,
+    colourPalette,
+    customColours,
+    game.centreMarks,
+    game.colours,
+    game.cornerMarks,
+    game.digits,
+    game.errors,
+    game.fogRaster,
+    game.penLines,
+  ])
+
+  useEffect(() => {
     // reset cell size on next draw
     cellSizeFactor.current = -1
   }, [maxWidth, maxHeight, portrait, zoom, game.data])
@@ -1488,11 +1591,46 @@ const Grid = ({
 
     let themeColours = getThemeColours(ref.current!)
 
+    // optimised font sizes for different screens
+    let fontSizeCornerMarks =
+      window.devicePixelRatio >= 2
+        ? FONT_SIZE_CORNER_MARKS_HIGH_DPI
+        : FONT_SIZE_CORNER_MARKS_LOW_DPI
+    let fontSizeCentreMarks =
+      window.devicePixelRatio >= 2
+        ? FONT_SIZE_CENTRE_MARKS_HIGH_DPI
+        : FONT_SIZE_CENTRE_MARKS_LOW_DPI
+
+    // scale fonts
+    let fontSizeDigits = FONT_SIZE_DIGITS * fontSizeFactorDigits
+    fontSizeCornerMarks *= fontSizeFactorCornerMarks
+    fontSizeCentreMarks *= fontSizeFactorCentreMarks
+
     for (let i = 0; i < 10; ++i) {
+      // change font size of digits
+      for (let e of digitElements.current) {
+        e.fontSize = Math.round(fontSizeDigits * cellSizeFactor.current)
+      }
+
+      // change font size of corner marks
+      for (let e of cornerMarkElements.current) {
+        e.fontSize = Math.round(fontSizeCornerMarks * cellSizeFactor.current)
+      }
+
+      // change font size of centre marks
+      for (let e of centreMarkElements.current) {
+        e.fontSize = Math.round(fontSizeCentreMarks * cellSizeFactor.current)
+      }
+
+      // change font size and colour of given corner marks
+      for (let e of givenCornerMarkElements.current) {
+        e.fontSize = Math.round(fontSizeCornerMarks * cellSizeFactor.current)
+        e.fill = themeColours.foregroundColor
+      }
+
       // TODO remove
       let oldElementsToRedraw = [
         fogElements,
-        colourElements,
         selectionElements,
         errorElements,
         penLineElements,
@@ -1523,6 +1661,7 @@ const Grid = ({
         digitElements,
         cornerMarkElements,
         centreMarkElements,
+        colourElements,
       ]
       let gridOffset = { x: gridElement.current!.x, y: gridElement.current!.y }
       for (let r of elementsToRedraw) {
@@ -1622,9 +1761,13 @@ const Grid = ({
     portrait,
     theme,
     zoom,
+    fontSizeFactorDigits,
+    fontSizeFactorCentreMarks,
+    fontSizeFactorCornerMarks,
     game.data,
     game.mode,
     game.digits,
+    game.colours,
     game.fogLights,
     game.fogRaster,
   ])
@@ -1645,42 +1788,6 @@ const Grid = ({
 
     let themeColours = getThemeColours(ref.current!)
 
-    // optimised font sizes for different screens
-    let fontSizeCornerMarks =
-      window.devicePixelRatio >= 2
-        ? FONT_SIZE_CORNER_MARKS_HIGH_DPI
-        : FONT_SIZE_CORNER_MARKS_LOW_DPI
-    let fontSizeCentreMarks =
-      window.devicePixelRatio >= 2
-        ? FONT_SIZE_CENTRE_MARKS_HIGH_DPI
-        : FONT_SIZE_CENTRE_MARKS_LOW_DPI
-
-    // scale fonts
-    let fontSizeDigits = FONT_SIZE_DIGITS * fontSizeFactorDigits
-    fontSizeCornerMarks *= fontSizeFactorCornerMarks
-    fontSizeCentreMarks *= fontSizeFactorCentreMarks
-
-    // change font size of digits
-    for (let e of digitElements.current) {
-      e.fontSize = Math.round(fontSizeDigits * cellSizeFactor.current)
-    }
-
-    // change font size of corner marks
-    for (let e of cornerMarkElements.current) {
-      e.fontSize = Math.round(fontSizeCornerMarks * cellSizeFactor.current)
-    }
-
-    // change font size of centre marks
-    for (let e of centreMarkElements.current) {
-      e.fontSize = Math.round(fontSizeCentreMarks * cellSizeFactor.current)
-    }
-
-    // change font size and colour of given corner marks
-    for (let e of givenCornerMarkElements.current) {
-      e.fontSize = Math.round(fontSizeCornerMarks * cellSizeFactor.current)
-      e.fill = themeColours.foregroundColor
-    }
-
     // change selection colour
     for (let e of selectionElements.current) {
       e.fillStyle.color = themeColours.selection[selectionColour]
@@ -1698,10 +1805,6 @@ const Grid = ({
     app,
     theme,
     selectionColour,
-    zoom,
-    fontSizeFactorDigits,
-    fontSizeFactorCentreMarks,
-    fontSizeFactorCornerMarks,
     maxWidth,
     maxHeight,
     portrait,
@@ -1721,107 +1824,6 @@ const Grid = ({
       return
     }
 
-    let themeColours = getThemeColours(ref.current!)
-    let cornerMarks = new Map<number, CornerMarksElement>()
-    let centreMarks = new Map<number, CentreMarksElement>()
-
-    for (let e of cornerMarkElements.current) {
-      let digits = game.cornerMarks.get(e.k)
-      e.setAllVisible(false)
-      if (digits !== undefined) {
-        for (let [i, d] of [...digits].sort().entries()) {
-          let n = i
-          if (digits.size > 8 && n > 4) {
-            n++
-          }
-          e.fill = themeColours.smallDigitColor
-          e.setValue(n, d)
-          e.setVisible(n, true)
-        }
-        cornerMarks.set(e.k, e)
-      }
-    }
-
-    for (let e of centreMarkElements.current) {
-      let digits = game.centreMarks.get(e.k)
-      if (digits !== undefined) {
-        e.value = [...digits].sort().join("")
-        e.fill = themeColours.smallDigitColor
-        e.visible = true
-        centreMarks.set(e.k, e)
-      } else {
-        e.visible = false
-      }
-    }
-
-    for (let e of digitElements.current) {
-      let digit = game.digits.get(e.k)
-      if (digit !== undefined) {
-        let [x, y] = ktoxy(e.k)
-        if (digit.given && !digit.discovered && hasFog(game.fogRaster, x, y)) {
-          e.visible = false
-        } else {
-          e.value = digit.digit
-          e.fill = digit.given
-            ? themeColours.foregroundColor
-            : themeColours.digitColor
-          e.visible = true
-
-          let com = cornerMarks.get(e.k)
-          if (com !== undefined) {
-            com.setAllVisible(false)
-          }
-
-          let cem = centreMarks.get(e.k)
-          if (cem !== undefined) {
-            cem.visible = false
-          }
-        }
-      } else {
-        e.visible = false
-      }
-    }
-
-    let scaledCellSize = Math.floor(cellSize * cellSizeFactor.current)
-    let colours = []
-    if (colourPalette !== "custom" || customColours.length === 0) {
-      let computedStyle = getComputedStyle(ref.current!)
-      let nColours = +computedStyle.getPropertyValue("--colors")
-      for (let i = 0; i < nColours; ++i) {
-        colours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
-      }
-    } else {
-      colours = customColours
-    }
-    for (let e of colourElements.current) {
-      let colour = game.colours.get(e.data!.k!)
-      if (colour !== undefined) {
-        let palCol = colours[colour.colour - 1]
-        if (palCol === undefined) {
-          palCol = colours[1] || colours[0]
-        }
-        let colourNumber = getRGBColor(palCol)
-        e.clear()
-        e.rect(0.5, 0.5, scaledCellSize - 1, scaledCellSize - 1)
-        e.fill(colourNumber)
-        if (colourNumber === 0xffffff) {
-          e.alpha = 1.0
-        } else {
-          e.alpha = 0.5
-        }
-      } else {
-        e.alpha = 0
-      }
-    }
-
-    for (let pl of penLineElements.current) {
-      pl.visible = game.penLines.has(pl.data!.k!)
-    }
-
-    for (let e of errorElements.current) {
-      e.visible = game.errors.has(e.data!.k!)
-    }
-
     renderNow()
 
     if ("_SUDOCLE_IS_TEST" in window) {
@@ -1836,10 +1838,12 @@ const Grid = ({
   }, [
     app,
     cellSize,
+    game.data,
     game.digits,
     game.cornerMarks,
     game.centreMarks,
     game.colours,
+    game.mode,
     game.penLines,
     game.errors,
     game.fogRaster,
@@ -1856,8 +1860,6 @@ const Grid = ({
     portrait,
     renderNow,
     screenshotNow,
-    game.mode,
-    game.data,
   ])
 
   return (
