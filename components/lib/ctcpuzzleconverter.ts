@@ -101,7 +101,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let cells: DataCell[][] = puzzle.cells
   let regions: [number, number][][] = puzzle.regions
 
-  let cages: Cage[] = puzzle.cages.filter(
+  let cages: Cage[] = (puzzle.cages || []).filter(
     (c: any) => c.hidden === undefined || c.hidden === false,
   )
 
