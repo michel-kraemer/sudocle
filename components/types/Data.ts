@@ -6,7 +6,7 @@ export interface DataCell {
 }
 
 export interface Cage {
-  cells: [number, number][]
+  cells?: [number, number][]
   value?: number | string
   borderColor?: string
 }

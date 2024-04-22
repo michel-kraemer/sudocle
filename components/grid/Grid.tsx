@@ -431,13 +431,13 @@ const Grid = ({
     () =>
       flatten(
         game.data.cages
-          .filter(cage => cage.cells?.length)
+          .filter(cage => cage.cells !== undefined && cage.cells.length > 0)
           .map(cage => {
-            let unions = flatten(unionCells(cage.cells))
+            let unions = flatten(unionCells(cage.cells!))
             return unions.map(union => {
               // find top-left cell
-              let topleft = cage.cells[0]
-              for (let cell of cage.cells) {
+              let topleft = cage.cells![0]
+              for (let cell of cage.cells!) {
                 if (cell[0] < topleft[0]) {
                   topleft = cell
                 } else if (cell[0] === topleft[0] && cell[1] < topleft[1]) {
