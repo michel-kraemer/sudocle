@@ -8,9 +8,11 @@ import {
   Line,
   Overlay,
 } from "../types/Data"
+import parseSolution from "./parsesolution"
 import Color from "color"
 import rename from "deep-rename-keys"
 import JSON5 from "json5"
+import { isString } from "lodash"
 
 const KEYS: Record<string, string> = {
   c: "color",
@@ -147,9 +149,31 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
 
   let arrows: Arrow[] = puzzle.arrows
 
-  let solution: (number | undefined)[][] | undefined = undefined
-
   let fogLights: FogLight[] | undefined = undefined
+
+  let solution: (number | undefined)[][] | undefined = undefined
+  if (isString(puzzle.metadata?.solution)) {
+    solution = parseSolution(cells, puzzle.metadata.solution)
+    delete puzzle.metadata.solution
+  }
+
+  let title: string | undefined
+  if (isString(puzzle.metadata?.t)) {
+    title = puzzle.metadata.t
+    delete puzzle.metadata.t
+  }
+
+  let rules: string | undefined
+  if (isString(puzzle.metadata?.rules)) {
+    rules = puzzle.metadata.rules
+    delete puzzle.metadata.rules
+  }
+
+  let author: string | undefined
+  if (isString(puzzle.metadata?.author)) {
+    author = puzzle.metadata.author
+    delete puzzle.metadata.author
+  }
 
   let metadata = puzzle.metadata
 
@@ -165,6 +189,9 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     arrows,
     solution,
     fogLights,
+    title,
+    author,
+    rules,
     metadata,
     solved: false,
   }

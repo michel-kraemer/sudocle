@@ -39,6 +39,7 @@ import {
   Mode,
   getModeGroup,
 } from "../lib/Modes"
+import parseSolution from "../lib/parsesolution"
 import { hasFog, ktoxy, xytok } from "../lib/utils"
 import { Data, DataCell, FogLight } from "../types/Data"
 import { Digit } from "../types/Game"
@@ -243,29 +244,6 @@ function parseFogLights(str: string): FogLight[] {
     }
   }
   return result
-}
-
-function parseSolution(data: Data, str: string): (number | undefined)[][] {
-  let solution: (number | undefined)[][] = []
-  let i = 0
-  for (let row of data.cells) {
-    let srow: (number | undefined)[] = []
-    solution!.push(srow)
-    for (let _ of row) {
-      let v = str[i++]
-      let n: number | undefined
-      if (v !== undefined && isString(v)) {
-        n = +v
-        if (isNaN(n)) {
-          n = undefined
-        }
-      } else {
-        n = v
-      }
-      srow.push(n)
-    }
-  }
-  return solution
 }
 
 function makeEmptyState(data?: Data): GameState {
@@ -864,7 +842,8 @@ export const useGame = create<GameStateWithActions>()(
                 } else if (cage.value.startsWith("solution:")) {
                   let str = cage.value.substring(9).trim()
                   canonicalData.solution =
-                    canonicalData.solution ?? parseSolution(canonicalData, str)
+                    canonicalData.solution ??
+                    parseSolution(canonicalData.cells, str)
                 } else if (cage.value.startsWith("msgcorrect:")) {
                   // Message to be displayed if solution is correct. This is not
                   // implemented yet. Ignore it.
