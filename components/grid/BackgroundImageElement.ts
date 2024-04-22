@@ -1,58 +1,69 @@
+import { CellExtent } from "./CellExtent"
 import { GridElement } from "./GridElement"
-import { Assets, Container, Graphics, Sprite } from "pixi.js"
+import { Assets, Container, Graphics, Rectangle, Sprite } from "pixi.js"
 
 class BackgroundImageElement implements GridElement {
   private sprite?: Sprite
   private cellSize: number = 0
   private width: number = 0
   private height: number = 0
-  private readonly columns: number
-  private readonly rows: number
+  private readonly extent: CellExtent
+  private placeholder?: Graphics
   readonly container: Container
   readonly readyPromise: Promise<void>
-  private readonly mask: Graphics
 
-  constructor(url: string, alpha: number, columns: number, rows: number) {
+  constructor(url: string, alpha: number, extent: CellExtent) {
     this.container = new Container()
-    this.columns = columns
-    this.rows = rows
+    this.extent = extent
 
-    this.mask = new Graphics()
-    this.container.mask = this.mask
+    this.placeholder = new Graphics()
+    this.container.addChild(this.placeholder)
 
     this.readyPromise = Assets.load(url).then(asset => {
       if (!this.container.destroyed) {
         this.sprite = new Sprite(asset)
         this.sprite.alpha = alpha
-        this.sprite.x = -this.cellSize / 4
-        this.sprite.y = -this.cellSize / 4
-        this.sprite.width = this.width + this.cellSize / 2
-        this.sprite.height = this.height + this.cellSize / 2
+        this.sprite.x = 0
+        this.sprite.y = 0
+        this.sprite.width = this.width
+        this.sprite.height = this.height
+        if (this.placeholder !== undefined) {
+          this.container.removeChild(this.placeholder)
+          this.placeholder.destroy()
+          this.placeholder = undefined
+        }
         this.container.addChild(this.sprite)
       }
     })
   }
 
   clear() {
-    this.mask.clear()
+    if (this.placeholder !== undefined) {
+      this.placeholder.clear()
+    }
   }
 
   draw(options: { cellSize: number }): void {
-    this.container.x = 0
-    this.container.y = 0
-
     this.cellSize = options.cellSize
-    this.width = options.cellSize * this.columns
-    this.height = options.cellSize * this.rows
 
-    this.mask.rect(0, 0, this.width, this.height)
-    this.mask.fill(0x0)
+    this.container.x = this.extent.minX * this.cellSize - this.cellSize / 4
+    this.container.y = this.extent.minY * this.cellSize - this.cellSize / 4
+
+    let cols = this.extent.maxX - this.extent.minX
+    let rows = this.extent.maxY - this.extent.minY
+    this.width = this.cellSize * cols + this.cellSize / 2
+    this.height = this.cellSize * rows + this.cellSize / 2
+
+    if (this.placeholder !== undefined) {
+      this.placeholder.rect(0, 0, this.width, this.height)
+      this.placeholder.fill({ color: 0, alpha: 0 })
+    }
 
     if (this.sprite !== undefined) {
-      this.sprite.x = -options.cellSize / 4
-      this.sprite.y = -options.cellSize / 4
-      this.sprite.width = this.width + options.cellSize / 2
-      this.sprite.height = this.height + options.cellSize / 2
+      this.sprite.x = 0
+      this.sprite.y = 0
+      this.sprite.width = this.width
+      this.sprite.height = this.height
     }
   }
 }

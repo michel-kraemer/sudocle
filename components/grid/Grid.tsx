@@ -21,6 +21,7 @@ import ArrowElement from "./ArrowElement"
 import BackgroundImageElement from "./BackgroundImageElement"
 import CageElement, { GridCage } from "./CageElement"
 import CellElement from "./CellElement"
+import { calculateCellExtent } from "./CellExtent"
 import CentreMarksElement from "./CentreMarksElement"
 import ColourElement from "./ColourElement"
 import CornerMarksElement from "./CornerMarksElement"
@@ -1046,11 +1047,11 @@ const Grid = ({
       bgContainer.zIndex = -40
       bgContainer.mask = fogMask
 
+      let extent = calculateCellExtent(game.data)
       let bg = new BackgroundImageElement(
         game.data.metadata?.bgimage,
         game.data.metadata.bgimageopacity ?? 0.2,
-        game.data.cells[0].length,
-        game.data.cells.length,
+        extent,
       )
       bgContainer.addChild(bg.container)
       backgroundImageElements.current.push(bg)
