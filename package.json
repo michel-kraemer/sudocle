@@ -30,7 +30,7 @@
     "lucide-react": "^0.368.0",
     "memoize-one": "^6.0.0",
     "mini-svg-data-uri": "^1.4.4",
-    "next": "^14.2.1",
+    "next": "^14.2.3",
     "pixi-filters": "^6.0.2",
     "pixi.js": "^8.1.0",
     "polygon-clipping": "^0.15.7",
