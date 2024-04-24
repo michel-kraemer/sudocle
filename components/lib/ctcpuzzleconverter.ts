@@ -158,7 +158,10 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   }
 
   let title: string | undefined
-  if (isString(puzzle.metadata?.t)) {
+  if (isString(puzzle.metadata?.title)) {
+    title = puzzle.metadata.title
+    delete puzzle.metadata.title
+  } else if (isString(puzzle.metadata?.t)) {
     title = puzzle.metadata.t
     delete puzzle.metadata.t
   }
