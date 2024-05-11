@@ -1,4 +1,5 @@
 import { getAlpha, getRGBColor } from "../lib/colorutils"
+import { drawDashedLineString } from "../lib/linestringutils"
 import { cellToScreenCoords } from "../lib/utils"
 import { Arrow, Line, Overlay } from "../types/Data"
 import { SCALE_FACTOR } from "./Grid"
@@ -44,12 +45,18 @@ class BaseLineElement<T extends Line | Arrow> implements GridElement {
     return true
   }
 
-  // do not shorten connected lines of same colour and thickness
+  // do not shorten:
+  // * connected lines of same colour and thickness
+  // * dashed lines
   protected static needsLineShortening(
     line: Line,
     allLines: Line[],
   ): { shortenStart: boolean; shortenEnd: boolean } {
     if (line.wayPoints.length < 2) {
+      return { shortenStart: false, shortenEnd: false }
+    }
+    if ("strokeDashArray" in line) {
+      // don't shorten dashed lines
       return { shortenStart: false, shortenEnd: false }
     }
     let shortenStart = true
@@ -287,30 +294,43 @@ class BaseLineElement<T extends Line | Arrow> implements GridElement {
     this.lineGraphics.clear()
   }
 
-  protected drawLineGraphics(points: number[]) {
-    let lvx = 0
-    let lvy = 0
-    this.lineGraphics.moveTo(points[0], points[1])
-    for (let i = 2; i < points.length; i += 2) {
-      // calculate direction
-      let vx = points[i] - points[i - 2]
-      let vy = points[i + 1] - points[i - 1]
-      let vl = Math.sqrt(vx * vx + vy * vy)
-      vx /= vl
-      vy /= vl
+  protected drawLineGraphics(
+    points: number[],
+    strokeDashArray?: number[],
+    strokeDashOffset?: number,
+  ) {
+    if (strokeDashArray !== undefined) {
+      drawDashedLineString(
+        points,
+        strokeDashArray,
+        strokeDashOffset ?? 0,
+        this.lineGraphics,
+      )
+    } else {
+      let lvx = 0
+      let lvy = 0
+      this.lineGraphics.moveTo(points[0], points[1])
+      for (let i = 2; i < points.length; i += 2) {
+        // calculate direction
+        let vx = points[i] - points[i - 2]
+        let vy = points[i + 1] - points[i - 1]
+        let vl = Math.sqrt(vx * vx + vy * vy)
+        vx /= vl
+        vy /= vl
 
-      // Start new line if we're going backwards (i.e. if the direction
-      // of the current line segement is opposite the direction of the
-      // last segment. We need to do this to make caps at such turning
-      // points actually round and to avoid other drawing issues.
-      if ((vx === lvx && vy === -lvy) || (vx === -lvx && vy === lvy)) {
-        this.lineGraphics.moveTo(points[i - 2], points[i - 1])
+        // Start new line if we're going backwards (i.e. if the direction
+        // of the current line segement is opposite the direction of the
+        // last segment. We need to do this to make caps at such turning
+        // points actually round and to avoid other drawing issues.
+        if ((vx === lvx && vy === -lvy) || (vx === -lvx && vy === lvy)) {
+          this.lineGraphics.moveTo(points[i - 2], points[i - 1])
+        }
+
+        this.lineGraphics.lineTo(points[i], points[i + 1])
+
+        lvx = vx
+        lvy = vy
       }
-
-      this.lineGraphics.lineTo(points[i], points[i + 1])
-
-      lvx = vx
-      lvy = vy
     }
 
     this.lineGraphics.stroke({
@@ -340,9 +360,22 @@ class BaseLineElement<T extends Line | Arrow> implements GridElement {
 
   draw(options: {
     cellSize: number
+    unitSize: number
     gridOffset: { x: number; y: number }
   }): void {
-    this.drawLineGraphics(this.getPoints(options.cellSize, options.gridOffset))
+    if ("strokeDashArray" in this.baseLine) {
+      this.drawLineGraphics(
+        this.getPoints(options.cellSize, options.gridOffset),
+        this.baseLine.strokeDashArray?.map(v => v * options.unitSize),
+        this.baseLine.strokeDashOffset !== undefined
+          ? this.baseLine.strokeDashOffset * options.unitSize
+          : undefined,
+      )
+    } else {
+      this.drawLineGraphics(
+        this.getPoints(options.cellSize, options.gridOffset),
+      )
+    }
   }
 }
 

@@ -27,7 +27,7 @@ class ColourElement implements GridElement {
     this.graphics.clear()
   }
 
-  draw(options: { cellSize: number; zoomFactor: number }) {
+  draw(options: { cellSize: number }) {
     this.graphics.x = this.x * options.cellSize
     this.graphics.y = this.y * options.cellSize
 

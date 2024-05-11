@@ -100,6 +100,9 @@ function mapOverlay(o: any): Overlay {
 export function convertCTCPuzzle(strPuzzle: string): Data {
   let puzzle = convertNewPuzzle(strPuzzle)
 
+  let defaultCellSize = 50
+  let puzzleCellSize = puzzle.cellSize ?? defaultCellSize
+
   let cells: DataCell[][] = puzzle.cells
   let regions: [number, number][][] = puzzle.regions
 
@@ -119,10 +122,24 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
 
   let lines: Line[] = puzzle.lines?.map((l: any) => {
     let r = { ...l }
+
     if (r.fill !== undefined) {
       r.backgroundColor = r.fill
       delete r.fill
     }
+
+    if (isString(r["stroke-dasharray"])) {
+      let arr = r["stroke-dasharray"].split(/\s+|,/)
+      r.strokeDashArray = arr.map(v => (+v * defaultCellSize) / puzzleCellSize)
+      delete r["stroke-dasharray"]
+    }
+
+    if (r["stroke-dashoffset"] !== undefined) {
+      r.strokeDashOffset =
+        (+r["stroke-dashoffset"] * defaultCellSize) / puzzleCellSize
+      delete r["stroke-dashoffset"]
+    }
+
     return r
   })
 
@@ -181,7 +198,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let metadata = puzzle.metadata
 
   let result: Data = {
-    cellSize: 50,
+    cellSize: defaultCellSize,
     cells,
     regions,
     cages,

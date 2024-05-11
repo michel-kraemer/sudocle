@@ -29,6 +29,7 @@ class LineElement extends BaseLineElement<Line> {
 
   draw(options: {
     cellSize: number
+    unitSize: number
     gridOffset: { x: number; y: number }
   }): void {
     super.draw(options)

@@ -8,6 +8,7 @@ export interface GridElement {
   draw(options: {
     cellSize: number
     zoomFactor: number
+    unitSize: number
     currentDigits: Map<number, Digit>
     currentFogLights: FogLight[] | undefined
     currentFogRaster: number[][] | undefined

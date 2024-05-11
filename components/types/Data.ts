@@ -16,6 +16,8 @@ export interface Line {
   color: string
   thickness: number
   backgroundColor?: string
+  strokeDashArray?: number[]
+  strokeDashOffset?: number
 }
 
 export interface ExtraRegion {

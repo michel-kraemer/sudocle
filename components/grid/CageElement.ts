@@ -1,4 +1,5 @@
 import { getAlpha, getRGBColor } from "../lib/colorutils"
+import { drawDashedLineString } from "../lib/linestringutils"
 import { disposePolygon, shrinkPolygon } from "../lib/polygonutils"
 import { GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
@@ -9,69 +10,6 @@ export interface GridCage {
   value?: number | string
   borderColor?: string
   topleft: [number, number]
-}
-
-// based on https://codepen.io/unrealnl/pen/aYaxBW by Erik
-// published under the MIT license
-function drawDashedPolygon(
-  points: number[],
-  dash: number,
-  gap: number,
-  graphics: Graphics,
-) {
-  let dashLeft = 0
-  let gapLeft = 0
-
-  for (let i = 0; i < points.length; i += 2) {
-    let p1x = points[i]
-    let p1y = points[i + 1]
-    let p2x = points[(i + 2) % points.length]
-    let p2y = points[(i + 3) % points.length]
-
-    let dx = p2x - p1x
-    let dy = p2y - p1y
-
-    let len = Math.sqrt(dx * dx + dy * dy)
-    let normalx = dx / len
-    let normaly = dy / len
-    let progressOnLine = 0
-
-    graphics.moveTo(p1x + gapLeft * normalx, p1y + gapLeft * normaly)
-
-    while (progressOnLine <= len) {
-      progressOnLine += gapLeft
-
-      if (dashLeft > 0) {
-        progressOnLine += dashLeft
-      } else {
-        progressOnLine += dash
-      }
-
-      if (progressOnLine > len) {
-        dashLeft = progressOnLine - len
-        progressOnLine = len
-      } else {
-        dashLeft = 0
-      }
-
-      graphics.lineTo(
-        p1x + progressOnLine * normalx,
-        p1y + progressOnLine * normaly,
-      )
-
-      progressOnLine += gap
-
-      if (progressOnLine > len && dashLeft === 0) {
-        gapLeft = progressOnLine - len
-      } else {
-        gapLeft = 0
-        graphics.moveTo(
-          p1x + progressOnLine * normalx,
-          p1y + progressOnLine * normaly,
-        )
-      }
-    }
-  }
 }
 
 class CageElement implements GridElement {
@@ -140,7 +78,12 @@ class CageElement implements GridElement {
       ? getRGBColor(this.cage.borderColor)
       : options.themeColours.foregroundColor
     let alpha = this.cage.borderColor ? getAlpha(this.cage.borderColor) : 1
-    drawDashedPolygon(shrunkenOutline, 3, 2, this.outline)
+    if (shrunkenOutline.length > 1) {
+      // close polygon
+      shrunkenOutline.push(shrunkenOutline[0])
+      shrunkenOutline.push(shrunkenOutline[1])
+    }
+    drawDashedLineString(shrunkenOutline, [3, 2], 0, this.outline)
     this.outline.stroke({ width: 1, color, alpha: alpha })
 
     if (this.topleftText !== undefined) {

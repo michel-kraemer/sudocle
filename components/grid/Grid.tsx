@@ -1670,6 +1670,7 @@ const Grid = ({
           e.draw({
             cellSize: cs,
             zoomFactor: cellSizeFactor.current,
+            unitSize: (cs / cellSize) * SCALE_FACTOR,
             currentDigits: game.digits,
             currentFogLights: game.fogLights,
             currentFogRaster: game.fogRaster,
