@@ -59,7 +59,11 @@ export function calculateCellExtent(data: Data): CellExtent {
   }
 
   for (let overlay of data.overlays) {
-    add(r, [overlay.center])
+    if ("wayPoints" in overlay) {
+      add(r, overlay.wayPoints)
+    } else {
+      add(r, [overlay.center])
+    }
   }
 
   if (data.fogLights !== undefined) {

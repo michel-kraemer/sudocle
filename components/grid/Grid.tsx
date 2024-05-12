@@ -15,7 +15,7 @@ import {
 import { MODE_PEN } from "../lib/Modes"
 import { getRGBColor } from "../lib/colorutils"
 import { hasFog, ktoxy, pltok, xytok } from "../lib/utils"
-import { Arrow, DataCell, FogLight, Line } from "../types/Data"
+import { Arrow, DataCell, FogLight, Line, Overlay } from "../types/Data"
 import { Digit } from "../types/Game"
 import ArrowElement from "./ArrowElement"
 import BackgroundImageElement from "./BackgroundImageElement"
@@ -322,7 +322,7 @@ const Grid = ({
   const lineElements = useRef<(LineElement | ArrowElement)[]>([])
   const extraRegionElements = useRef<ExtraRegionElement[]>([])
   const underlayElements = useRef<OverlayElement[]>([])
-  const overlayElements = useRef<OverlayElement[]>([])
+  const overlayElements = useRef<(OverlayElement | LineElement)[]>([])
   const backgroundElement = useRef<Graphics>()
   const backgroundImageElements = useRef<BackgroundImageElement[]>([])
   const fogElements = useRef<OldGraphicsEx[]>([])
@@ -933,15 +933,11 @@ const Grid = ({
     cellsElement.current = cells
     grid.addChild(cells)
 
-    // sort grid lines by thickness
-    let gridLines = [...game.data.gridLines]
-    gridLines.sort((a, b) => b.thickness - a.thickness)
-
     // add grid lines
     let gridLinesContainer = new Container()
     gridLinesContainer.zIndex = 1
-    gridLines.forEach(line => {
-      let l = new LineElement(line, game.data.gridLines, [])
+    game.data.gridLines.forEach(line => {
+      let l = new LineElement(line, game.data.gridLines, [], false)
       gridLinesContainer.addChild(l.container)
       gridLineElements.current.push(l)
     })
@@ -1007,7 +1003,10 @@ const Grid = ({
     linesContainer.zIndex = -10
     linesContainer.mask = fogMask
     lines.forEach(line => {
-      let overlays = [...game.data.underlays, ...game.data.overlays]
+      let overlays = [
+        ...game.data.underlays,
+        ...game.data.overlays.flatMap(o => ("center" in o ? [o] : [])),
+      ]
       if (line.line !== undefined) {
         let l = new LineElement(line.line, game.data.lines, overlays)
         linesContainer.addChild(l.container)
@@ -1036,7 +1035,12 @@ const Grid = ({
     overlaysContainer.zIndex = 40
     overlaysContainer.mask = fogMask
     game.data.overlays.forEach(overlay => {
-      let o = new OverlayElement(overlay, defaultFontFamily)
+      let o: LineElement | OverlayElement
+      if ("wayPoints" in overlay) {
+        o = new LineElement(overlay, game.data.lines, [])
+      } else {
+        o = new OverlayElement(overlay, defaultFontFamily)
+      }
       overlaysContainer.addChild(o.container)
       overlayElements.current.push(o)
     })

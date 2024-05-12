@@ -120,6 +120,8 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     return r
   })
 
+  let overlays: Overlay[] = []
+
   let lines = []
   let gridLines = []
 
@@ -148,6 +150,8 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
 
       if (r.target === "cell-grids") {
         gridLines.push(r)
+      } else if (r.target === "overlay") {
+        overlays.push(r)
       } else {
         lines.push(r)
       }
@@ -156,7 +160,11 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
 
   let extraRegions: ExtraRegion[] | undefined = undefined
 
-  let overlays: Overlay[] = puzzle.overlays?.map(mapOverlay)
+  if (puzzle.overlays !== undefined) {
+    for (let overlay of puzzle.overlays) {
+      overlays.push(mapOverlay(overlay))
+    }
+  }
 
   let underlays: Overlay[] = puzzle.underlays?.map((o: any) => {
     let r = mapOverlay(o)

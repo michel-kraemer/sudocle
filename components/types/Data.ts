@@ -66,7 +66,7 @@ export interface Data {
   readonly extraRegions?: ExtraRegion[]
   readonly arrows: Arrow[]
   readonly underlays: Overlay[]
-  readonly overlays: Overlay[]
+  readonly overlays: (Overlay | Line)[]
   readonly solution?: (number | undefined)[][]
   readonly fogLights?: FogLight[]
   readonly title?: string

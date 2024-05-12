@@ -2,11 +2,15 @@ import { Line, Overlay } from "../types/Data"
 import BaseLineElement from "./BaseLineElement"
 
 class LineElement extends BaseLineElement<Line> {
-  constructor(line: Line, allLines: Line[], overlays: Overlay[]) {
-    let { shortenStart, shortenEnd } = BaseLineElement.needsLineShortening(
-      line,
-      allLines,
-    )
+  constructor(
+    line: Line,
+    allLines: Line[],
+    overlays: Overlay[],
+    tryShortenLine: boolean = true,
+  ) {
+    let { shortenStart, shortenEnd } = tryShortenLine
+      ? BaseLineElement.needsLineShortening(line, allLines)
+      : { shortenStart: false, shortenEnd: false }
     let startSnappedLine = BaseLineElement.snapLineToCircle(
       line,
       overlays,
