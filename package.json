@@ -1,6 +1,6 @@
 {
   "name": "sudocle",
-  "version": "1.37.1",
+  "version": "1.38.0",
   "private": true,
   "main": "index.js",
   "scripts": {
