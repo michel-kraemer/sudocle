@@ -316,6 +316,7 @@ const Grid = ({
   const cellsElement = useRef<Container>()
   const allElement = useRef<Container>()
   const cellElements = useRef<CellElement[]>([])
+  const gridLineElements = useRef<LineElement[]>([])
   const regionElements = useRef<RegionElement[]>([])
   const cageElements = useRef<CageElement[]>([])
   const lineElements = useRef<(LineElement | ArrowElement)[]>([])
@@ -805,7 +806,8 @@ const Grid = ({
     //   selection                20
     //   grid                     30  sortable
     //     cells                   0
-    //     cages                   1
+    //     grid lines              1
+    //     cages                   2
     //     regions                10
     //   overlays                 40
     //   given corner marks       41
@@ -931,6 +933,20 @@ const Grid = ({
     cellsElement.current = cells
     grid.addChild(cells)
 
+    // sort grid lines by thickness
+    let gridLines = [...game.data.gridLines]
+    gridLines.sort((a, b) => b.thickness - a.thickness)
+
+    // add grid lines
+    let gridLinesContainer = new Container()
+    gridLinesContainer.zIndex = 1
+    gridLines.forEach(line => {
+      let l = new LineElement(line, game.data.gridLines, [])
+      gridLinesContainer.addChild(l.container)
+      gridLineElements.current.push(l)
+    })
+    grid.addChild(gridLinesContainer)
+
     // add regions
     let regionContainer = new Container()
     regionContainer.zIndex = 10
@@ -943,7 +959,7 @@ const Grid = ({
 
     // add cages
     let cageContainer = new Container()
-    cageContainer.zIndex = 1
+    cageContainer.zIndex = 2
     cageContainer.mask = fogMask
     for (let cage of cages) {
       let c = new CageElement(cage, regions, defaultFontFamily, 13)
@@ -1374,6 +1390,7 @@ const Grid = ({
     }
     let elementsToMemoize = [
       cellElements,
+      gridLineElements,
       regionElements,
       cageElements,
       extraRegionElements,
@@ -1424,6 +1441,7 @@ const Grid = ({
       gridElement.current = undefined
       cellsElement.current = undefined
       cellElements.current = []
+      gridLineElements.current = []
       regionElements.current = []
       cageElements.current = []
       lineElements.current = []
@@ -1651,6 +1669,7 @@ const Grid = ({
       }
       let elementsToRedraw: MutableRefObject<GridElement[]>[] = [
         cellElements,
+        gridLineElements,
         regionElements,
         cageElements,
         extraRegionElements,

@@ -26,6 +26,10 @@ export function calculateCellExtent(data: Data): CellExtent {
 
   let r = { minX, minY, maxX, maxY }
 
+  for (let line of data.gridLines) {
+    add(r, line.wayPoints)
+  }
+
   for (let region of data.regions) {
     add(r, region)
   }

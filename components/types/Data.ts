@@ -59,6 +59,7 @@ export interface Metadata {
 export interface Data {
   readonly cellSize: number
   readonly cells: DataCell[][]
+  readonly gridLines: Line[]
   readonly regions: [number, number][][]
   readonly cages: Cage[]
   readonly lines: Line[]

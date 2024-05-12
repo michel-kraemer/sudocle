@@ -120,28 +120,39 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     return r
   })
 
-  let lines: Line[] = puzzle.lines?.map((l: any) => {
-    let r = { ...l }
+  let lines = []
+  let gridLines = []
 
-    if (r.fill !== undefined) {
-      r.backgroundColor = r.fill
-      delete r.fill
+  if (puzzle.lines !== undefined) {
+    for (let l of puzzle.lines) {
+      let r = { ...l }
+
+      if (r.fill !== undefined) {
+        r.backgroundColor = r.fill
+        delete r.fill
+      }
+
+      if (isString(r["stroke-dasharray"])) {
+        let arr = r["stroke-dasharray"].split(/\s+|,/)
+        r.strokeDashArray = arr.map(
+          v => (+v * defaultCellSize) / puzzleCellSize,
+        )
+        delete r["stroke-dasharray"]
+      }
+
+      if (r["stroke-dashoffset"] !== undefined) {
+        r.strokeDashOffset =
+          (+r["stroke-dashoffset"] * defaultCellSize) / puzzleCellSize
+        delete r["stroke-dashoffset"]
+      }
+
+      if (r.target === "cell-grids") {
+        gridLines.push(r)
+      } else {
+        lines.push(r)
+      }
     }
-
-    if (isString(r["stroke-dasharray"])) {
-      let arr = r["stroke-dasharray"].split(/\s+|,/)
-      r.strokeDashArray = arr.map(v => (+v * defaultCellSize) / puzzleCellSize)
-      delete r["stroke-dasharray"]
-    }
-
-    if (r["stroke-dashoffset"] !== undefined) {
-      r.strokeDashOffset =
-        (+r["stroke-dashoffset"] * defaultCellSize) / puzzleCellSize
-      delete r["stroke-dashoffset"]
-    }
-
-    return r
-  })
+  }
 
   let extraRegions: ExtraRegion[] | undefined = undefined
 
@@ -200,6 +211,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let result: Data = {
     cellSize: defaultCellSize,
     cells,
+    gridLines,
     regions,
     cages,
     lines,

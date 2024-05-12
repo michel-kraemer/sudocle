@@ -50,6 +50,7 @@ import { immer } from "zustand/middleware/immer"
 const EmptyData: Data = {
   cellSize: 50,
   cells: [],
+  gridLines: [],
   regions: [],
   cages: [],
   lines: [],
@@ -809,9 +810,21 @@ export const useGame = create<GameStateWithActions>()(
                 (l: any) => l.color !== undefined && l.wayPoints !== undefined,
               )
             }
+            if (
+              data.gridLines !== undefined &&
+              Array.isArray(data.gridLines) &&
+              data.gridLines.some(
+                (l: any) => l.color === undefined || l.wayPoints === undefined,
+              )
+            ) {
+              data.gridLines = data.gridLines.filter(
+                (l: any) => l.color !== undefined && l.wayPoints !== undefined,
+              )
+            }
 
             canonicalData = data as Data
             canonicalData.cells = canonicalData.cells || []
+            canonicalData.gridLines = canonicalData.gridLines || []
             canonicalData.regions = canonicalData.regions || []
             canonicalData.cages = canonicalData.cages || []
             canonicalData.lines = canonicalData.lines || []
