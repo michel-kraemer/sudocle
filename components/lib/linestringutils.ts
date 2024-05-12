@@ -26,10 +26,9 @@ export function drawDashedLineString(
     }
     if (isDash) {
       dashLeft = -dashOffset
-      dai = (dai + 2) % dashArray.length
+      dai = (dai + 1) % dashArray.length
     } else {
       gapLeft = -dashOffset
-      dai = (dai + 1) % dashArray.length
     }
   }
 
