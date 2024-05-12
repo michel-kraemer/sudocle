@@ -922,9 +922,7 @@ export const useGame = create<GameStateWithActions>()(
             draft.data?.cells,
             draft.data?.solution,
           )
-          if (!draft.solved) {
-            draft.solved = draft.errors.size === 0
-          }
+          draft.solved = draft.errors.size === 0
           draft.checkCounter++
           return
         }
