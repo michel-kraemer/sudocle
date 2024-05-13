@@ -31,6 +31,7 @@ import { GridElement } from "./GridElement"
 import LineElement from "./LineElement"
 import OverlayElement from "./OverlayElement"
 import RegionElement from "./RegionElement"
+import SelectionElement from "./SelectionElement"
 import { ThemeColours } from "./ThemeColours"
 import { produce } from "immer"
 import { flatten } from "lodash"
@@ -331,7 +332,7 @@ const Grid = ({
   const centreMarkElements = useRef<CentreMarksElement[]>([])
   const cornerMarkElements = useRef<CornerMarksElement[]>([])
   const colourElements = useRef<ColourElement[]>([])
-  const selectionElements = useRef<OldGraphicsEx[]>([])
+  const selectionElements = useRef<SelectionElement[]>([])
   const errorElements = useRef<OldGraphicsEx[]>([])
   const penCurrentWaypoints = useRef<number[]>([])
   const penCurrentWaypointsAdd = useRef(true)
@@ -1196,24 +1197,16 @@ const Grid = ({
     all.addChild(colourContainer)
 
     // create invisible rectangles for selection
+    let selectionContainer = new Container()
+    selectionContainer.zIndex = 20
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let rect: OldGraphicsEx = new Graphics()
-        rect.visible = false
-        rect.zIndex = 20
-        rect.data = {
-          k: xytok(x, y),
-          draw: function ({ cellSize }) {
-            rect.rect(0.5, 0.5, cellSize - 1, cellSize - 1)
-            rect.fill({ color: 0xffde2a, alpha: 0.5 })
-            rect.x = x * cellSize
-            rect.y = y * cellSize
-          },
-        }
-        all.addChild(rect)
-        selectionElements.current.push(rect)
+        let se = new SelectionElement(x, y)
+        selectionContainer.addChild(se.graphics)
+        selectionElements.current.push(se)
       })
     })
+    all.addChild(selectionContainer)
 
     // create invisible rectangles for errors
     game.data.cells.forEach((row, y) => {
@@ -1372,7 +1365,6 @@ const Grid = ({
       }
     let oldElementsToMemoize = [
       fogElements,
-      selectionElements,
       errorElements,
       penLineElements,
       penHitareaElements,
@@ -1407,6 +1399,7 @@ const Grid = ({
       cornerMarkElements,
       centreMarkElements,
       colourElements,
+      selectionElements,
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
@@ -1654,7 +1647,6 @@ const Grid = ({
       // TODO remove
       let oldElementsToRedraw = [
         fogElements,
-        selectionElements,
         errorElements,
         penLineElements,
         penHitareaElements,
@@ -1686,6 +1678,7 @@ const Grid = ({
         cornerMarkElements,
         centreMarkElements,
         colourElements,
+        selectionElements,
       ]
       let gridOffset = { x: gridElement.current!.x, y: gridElement.current!.y }
       for (let r of elementsToRedraw) {
@@ -1813,11 +1806,6 @@ const Grid = ({
 
     let themeColours = getThemeColours(ref.current!)
 
-    // change selection colour
-    for (let e of selectionElements.current) {
-      e.fillStyle.color = themeColours.selection[selectionColour]
-    }
-
     // change background colour
     backgroundElement.current!.clear()
     drawBackground(
@@ -1839,7 +1827,7 @@ const Grid = ({
 
   useEffect(() => {
     selectionElements.current.forEach(s => {
-      s.visible = game.selection.has(s.data!.k!)
+      s.visible = game.selection.has(s.k)
     })
     renderNow()
   }, [game.selection, renderNow])
