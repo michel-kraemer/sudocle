@@ -9,7 +9,6 @@ class ColourElement implements GridElement {
   readonly graphics: Graphics
 
   colour: number
-  visible: boolean
 
   constructor(x: number, y: number, colour: number) {
     this.x = x
@@ -17,14 +16,17 @@ class ColourElement implements GridElement {
     this.k = xytok(x, y)
 
     this.graphics = new Graphics()
-    this.graphics.alpha = 0
+    this.graphics.visible = false
 
     this.colour = colour
-    this.visible = false
   }
 
   clear() {
     this.graphics.clear()
+  }
+
+  set visible(visible: boolean) {
+    this.graphics.visible = visible
   }
 
   draw(options: { cellSize: number }) {
@@ -34,14 +36,10 @@ class ColourElement implements GridElement {
     this.graphics.rect(0.5, 0.5, options.cellSize - 1, options.cellSize - 1)
     this.graphics.fill(this.colour)
 
-    if (this.visible) {
-      if (this.colour === 0xffffff) {
-        this.graphics.alpha = 1.0
-      } else {
-        this.graphics.alpha = 0.5
-      }
+    if (this.colour === 0xffffff) {
+      this.graphics.alpha = 1.0
     } else {
-      this.graphics.alpha = 0
+      this.graphics.alpha = 0.5
     }
   }
 }

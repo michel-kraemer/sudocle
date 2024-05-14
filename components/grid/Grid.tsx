@@ -31,7 +31,6 @@ import { GridElement } from "./GridElement"
 import LineElement from "./LineElement"
 import OverlayElement from "./OverlayElement"
 import RegionElement from "./RegionElement"
-import SelectionElement from "./SelectionElement"
 import { ThemeColours } from "./ThemeColours"
 import { produce } from "immer"
 import { flatten } from "lodash"
@@ -332,8 +331,8 @@ const Grid = ({
   const centreMarkElements = useRef<CentreMarksElement[]>([])
   const cornerMarkElements = useRef<CornerMarksElement[]>([])
   const colourElements = useRef<ColourElement[]>([])
-  const selectionElements = useRef<SelectionElement[]>([])
-  const errorElements = useRef<OldGraphicsEx[]>([])
+  const selectionElements = useRef<ColourElement[]>([])
+  const errorElements = useRef<ColourElement[]>([])
   const penCurrentWaypoints = useRef<number[]>([])
   const penCurrentWaypointsAdd = useRef(true)
   const penCurrentWaypointsElements = useRef<PenWaypointGraphics[]>([])
@@ -1201,7 +1200,7 @@ const Grid = ({
     selectionContainer.zIndex = 20
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let se = new SelectionElement(x, y)
+        let se = new ColourElement(x, y, 0xffde2a)
         selectionContainer.addChild(se.graphics)
         selectionElements.current.push(se)
       })
@@ -1209,24 +1208,16 @@ const Grid = ({
     all.addChild(selectionContainer)
 
     // create invisible rectangles for errors
+    let errorContainer = new Container()
+    errorContainer.zIndex = 10
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let rect: OldGraphicsEx = new Graphics()
-        rect.visible = false
-        rect.zIndex = 10
-        rect.data = {
-          k: xytok(x, y),
-          draw: function ({ cellSize }) {
-            rect.rect(0.5, 0.5, cellSize - 1, cellSize - 1)
-            rect.fill({ color: 0xb33a3a, alpha: 0.5 })
-            rect.x = x * cellSize
-            rect.y = y * cellSize
-          },
-        }
-        all.addChild(rect)
-        errorElements.current.push(rect)
+        let se = new ColourElement(x, y, 0xb33a3a)
+        errorContainer.addChild(se.graphics)
+        errorElements.current.push(se)
       })
     })
+    all.addChild(errorContainer)
 
     // create invisible elements for pen lines
     game.data.cells.forEach((row, y) => {
@@ -1365,7 +1356,6 @@ const Grid = ({
       }
     let oldElementsToMemoize = [
       fogElements,
-      errorElements,
       penLineElements,
       penHitareaElements,
     ]
@@ -1400,6 +1390,7 @@ const Grid = ({
       centreMarkElements,
       colourElements,
       selectionElements,
+      errorElements,
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
@@ -1571,7 +1562,7 @@ const Grid = ({
     }
 
     for (let e of errorElements.current) {
-      e.visible = game.errors.has(e.data!.k!)
+      e.visible = game.errors.has(e.k)
     }
   }, [
     app,
@@ -1647,7 +1638,6 @@ const Grid = ({
       // TODO remove
       let oldElementsToRedraw = [
         fogElements,
-        errorElements,
         penLineElements,
         penHitareaElements,
       ]
@@ -1679,6 +1669,7 @@ const Grid = ({
         centreMarkElements,
         colourElements,
         selectionElements,
+        errorElements,
       ]
       let gridOffset = { x: gridElement.current!.x, y: gridElement.current!.y }
       for (let r of elementsToRedraw) {
