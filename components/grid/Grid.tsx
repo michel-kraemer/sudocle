@@ -930,7 +930,7 @@ const Grid = ({
     let cells = new Container()
     game.data.cells.forEach((row, y) => {
       row.forEach((col, x) => {
-        let cell = new CellElement(x, y)
+        let cell = new CellElement(x, y, game.data.settings?.nogrid ?? false)
         cells.addChild(cell.graphics)
         cellElements.current.push(cell)
       })

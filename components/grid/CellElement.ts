@@ -16,12 +16,14 @@ class CellElement implements GridElement {
   private x: number
   private y: number
   readonly k: number
+  private hideBorder: boolean
   readonly graphics: Graphics
 
-  constructor(x: number, y: number) {
+  constructor(x: number, y: number, hideBorder: boolean = false) {
     this.x = x
     this.y = y
     this.k = xytok(x, y)
+    this.hideBorder = hideBorder
 
     this.graphics = new Graphics()
     this.graphics.eventMode = "static"
@@ -48,7 +50,9 @@ class CellElement implements GridElement {
   draw(options: { cellSize: number; themeColours: ThemeColours }) {
     this.graphics.rect(0, 0, options.cellSize, options.cellSize)
     this.graphics.stroke({
-      width: 1,
+      // Even if `this.hideBorder` is true, we need to draw something.
+      // Otherwise, the bounding rectangle cannot be calculated correctly
+      width: this.hideBorder ? 0 : 1,
       color: options.themeColours.foregroundColor,
     })
 

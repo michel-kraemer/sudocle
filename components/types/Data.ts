@@ -67,6 +67,10 @@ export interface Metadata {
   bgimageopacity?: number
 }
 
+export interface Settings {
+  nogrid: boolean
+}
+
 export interface Data {
   readonly cellSize: number
   readonly cells: DataCell[][]
@@ -84,5 +88,6 @@ export interface Data {
   readonly author?: string
   readonly rules?: string
   readonly metadata?: Metadata
+  readonly settings?: Settings
   readonly solved: boolean
 }

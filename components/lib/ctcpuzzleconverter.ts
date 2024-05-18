@@ -7,6 +7,7 @@ import {
   FogLight,
   Line,
   Overlay,
+  Settings,
 } from "../types/Data"
 import parseSolution from "./parsesolution"
 import Color from "color"
@@ -215,6 +216,13 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
 
   let metadata = puzzle.metadata
 
+  let settings: Settings = {
+    nogrid: false,
+  }
+  if (puzzle.settings?.nogrid) {
+    settings.nogrid = true
+  }
+
   let result: Data = {
     cellSize: defaultCellSize,
     cells,
@@ -232,6 +240,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     author,
     rules,
     metadata,
+    settings,
     solved: false,
   }
 
