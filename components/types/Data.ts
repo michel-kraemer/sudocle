@@ -18,6 +18,7 @@ export interface Line {
   backgroundColor?: string
   strokeDashArray?: number[]
   strokeDashOffset?: number
+  target?: "cell-grids" | "overlay"
 }
 
 export interface ExtraRegion {
@@ -56,17 +57,23 @@ export interface Metadata {
   bgimageopacity?: number
 }
 
+export interface SVGPath {
+  fill?: string
+  fillRule?: string
+  strokeWidth: number
+  d: string
+}
+
 export interface Data {
   readonly cellSize: number
   readonly cells: DataCell[][]
-  readonly gridLines: Line[]
   readonly regions: [number, number][][]
   readonly cages: Cage[]
   readonly lines: Line[]
   readonly extraRegions?: ExtraRegion[]
   readonly arrows: Arrow[]
   readonly underlays: Overlay[]
-  readonly overlays: (Overlay | Line)[]
+  readonly overlays: Overlay[]
   readonly solution?: (number | undefined)[][]
   readonly fogLights?: FogLight[]
   readonly title?: string

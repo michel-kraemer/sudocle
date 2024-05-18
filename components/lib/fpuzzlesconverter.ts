@@ -958,7 +958,6 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
   let result: Data = {
     cellSize: 50,
     cells,
-    gridLines: [],
     regions,
     cages,
     lines,

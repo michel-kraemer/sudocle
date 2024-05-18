@@ -123,10 +123,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     return r
   })
 
-  let overlays: Overlay[] = []
-
   let lines = []
-  let gridLines = []
 
   if (puzzle.lines !== undefined) {
     for (let l of puzzle.lines) {
@@ -151,23 +148,13 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
         delete r["stroke-dashoffset"]
       }
 
-      if (r.target === "cell-grids") {
-        gridLines.push(r)
-      } else if (r.target === "overlay") {
-        overlays.push(r)
-      } else {
-        lines.push(r)
-      }
+      lines.push(r)
     }
   }
 
   let extraRegions: ExtraRegion[] | undefined = undefined
 
-  if (puzzle.overlays !== undefined) {
-    for (let overlay of puzzle.overlays) {
-      overlays.push(mapOverlay(overlay))
-    }
-  }
+  let overlays: Overlay[] = puzzle.overlays?.map(mapOverlay)
 
   let underlays: Overlay[] = puzzle.underlays?.map((o: any) => {
     let r = mapOverlay(o)
@@ -219,7 +206,6 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let result: Data = {
     cellSize: defaultCellSize,
     cells,
-    gridLines,
     regions,
     cages,
     lines,

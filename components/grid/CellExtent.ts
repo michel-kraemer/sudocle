@@ -26,10 +26,6 @@ export function calculateCellExtent(data: Data): CellExtent {
 
   let r = { minX, minY, maxX, maxY }
 
-  for (let line of data.gridLines) {
-    add(r, line.wayPoints)
-  }
-
   for (let region of data.regions) {
     add(r, region)
   }
@@ -59,11 +55,7 @@ export function calculateCellExtent(data: Data): CellExtent {
   }
 
   for (let overlay of data.overlays) {
-    if ("wayPoints" in overlay) {
-      add(r, overlay.wayPoints)
-    } else {
-      add(r, [overlay.center])
-    }
+    add(r, [overlay.center])
   }
 
   if (data.fogLights !== undefined) {

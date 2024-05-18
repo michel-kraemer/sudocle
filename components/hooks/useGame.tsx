@@ -50,7 +50,6 @@ import { immer } from "zustand/middleware/immer"
 const EmptyData: Data = {
   cellSize: 50,
   cells: [],
-  gridLines: [],
   regions: [],
   cages: [],
   lines: [],
@@ -824,7 +823,6 @@ export const useGame = create<GameStateWithActions>()(
 
             canonicalData = data as Data
             canonicalData.cells = canonicalData.cells || []
-            canonicalData.gridLines = canonicalData.gridLines || []
             canonicalData.regions = canonicalData.regions || []
             canonicalData.cages = canonicalData.cages || []
             canonicalData.lines = canonicalData.lines || []

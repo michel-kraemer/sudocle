@@ -933,11 +933,12 @@ const Grid = ({
     cellsElement.current = cells
     grid.addChild(cells)
 
-    // add grid lines
+    // add lines with target "cell-grids"
     let gridLinesContainer = new Container()
     gridLinesContainer.zIndex = 1
-    game.data.gridLines.forEach(line => {
-      let l = new LineElement(line, game.data.gridLines, [], false)
+    let gridLines = game.data.lines.filter(l => l.target === "cell-grids")
+    gridLines.forEach(line => {
+      let l = new LineElement(line, gridLines, [], false)
       gridLinesContainer.addChild(l.container)
       gridLineElements.current.push(l)
     })
@@ -978,6 +979,9 @@ const Grid = ({
     }
     all.addChild(extraRegionContainer)
 
+    // find lines without a target
+    let linesWithoutTarget = game.data.lines.filter(l => l.target === undefined)
+
     // sort lines and arrows by thickness
     let lines: (
       | {
@@ -989,7 +993,7 @@ const Grid = ({
           arrow: Arrow
         }
     )[] = [
-      ...game.data.lines.map(l => ({ line: l })),
+      ...linesWithoutTarget.map(l => ({ line: l })),
       ...game.data.arrows.map(a => ({ arrow: a })),
     ]
     lines.sort(
@@ -1030,17 +1034,20 @@ const Grid = ({
     })
     all.addChild(underlaysContainer)
 
-    // add overlays
+    // add overlays: lines with target "overlay"
     let overlaysContainer = new Container()
     overlaysContainer.zIndex = 40
     overlaysContainer.mask = fogMask
+    let overlayLines = game.data.lines.filter(l => l.target === "overlay")
+    overlayLines.forEach(l => {
+      let o = new LineElement(l, overlayLines, [])
+      overlaysContainer.addChild(o.container)
+      overlayElements.current.push(o)
+    })
+
+    // add other overlays
     game.data.overlays.forEach(overlay => {
-      let o: LineElement | OverlayElement
-      if ("wayPoints" in overlay) {
-        o = new LineElement(overlay, game.data.lines, [])
-      } else {
-        o = new OverlayElement(overlay, defaultFontFamily)
-      }
+      let o = new OverlayElement(overlay, defaultFontFamily)
       overlaysContainer.addChild(o.container)
       overlayElements.current.push(o)
     })
