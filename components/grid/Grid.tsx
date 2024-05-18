@@ -31,6 +31,7 @@ import { GridElement } from "./GridElement"
 import LineElement from "./LineElement"
 import OverlayElement from "./OverlayElement"
 import RegionElement from "./RegionElement"
+import SVGPathElement from "./SVGPathElement"
 import { ThemeColours } from "./ThemeColours"
 import { produce } from "immer"
 import { flatten } from "lodash"
@@ -316,13 +317,16 @@ const Grid = ({
   const cellsElement = useRef<Container>()
   const allElement = useRef<Container>()
   const cellElements = useRef<CellElement[]>([])
-  const gridLineElements = useRef<LineElement[]>([])
+  const gridLineElements = useRef<(LineElement | SVGPathElement)[]>([])
   const regionElements = useRef<RegionElement[]>([])
   const cageElements = useRef<CageElement[]>([])
   const lineElements = useRef<(LineElement | ArrowElement)[]>([])
+  const svgPathElements = useRef<SVGPathElement[]>([])
   const extraRegionElements = useRef<ExtraRegionElement[]>([])
   const underlayElements = useRef<OverlayElement[]>([])
-  const overlayElements = useRef<(OverlayElement | LineElement)[]>([])
+  const overlayElements = useRef<
+    (OverlayElement | LineElement | SVGPathElement)[]
+  >([])
   const backgroundElement = useRef<Graphics>()
   const backgroundImageElements = useRef<BackgroundImageElement[]>([])
   const fogElements = useRef<OldGraphicsEx[]>([])
@@ -798,6 +802,7 @@ const Grid = ({
     //   background image        -40
     //   extra regions           -30
     //   underlays               -20
+    //   SVG paths               -15
     //   lines and arrows        -10
     //   arrow heads             -10
     //   fog                      -1
@@ -942,6 +947,15 @@ const Grid = ({
       gridLinesContainer.addChild(l.container)
       gridLineElements.current.push(l)
     })
+
+    // add svg paths with target "cell-grids"
+    game.data.svgPaths
+      ?.filter(p => p.target === "cell-grids")
+      ?.forEach(p => {
+        let l = new SVGPathElement(p)
+        gridLinesContainer.addChild(l.container)
+        gridLineElements.current.push(l)
+      })
     grid.addChild(gridLinesContainer)
 
     // add regions
@@ -978,6 +992,20 @@ const Grid = ({
       extraRegionElements.current.push(er)
     }
     all.addChild(extraRegionContainer)
+
+    // add SVG paths
+    let svgPathsWithoutTarget = game.data.svgPaths?.filter(
+      p => p.target === undefined,
+    )
+    let svgPathsContainer = new Container()
+    svgPathsContainer.zIndex = -15
+    svgPathsContainer.mask = fogMask
+    svgPathsWithoutTarget?.forEach(p => {
+      let l = new SVGPathElement(p)
+      svgPathsContainer.addChild(l.container)
+      svgPathElements.current.push(l)
+    })
+    all.addChild(svgPathsContainer)
 
     // find lines without a target
     let linesWithoutTarget = game.data.lines.filter(l => l.target === undefined)
@@ -1034,10 +1062,20 @@ const Grid = ({
     })
     all.addChild(underlaysContainer)
 
-    // add overlays: lines with target "overlay"
+    // add overlays: SVG paths with target "overlay"
     let overlaysContainer = new Container()
     overlaysContainer.zIndex = 40
     overlaysContainer.mask = fogMask
+    let overlaySvgPaths = game.data.svgPaths?.filter(
+      l => l.target === "overlay",
+    )
+    overlaySvgPaths?.forEach(p => {
+      let o = new SVGPathElement(p)
+      overlaysContainer.addChild(o.container)
+      overlayElements.current.push(o)
+    })
+
+    // add overlays: lines with target "overlay"
     let overlayLines = game.data.lines.filter(l => l.target === "overlay")
     overlayLines.forEach(l => {
       let o = new LineElement(l, overlayLines, [])
@@ -1388,6 +1426,7 @@ const Grid = ({
       cageElements,
       extraRegionElements,
       lineElements,
+      svgPathElements,
       underlayElements,
       overlayElements,
       backgroundImageElements,
@@ -1440,6 +1479,7 @@ const Grid = ({
       regionElements.current = []
       cageElements.current = []
       lineElements.current = []
+      svgPathElements.current = []
       extraRegionElements.current = []
       underlayElements.current = []
       overlayElements.current = []
@@ -1667,6 +1707,7 @@ const Grid = ({
         cageElements,
         extraRegionElements,
         lineElements,
+        svgPathElements,
         underlayElements,
         overlayElements,
         backgroundImageElements,
@@ -1841,6 +1882,9 @@ const Grid = ({
       let promises = []
       for (let bg of backgroundImageElements.current) {
         promises.push(bg.readyPromise)
+      }
+      for (let p of svgPathElements.current) {
+        promises.push(p.readyPromise)
       }
       Promise.all(promises).then(() => {
         screenshotNow()

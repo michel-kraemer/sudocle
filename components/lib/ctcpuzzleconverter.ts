@@ -124,31 +124,43 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   })
 
   let lines = []
+  let svgPaths = []
 
   if (puzzle.lines !== undefined) {
     for (let l of puzzle.lines) {
       let r = { ...l }
 
-      if (r.fill !== undefined) {
-        r.backgroundColor = r.fill
-        delete r.fill
-      }
+      if ("wayPoints" in r) {
+        if (r.fill !== undefined) {
+          r.backgroundColor = r.fill
+          delete r.fill
+        }
 
-      if (isString(r["stroke-dasharray"])) {
-        let arr = r["stroke-dasharray"].split(/\s+|,/)
-        r.strokeDashArray = arr.map(
-          v => (+v * defaultCellSize) / puzzleCellSize,
-        )
-        delete r["stroke-dasharray"]
-      }
+        if (isString(r["stroke-dasharray"])) {
+          let arr = r["stroke-dasharray"].split(/\s+|,/)
+          r.strokeDashArray = arr.map(
+            v => (+v * defaultCellSize) / puzzleCellSize,
+          )
+          delete r["stroke-dasharray"]
+        }
 
-      if (r["stroke-dashoffset"] !== undefined) {
-        r.strokeDashOffset =
-          (+r["stroke-dashoffset"] * defaultCellSize) / puzzleCellSize
-        delete r["stroke-dashoffset"]
-      }
+        if (r["stroke-dashoffset"] !== undefined) {
+          r.strokeDashOffset =
+            (+r["stroke-dashoffset"] * defaultCellSize) / puzzleCellSize
+          delete r["stroke-dashoffset"]
+        }
 
-      lines.push(r)
+        lines.push(r)
+      } else if ("d" in r) {
+        r.cellSize = puzzleCellSize
+
+        if (r["fill-rule"] !== undefined) {
+          r.fillRule = r["fill-rule"]
+          delete r["fill-rule"]
+        }
+
+        svgPaths.push(r)
+      }
     }
   }
 
@@ -215,6 +227,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     arrows,
     solution,
     fogLights,
+    svgPaths,
     title,
     author,
     rules,

@@ -38,9 +38,7 @@ class BackgroundImageElement implements GridElement {
   }
 
   clear() {
-    if (this.placeholder !== undefined) {
-      this.placeholder.clear()
-    }
+    this.placeholder?.clear()
   }
 
   draw(options: { cellSize: number }): void {

@@ -1,3 +1,5 @@
+type Target = "cell-grids" | "overlay"
+
 export interface DataCell {
   value?: number | string
   cornermarks?: (number | string)[]
@@ -18,7 +20,7 @@ export interface Line {
   backgroundColor?: string
   strokeDashArray?: number[]
   strokeDashOffset?: number
-  target?: "cell-grids" | "overlay"
+  target?: Target
 }
 
 export interface ExtraRegion {
@@ -52,16 +54,17 @@ export interface FogLight {
   size: 1 | 3
 }
 
+export interface SVGPath {
+  cellSize: number
+  fill?: string
+  fillRule?: string
+  d: string
+  target?: Target
+}
+
 export interface Metadata {
   bgimage?: string
   bgimageopacity?: number
-}
-
-export interface SVGPath {
-  fill?: string
-  fillRule?: string
-  strokeWidth: number
-  d: string
 }
 
 export interface Data {
@@ -76,6 +79,7 @@ export interface Data {
   readonly overlays: Overlay[]
   readonly solution?: (number | undefined)[][]
   readonly fogLights?: FogLight[]
+  readonly svgPaths?: SVGPath[]
   readonly title?: string
   readonly author?: string
   readonly rules?: string
