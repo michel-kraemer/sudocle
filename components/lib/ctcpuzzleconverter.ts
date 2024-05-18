@@ -35,7 +35,10 @@ const KEYS: Record<string, string> = {
   th: "thickness",
   hl: "headLength",
   wp: "wayPoints",
+  t: "title",
   te: "text",
+  d: "duration",
+  d2: "d",
 }
 
 function convertNewPuzzle(data: string): any {
@@ -197,9 +200,6 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   if (isString(puzzle.metadata?.title)) {
     title = puzzle.metadata.title
     delete puzzle.metadata.title
-  } else if (isString(puzzle.metadata?.t)) {
-    title = puzzle.metadata.t
-    delete puzzle.metadata.t
   }
 
   let rules: string | undefined
