@@ -85,7 +85,6 @@ class SVGPathElement implements GridElement {
 
   draw(options: { unitSize: number }) {
     this.unitSize = options.unitSize
-    console.log(this.unitSize)
 
     let x = this.bbox.x * this.unitSize * this.factor
     let y = this.bbox.y * this.unitSize * this.factor

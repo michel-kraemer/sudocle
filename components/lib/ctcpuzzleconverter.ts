@@ -5,7 +5,6 @@ import {
   DataCell,
   ExtraRegion,
   FogLight,
-  Line,
   Overlay,
   Settings,
 } from "../types/Data"

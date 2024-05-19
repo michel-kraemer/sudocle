@@ -178,7 +178,6 @@ const IndexPage = () => {
         if (json.fpuzzles !== undefined || json.fpuz !== undefined) {
           json = convertFPuzzle(JSON.parse(str))
         } else {
-          console.log(str)
           json = convertCTCPuzzle(str)
         }
       }
