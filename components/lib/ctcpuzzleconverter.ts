@@ -166,24 +166,41 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
 
   let extraRegions: ExtraRegion[] | undefined = undefined
 
-  let overlays: Overlay[] = puzzle.overlays?.map(mapOverlay)
+  let overlays: Overlay[] = []
 
-  let underlays: Overlay[] = puzzle.underlays?.map((o: any) => {
-    let r = mapOverlay(o)
+  // add underlays with target `overlay` to `overlays` (they should appear
+  // before the actual overlays)
+  if (puzzle.underlays !== undefined) {
+    overlays.push(
+      ...puzzle.underlays
+        .filter((u: any) => u.target === "overlay")
+        .map(mapOverlay),
+    )
+  }
 
-    // In OverlayElement.ts, we apply an opacity of 0.5 if the colour is not
-    // grey (see OverlayElement.draw()). But for this kind of puzzle, we need
-    // to always apply an opacity of 0.5, regardless of the colour.
-    if (r.backgroundColor !== undefined) {
-      let bc = Color(r.backgroundColor.trim())
-      let alpha = bc.alpha()
-      if (alpha === 1) {
-        r.backgroundColor = bc.alpha(0.5).toString()
+  // add actual overlays
+  if (puzzle.overlays !== undefined) {
+    overlays.push(...puzzle.overlays.map(mapOverlay))
+  }
+
+  let underlays: Overlay[] = puzzle.underlays
+    ?.filter((u: any) => u.target !== "overlay")
+    .map((o: any) => {
+      let r = mapOverlay(o)
+
+      // In OverlayElement.ts, we apply an opacity of 0.5 if the colour is not
+      // grey (see OverlayElement.draw()). But for this kind of puzzle, we need
+      // to always apply an opacity of 0.5, regardless of the colour.
+      if (r.backgroundColor !== undefined) {
+        let bc = Color(r.backgroundColor.trim())
+        let alpha = bc.alpha()
+        if (alpha === 1) {
+          r.backgroundColor = bc.alpha(0.5).toString()
+        }
       }
-    }
 
-    return r
-  })
+      return r
+    })
 
   let arrows: Arrow[] = puzzle.arrows
 
