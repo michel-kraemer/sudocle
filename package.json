@@ -51,7 +51,7 @@
     "npm-check-updates": "^16.14.20",
     "odiff-bin": "^3.0.0",
     "postcss": "^8.4.38",
-    "prettier": "^3.2.5",
+    "prettier": "^3.3.1",
     "prettier-plugin-tailwindcss": "^0.5.14",
     "start-server-and-test": "^2.0.3",
     "tailwindcss": "^3.4.3"
