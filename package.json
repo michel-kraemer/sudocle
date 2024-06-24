@@ -39,7 +39,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.44.0",
+    "@playwright/test": "^1.45.0",
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/color": "^3.0.6",
     "@types/lodash": "^4.17.4",
