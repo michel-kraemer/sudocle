@@ -795,8 +795,9 @@ export const useGame = create<GameStateWithActions>()(
             | undefined = undefined
           if (action.data !== undefined) {
             // Filter out invalid elements. For the time being, these are only
-            // lines without colour or waypoints. In the future, we might
-            // implement more rules or check the schema against our data model.
+            // lines and arrows without colour or waypoints. In the future, we
+            // might implement more rules or check the schema against our data
+            // model.
             let data = { ...action.data }
             if (
               data.lines !== undefined &&
@@ -818,6 +819,17 @@ export const useGame = create<GameStateWithActions>()(
             ) {
               data.gridLines = data.gridLines.filter(
                 (l: any) => l.color !== undefined && l.wayPoints !== undefined,
+              )
+            }
+            if (
+              data.arrows !== undefined &&
+              Array.isArray(data.arrows) &&
+              data.arrows.some(
+                (a: any) => a.color === undefined || a.wayPoints === undefined,
+              )
+            ) {
+              data.arrows = data.arrows.filter(
+                (a: any) => a.color !== undefined && a.wayPoints !== undefined,
               )
             }
 
