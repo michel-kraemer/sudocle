@@ -323,7 +323,7 @@ const Grid = ({
   const lineElements = useRef<(LineElement | ArrowElement)[]>([])
   const svgPathElements = useRef<SVGPathElement[]>([])
   const extraRegionElements = useRef<ExtraRegionElement[]>([])
-  const underlayElements = useRef<OverlayElement[]>([])
+  const underlayElements = useRef<(OverlayElement | LineElement)[]>([])
   const overlayElements = useRef<
     (OverlayElement | LineElement | SVGPathElement)[]
   >([])
@@ -1051,10 +1051,18 @@ const Grid = ({
     })
     all.addChild(linesContainer)
 
-    // add underlays
+    // add underlays: lines with target "underlay"
     let underlaysContainer = new Container()
     underlaysContainer.zIndex = -20
     underlaysContainer.mask = fogMask
+    let underlayLines = game.data.lines.filter(l => l.target === "underlay")
+    underlayLines.forEach(l => {
+      let o = new LineElement(l, underlayLines, [])
+      underlaysContainer.addChild(o.container)
+      underlayElements.current.push(o)
+    })
+
+    // add other underlays
     game.data.underlays.forEach(underlay => {
       let o = new OverlayElement(underlay, defaultFontFamily)
       underlaysContainer.addChild(o.container)
