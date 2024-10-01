@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.1",
-    "@radix-ui/react-radio-group": "^1.2.0",
+    "@radix-ui/react-radio-group": "^1.2.1",
     "@radix-ui/react-slider": "^1.2.0",
     "@thi.ng/bitstream": "^2.2.65",
     "@types/fontfaceobserver": "^2.1.3",
