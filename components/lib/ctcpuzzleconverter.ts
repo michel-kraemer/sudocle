@@ -113,13 +113,26 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     (c: any) => c.hidden === undefined || c.hidden === false,
   )
 
-  // map outlineC to borderColor
   cages = cages.map((c: any) => {
     let r = { ...c }
+
+    // map outlineC to borderColor
     if (r.outlineC !== undefined) {
       r.borderColor = r.outlineC
       delete r.outlineC
     }
+
+    // parse cageValue
+    if (r.cageValue) {
+      let m = r.cageValue.match(/r-?[0-9]+c-?[0-9]+=([0-9]+)/i)
+      if (m) {
+        r.value = m[1]
+      } else {
+        r.value = r.cageValue
+      }
+      delete r.cageValue
+    }
+
     return r
   })
 
