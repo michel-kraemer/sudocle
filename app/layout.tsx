@@ -127,7 +127,7 @@ export default function RootLayout({
           sizes="1024x1024"
           href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/apple-touch-icon-1024x1024.png`}
         />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
           content="black-translucent"
