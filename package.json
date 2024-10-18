@@ -32,7 +32,7 @@
     "mini-svg-data-uri": "^1.4.4",
     "next": "^14.2.15",
     "pixi-filters": "^6.0.5",
-    "pixi.js": "^8.4.1",
+    "pixi.js": "^8.5.1",
     "polygon-clipping": "^0.15.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
