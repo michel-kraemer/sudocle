@@ -1,4 +1,4 @@
-FROM node:20-slim as build
+FROM node:20-slim AS build
 
 RUN mkdir /sudocle
 COPY package.json /sudocle
