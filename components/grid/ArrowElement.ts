@@ -29,10 +29,8 @@ class ArrowElement extends BaseLineElement<Arrow> {
     cellSize: number
     gridOffset: { x: number; y: number }
   }): void {
+    // calculate length
     let points = this.getPoints(options.cellSize, options.gridOffset)
-    this.drawLineGraphics(points)
-
-    // arrow head
     let lastPointX = points[points.length - 2]
     let lastPointY = points[points.length - 1]
     let secondToLastX = points[points.length - 4]
@@ -44,7 +42,20 @@ class ArrowElement extends BaseLineElement<Arrow> {
     dx /= l
     dy /= l
 
-    let f = Math.min(this.baseLine.headLength * options.cellSize * 0.7, l / 3)
+    if (l > 2) {
+      // only draw arrow lines if they are long enough (at least 2 pixels)
+      this.drawLineGraphics(points)
+    }
+
+    // draw arrow head
+    let f: number
+    if (l <= 2) {
+      // if line is too short (less than 2 pixels), just draw the head
+      f = this.baseLine.headLength * options.cellSize * 0.7
+    } else {
+      // scale head with line length
+      f = Math.min(this.baseLine.headLength * options.cellSize * 0.7, l / 3)
+    }
     let ex = lastPointX - dx * f
     let ey = lastPointY - dy * f
     let ex1 = ex - dy * f
