@@ -42,7 +42,7 @@ const Sidebar = () => {
   }))
 
   const [expanded, setExpanded] = useState(expandedDirect)
-  const setExpandedTimer = useRef<number>()
+  const setExpandedTimer = useRef<number>(undefined)
 
   useEffect(() => {
     if (setExpandedTimer.current !== undefined) {

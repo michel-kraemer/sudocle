@@ -313,9 +313,9 @@ const Grid = ({
   fogDisplayOptions = { enableFog: true, enableDropShadow: true },
 }: GridProps) => {
   const ref = useRef<HTMLDivElement>(null)
-  const gridElement = useRef<Container>()
-  const cellsElement = useRef<Container>()
-  const allElement = useRef<Container>()
+  const gridElement = useRef<Container>(undefined)
+  const cellsElement = useRef<Container>(undefined)
+  const allElement = useRef<Container>(undefined)
   const cellElements = useRef<CellElement[]>([])
   const gridLineElements = useRef<(LineElement | SVGPathElement)[]>([])
   const regionElements = useRef<RegionElement[]>([])
@@ -327,7 +327,7 @@ const Grid = ({
   const overlayElements = useRef<
     (OverlayElement | LineElement | SVGPathElement)[]
   >([])
-  const backgroundElement = useRef<Graphics>()
+  const backgroundElement = useRef<Graphics>(undefined)
   const backgroundImageElements = useRef<BackgroundImageElement[]>([])
   const fogElements = useRef<OldGraphicsEx[]>([])
   const givenCornerMarkElements = useRef<CornerMarksElement[]>([])

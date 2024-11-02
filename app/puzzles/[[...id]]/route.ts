@@ -10,8 +10,10 @@ const MAX_AGE_OTHER = 86400 // 1 day
 
 export async function GET(
   _: Request,
-  { params }: { params: { id: string[] } }
+  segmentData: { params: Promise<{ id: string[] }> }
 ) {
+  let params = await segmentData.params
+
   try {
     if (params.id === undefined || params.id.length === 0) {
       let r = new Response(JSON.stringify(emptyGrid))

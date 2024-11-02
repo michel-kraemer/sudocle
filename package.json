@@ -30,12 +30,12 @@
     "lucide-react": "^0.454.0",
     "memoize-one": "^6.0.0",
     "mini-svg-data-uri": "^1.4.4",
-    "next": "^14.2.15",
+    "next": "15.0.2",
     "pixi-filters": "^6.0.5",
     "pixi.js": "^8.4.1",
     "polygon-clipping": "^0.15.7",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "19.0.0-rc-02c0e824-20241028",
+    "react-dom": "19.0.0-rc-02c0e824-20241028",
     "zustand": "^4.5.4"
   },
   "devDependencies": {
@@ -43,10 +43,10 @@
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/color": "^3.0.6",
     "@types/lodash": "^4.17.13",
-    "@types/react": "18.3.12",
+    "@types/react": "npm:types-react@19.0.0-rc.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.0",
-    "eslint-config-next": "^14.2.15",
+    "eslint-config-next": "15.0.2",
     "eslint-webpack-plugin": "^4.2.0",
     "npm-check-updates": "^17.1.9",
     "odiff-bin": "^3.1.2",
@@ -55,5 +55,8 @@
     "prettier-plugin-tailwindcss": "^0.6.8",
     "start-server-and-test": "^2.0.8",
     "tailwindcss": "^3.4.14"
+  },
+  "overrides": {
+    "@types/react": "npm:types-react@19.0.0-rc.1"
   }
 }

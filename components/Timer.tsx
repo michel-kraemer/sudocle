@@ -21,7 +21,7 @@ const Timer = ({ solved }: TimerProps) => {
   const [continueVisible, setContinueVisible] = useState(false)
   const [pauseStart, setPauseStart] = useState<number>()
   const [pausedElapsed, setPausedElapsed] = useState(0)
-  const nextTimer = useRef<number>()
+  const nextTimer = useRef<number>(undefined)
 
   if (solved && end === undefined) {
     setEnd(+new Date())

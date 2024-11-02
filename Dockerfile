@@ -4,7 +4,7 @@ RUN mkdir /sudocle
 COPY package.json /sudocle
 COPY package-lock.json /sudocle
 WORKDIR /sudocle
-RUN npm ci
+RUN npm ci -f
 
 ARG MATOMO_URL
 ARG MATOMO_SITE_ID
