@@ -1,4 +1,4 @@
-type Target = "cell-grids" | "overlay" | "underlay"
+type Target = "cell-grids" | "overlay" | "underlay" | "cages"
 
 export interface DataCell {
   value?: number | string

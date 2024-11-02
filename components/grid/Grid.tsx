@@ -319,7 +319,9 @@ const Grid = ({
   const cellElements = useRef<CellElement[]>([])
   const gridLineElements = useRef<(LineElement | SVGPathElement)[]>([])
   const regionElements = useRef<RegionElement[]>([])
-  const cageElements = useRef<CageElement[]>([])
+  const cageElements = useRef<(CageElement | LineElement | SVGPathElement)[]>(
+    [],
+  )
   const lineElements = useRef<(LineElement | ArrowElement)[]>([])
   const svgPathElements = useRef<SVGPathElement[]>([])
   const extraRegionElements = useRef<ExtraRegionElement[]>([])
@@ -978,6 +980,23 @@ const Grid = ({
       cageElements.current.push(c)
     }
     grid.addChild(cageContainer)
+
+    // add lines with target "cages"
+    let cageLines = game.data.lines.filter(l => l.target === "cages")
+    cageLines.forEach(line => {
+      let l = new LineElement(line, cageLines, [], false)
+      cageContainer.addChild(l.container)
+      cageElements.current.push(l)
+    })
+
+    // add svg paths with target "cages"
+    game.data.svgPaths
+      ?.filter(p => p.target === "cages")
+      ?.forEach(p => {
+        let l = new SVGPathElement(p)
+        cageContainer.addChild(l.container)
+        cageElements.current.push(l)
+      })
 
     grid.zIndex = 30
     all.addChild(grid)
