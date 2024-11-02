@@ -63,6 +63,23 @@ interface Colour {
   colour: number
 }
 
+export interface WrongSolutionErrors {
+  type: "wrongsolution" // the solution is complete but wrong (errors will be revealed)
+  errors: Set<number>
+}
+
+export interface OtherErrors {
+  type:
+    | "unknown" // the puzzle has not been checked for errors yet
+    | "notstarted" // the solver has not started solving the puzzle
+    | "goodsofar" // some but not all digits have been entered and they are correct
+    | "badsofar" // the solution is incomplete and wrong (errors won't be revealed)
+    | "solved" // the solution is correct
+}
+
+export type Errors = WrongSolutionErrors | OtherErrors
+export type ErrorType = Errors["type"]
+
 interface PersistentGameState {
   digits: Map<number, Digit>
   cornerMarks: Map<number, Set<number | string>>
@@ -80,7 +97,7 @@ export interface GameState extends PersistentGameState {
   enabledModes0: Mode[]
   enabledModes1: Mode[]
   selection: Set<number>
-  errors: Set<number>
+  errors: Errors
   undoStates: PersistentGameState[]
   nextUndoState: number
   solved: boolean
@@ -262,7 +279,7 @@ function makeEmptyState(data?: Data): GameState {
     colours: new Map(),
     penLines: new Set(),
     selection: new Set(),
-    errors: new Set(),
+    errors: { type: "unknown" },
     undoStates: [],
     nextUndoState: 0,
     solved: data?.solved ?? false,
@@ -649,21 +666,29 @@ function checkReducer(
   digits: Map<number, Digit>,
   cells: DataCell[][] = [],
   solution?: (number | undefined)[][],
-): Set<number> {
+): Errors {
   let errors = new Set<number>()
 
   if (solution === undefined) {
+    // there is no solution
     let gridByRow: (string | number)[][] = []
     let gridByCol: (string | number)[][] = []
 
+    let expectedDigits = cells.length * cells[0].length
+
     // check for empty cells
+    let missingDigits = 0
     cells.forEach((row, y) => {
       row.forEach((col, x) => {
         let k = xytok(x, y)
         let d = digits.get(k)
         if (d === undefined) {
           errors.add(k)
+          ++missingDigits
         } else {
+          if (d.given) {
+            --expectedDigits
+          }
           gridByRow[y] = gridByRow[y] || []
           gridByRow[y][x] = d.digit
           gridByCol[x] = gridByCol[x] || []
@@ -677,20 +702,50 @@ function checkReducer(
 
     // check for duplicate digits in cols
     checkDuplicates(gridByCol, errors, true)
-  } else {
-    cells.forEach((row, y) => {
-      row.forEach((_, x) => {
-        let k = xytok(x, y)
-        let actual = digits.get(k)
-        let expected = solution[y][x]
-        if (expected !== undefined && expected !== actual?.digit) {
-          errors.add(k)
-        }
-      })
-    })
+
+    if (errors.size === 0) {
+      return { type: "solved" }
+    } else if (missingDigits === 0) {
+      return { type: "wrongsolution", errors }
+    } else if (missingDigits === expectedDigits) {
+      return { type: "notstarted" }
+    }
+    return { type: "badsofar" }
   }
 
-  return errors
+  // check against solution
+  let missingDigits = 0
+  let matchingDigits = 0
+  cells.forEach((row, y) => {
+    row.forEach((_, x) => {
+      let k = xytok(x, y)
+      let actual = digits.get(k)
+      let expected = solution[y][x]
+      if (expected !== undefined) {
+        if (expected !== actual?.digit) {
+          errors.add(k)
+          if (actual?.digit === undefined) {
+            ++missingDigits
+          }
+        } else if (actual?.given === false) {
+          ++matchingDigits
+        }
+      }
+    })
+  })
+
+  if (errors.size === 0) {
+    return { type: "solved" }
+  } else if (missingDigits === 0) {
+    return { type: "wrongsolution", errors }
+  } else if (missingDigits === errors.size) {
+    if (matchingDigits > 0) {
+      return { type: "goodsofar" }
+    } else {
+      return { type: "notstarted" }
+    }
+  }
+  return { type: "badsofar" }
 }
 
 function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
@@ -912,8 +967,8 @@ export const useGame = create<GameStateWithActions>()(
         }
 
         // clear errors on every interaction
-        if (draft.errors.size > 0) {
-          draft.errors.clear()
+        if (draft.errors.type !== "unknown") {
+          draft.errors = { type: "unknown" }
         }
 
         if (action.type === TYPE_UNDO) {
@@ -945,7 +1000,7 @@ export const useGame = create<GameStateWithActions>()(
             draft.data?.cells,
             draft.data?.solution,
           )
-          draft.solved = draft.errors.size === 0
+          draft.solved = draft.errors.type === "solved"
           draft.checkCounter++
           return
         }

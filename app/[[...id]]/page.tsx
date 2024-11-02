@@ -38,7 +38,7 @@ import lzwDecompress from "../../components/lib/lzwdecompressor"
 import { Data } from "../../components/types/Data"
 import FontFaceObserver from "fontfaceobserver"
 import { enableMapSet } from "immer"
-import { Frown, ThumbsUp } from "lucide-react"
+import { CircleEllipsis, Frown, Sprout, ThumbsUp } from "lucide-react"
 import {
   MouseEvent,
   ReactNode,
@@ -621,12 +621,23 @@ const IndexPage = () => {
   }, [game.nextUndoState, game.solved])
 
   useEffect(() => {
-    if (game.errors.size > 0) {
-      setErrorModalOpen(true)
-    } else if (game.solved) {
-      setSolvedModalOpen(true)
+    switch (game.errors.type) {
+      case "unknown":
+        setErrorModalOpen(false)
+        break
+
+      case "wrongsolution":
+      case "notstarted":
+      case "goodsofar":
+      case "badsofar":
+        setErrorModalOpen(true)
+        break
+
+      case "solved":
+        setSolvedModalOpen(true)
+        break
     }
-  }, [game.errors.size, game.solved, game.checkCounter])
+  }, [game.errors, game.checkCounter])
 
   return (
     <>
@@ -672,6 +683,7 @@ const IndexPage = () => {
         <Modal
           isOpen={solvedModalOpen}
           title="Congratulations!"
+          type="success"
           icon={<ThumbsUp size="3.25em" />}
           onOpenChange={open => setSolvedModalOpen(open)}
         >
@@ -679,12 +691,42 @@ const IndexPage = () => {
         </Modal>
         <Modal
           isOpen={errorModalOpen}
-          title="Sorry"
-          alert
-          icon={<Frown size="3.25em" />}
+          title={
+            game.errors.type === "notstarted"
+              ? "Let’s go!"
+              : game.errors.type === "goodsofar"
+                ? "Incomplete"
+                : "Sorry"
+          }
+          type={
+            game.errors.type === "notstarted" ||
+            game.errors.type === "goodsofar"
+              ? "warning"
+              : "alert"
+          }
+          icon={
+            game.errors.type === "notstarted" ? (
+              <Sprout size="3.25em" />
+            ) : game.errors.type === "goodsofar" ? (
+              <CircleEllipsis size="3.25em" />
+            ) : (
+              <Frown size="3.25em" />
+            )
+          }
           onOpenChange={open => setErrorModalOpen(open)}
         >
-          Something seems to be wrong
+          {(() => {
+            switch (game.errors.type) {
+              case "notstarted":
+                return "You haven't started solving yet"
+
+              case "goodsofar":
+                return "Your solution looks good so far"
+
+              default:
+                return "Something seems to be wrong"
+            }
+          })()}
         </Modal>
       </div>
     </>

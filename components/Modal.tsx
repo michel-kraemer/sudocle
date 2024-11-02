@@ -5,7 +5,7 @@ import { ReactNode } from "react"
 
 interface ModalProps {
   isOpen: boolean
-  alert?: boolean
+  type: "success" | "alert" | "warning"
   icon: ReactNode
   title: string
   onOpenChange: (open: boolean) => void
@@ -14,7 +14,7 @@ interface ModalProps {
 
 const Modal = ({
   isOpen,
-  alert,
+  type,
   icon,
   title,
   onOpenChange,
@@ -27,7 +27,11 @@ const Modal = ({
           <div
             className={clsx(
               "py-4 px-12",
-              alert ? "bg-modal-alert" : "bg-modal-success",
+              type === "alert"
+                ? "bg-modal-alert"
+                : type === "warning"
+                  ? "bg-modal-warning"
+                  : "bg-modal-success",
             )}
           >
             <Dialog.Title className="font-medium flex flex-col items-center gap-0.5">

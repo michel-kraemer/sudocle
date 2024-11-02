@@ -1617,7 +1617,8 @@ const Grid = ({
     }
 
     for (let e of errorElements.current) {
-      e.visible = game.errors.has(e.k)
+      e.visible =
+        game.errors.type === "wrongsolution" && game.errors.errors.has(e.k)
     }
   }, [
     app,

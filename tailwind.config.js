@@ -56,6 +56,7 @@ module.exports = {
       alert: withOpacity("alert"),
       "modal-success": withOpacity("modal-success"),
       "modal-alert": withOpacity("modal-alert"),
+      "modal-warning": withOpacity("modal-warning"),
       digit: withOpacity("digit"),
       "digit-small": withOpacity("digit-small"),
       "button-hover": withOpacity("button-hover"),
