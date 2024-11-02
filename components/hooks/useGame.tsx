@@ -709,6 +709,8 @@ function checkReducer(
       return { type: "wrongsolution", errors }
     } else if (missingDigits === expectedDigits) {
       return { type: "notstarted" }
+    } else if (missingDigits === errors.size) {
+      return { type: "goodsofar" }
     }
     return { type: "badsofar" }
   }
