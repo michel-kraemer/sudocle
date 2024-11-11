@@ -50,7 +50,7 @@
     "eslint-webpack-plugin": "^4.2.0",
     "npm-check-updates": "^17.1.9",
     "odiff-bin": "^3.1.2",
-    "postcss": "^8.4.47",
+    "postcss": "^8.4.49",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "start-server-and-test": "^2.0.8",
