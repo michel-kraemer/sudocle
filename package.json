@@ -54,7 +54,7 @@
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.8",
     "start-server-and-test": "^2.0.8",
-    "tailwindcss": "^3.4.14"
+    "tailwindcss": "^3.4.15"
   },
   "overrides": {
     "@types/react": "npm:types-react@19.0.0-rc.1"
