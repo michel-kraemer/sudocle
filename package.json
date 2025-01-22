@@ -14,7 +14,7 @@
   "author": "Michel Kraemer",
   "license": "MIT",
   "dependencies": {
-    "@radix-ui/react-dialog": "^1.1.2",
+    "@radix-ui/react-dialog": "^1.1.5",
     "@radix-ui/react-radio-group": "^1.2.1",
     "@radix-ui/react-slider": "^1.2.1",
     "@thi.ng/bitstream": "^2.4.3",
