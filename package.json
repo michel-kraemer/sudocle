@@ -30,7 +30,7 @@
     "lucide-react": "^0.539.0",
     "memoize-one": "^6.0.0",
     "mini-svg-data-uri": "^1.4.4",
-    "next": "15.0.2",
+    "next": "15.2.5",
     "pixi-filters": "^6.0.5",
     "pixi.js": "^8.4.1",
     "polygon-clipping": "^0.15.7",
@@ -43,10 +43,10 @@
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "@types/color": "^4.2.0",
     "@types/lodash": "^4.17.20",
-    "@types/react": "^19.1.10",
+    "@types/react": "19.1.10",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.14.0",
-    "eslint-config-next": "15.0.2",
+    "eslint-config-next": "15.2.5",
     "eslint-webpack-plugin": "^4.2.0",
     "npm-check-updates": "^18.0.2",
     "odiff-bin": "^3.2.1",
@@ -55,5 +55,8 @@
     "prettier-plugin-tailwindcss": "^0.6.14",
     "start-server-and-test": "^2.0.13",
     "tailwindcss": "^3.4.14"
+  },
+  "overrides": {
+    "@types/react": "19.1.10"
   }
 }
