@@ -1,6 +1,6 @@
 import { CellExtent } from "./CellExtent"
 import { GridElement } from "./GridElement"
-import { Assets, Container, Graphics, Rectangle, Sprite } from "pixi.js"
+import { Assets, Container, Graphics, Sprite } from "pixi.js"
 
 class BackgroundImageElement implements GridElement {
   private sprite?: Sprite

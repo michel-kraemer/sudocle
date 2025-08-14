@@ -15,7 +15,7 @@ import {
 import { MODE_PEN } from "../lib/Modes"
 import { getRGBColor } from "../lib/colorutils"
 import { hasFog, ktoxy, pltok, xytok } from "../lib/utils"
-import { Arrow, DataCell, FogLight, Line, Overlay } from "../types/Data"
+import { Arrow, DataCell, FogLight, Line } from "../types/Data"
 import { Digit } from "../types/Game"
 import ArrowElement from "./ArrowElement"
 import BackgroundImageElement from "./BackgroundImageElement"
@@ -931,7 +931,7 @@ const Grid = ({
     // add cells
     let cells = new Container()
     game.data.cells.forEach((row, y) => {
-      row.forEach((col, x) => {
+      row.forEach((_col, x) => {
         let cell = new CellElement(x, y, game.data.settings?.nogrid ?? false)
         cells.addChild(cell.graphics)
         cellElements.current.push(cell)
@@ -1200,7 +1200,7 @@ const Grid = ({
     let digitsContainer = new Container()
     digitsContainer.zIndex = 50
     game.data.cells.forEach((row, y) => {
-      row.forEach((col, x) => {
+      row.forEach((_col, x) => {
         let d = new DigitElement(x, y, defaultFontFamily, FONT_SIZE_DIGITS)
         d.visible = false
         digitsContainer.addChild(d.text)
@@ -1238,7 +1238,7 @@ const Grid = ({
     let centreMarksContainer = new Container()
     centreMarksContainer.zIndex = 50
     game.data.cells.forEach((row, y) => {
-      row.forEach((col, x) => {
+      row.forEach((_col, x) => {
         let ce = new CentreMarksElement(
           x,
           y,
@@ -1259,7 +1259,7 @@ const Grid = ({
     let colourContainer = new Container()
     colourContainer.zIndex = 0
     game.data.cells.forEach((row, y) => {
-      row.forEach((col, x) => {
+      row.forEach((_col, x) => {
         let ce = new ColourElement(x, y, 0)
         colourContainer.addChild(ce.graphics)
         colourElements.current.push(ce)
@@ -1271,7 +1271,7 @@ const Grid = ({
     let selectionContainer = new Container()
     selectionContainer.zIndex = 20
     game.data.cells.forEach((row, y) => {
-      row.forEach((col, x) => {
+      row.forEach((_col, x) => {
         let se = new ColourElement(x, y, 0xffde2a)
         selectionContainer.addChild(se.graphics)
         selectionElements.current.push(se)
@@ -1283,7 +1283,7 @@ const Grid = ({
     let errorContainer = new Container()
     errorContainer.zIndex = 10
     game.data.cells.forEach((row, y) => {
-      row.forEach((col, x) => {
+      row.forEach((_col, x) => {
         let se = new ColourElement(x, y, 0xb33a3a)
         errorContainer.addChild(se.graphics)
         errorElements.current.push(se)
@@ -1293,7 +1293,7 @@ const Grid = ({
 
     // create invisible elements for pen lines
     game.data.cells.forEach((row, y) => {
-      row.forEach((col, x) => {
+      row.forEach((_col, x) => {
         function makeLine(
           rx: number,
           ry: number,

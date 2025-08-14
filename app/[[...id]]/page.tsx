@@ -129,7 +129,7 @@ const IndexPage = () => {
       let decompressedStr: string | undefined
       try {
         decompressedStr = lzwDecompress(buf)
-      } catch (e) {
+      } catch {
         decompressedStr = undefined
       }
 
@@ -205,7 +205,7 @@ const IndexPage = () => {
         let json
         try {
           json = JSON.parse(data)
-        } catch (e) {
+        } catch {
           try {
             json = convertCTCPuzzle(data)
           } catch (e) {

@@ -1,5 +1,5 @@
 import clsx from "clsx"
-import { MouseEvent, MouseEventHandler, ReactNode, useState } from "react"
+import { MouseEvent, MouseEventHandler, ReactNode } from "react"
 
 interface ButtonProps {
   active?: boolean

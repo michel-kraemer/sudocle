@@ -546,7 +546,7 @@ function selectionReducer(
     case ACTION_ALL:
       selection.clear()
       cells.forEach((row, y) => {
-        row.forEach((col, x) => {
+        row.forEach((_col, x) => {
           selection.add(xytok(x, y))
         })
       })
@@ -679,7 +679,7 @@ function checkReducer(
     // check for empty cells
     let missingDigits = 0
     cells.forEach((row, y) => {
-      row.forEach((col, x) => {
+      row.forEach((_col, x) => {
         let k = xytok(x, y)
         let d = digits.get(k)
         if (d === undefined) {

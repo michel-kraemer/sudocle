@@ -1,4 +1,3 @@
-import { Data } from "../types/Data"
 import { Mode } from "./Modes"
 
 export const TYPE_MODE = "mode"

@@ -14,11 +14,26 @@ const compat = new FlatCompat({
 
 export default defineConfig([
   {
-    extends: compat.extends("next/core-web-vitals"),
+    extends: compat.extends("next/core-web-vitals", "next/typescript"),
 
     rules: {
       "@next/next/google-font-display": "off",
       "@next/next/no-img-element": "off",
+
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          args: "all",
+          argsIgnorePattern: "^_",
+          caughtErrors: "all",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
 
       "comma-spacing": [
         "error",
@@ -43,6 +58,7 @@ export default defineConfig([
       "no-trailing-spaces": "error",
       "no-var": "error",
       "object-curly-spacing": ["error", "always"],
+      "prefer-const": "off",
       quotes: ["error", "double"],
       "react/display-name": "off",
       "react/jsx-curly-spacing": ["error", "never"],
