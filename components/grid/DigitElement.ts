@@ -1,6 +1,6 @@
 import { xytok } from "../lib/utils"
 import { GridElement } from "./GridElement"
-import { FillStyleInputs, Text } from "pixi.js"
+import { FillInput, Text } from "pixi.js"
 
 class DigitElement implements GridElement {
   private readonly x: number
@@ -34,7 +34,7 @@ class DigitElement implements GridElement {
     this.text.text = value
   }
 
-  set fill(fill: FillStyleInputs) {
+  set fill(fill: FillInput) {
     this.text.style.fill = fill
   }
 

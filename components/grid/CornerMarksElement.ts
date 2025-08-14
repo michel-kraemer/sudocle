@@ -1,6 +1,6 @@
 import { hasFog, xytok } from "../lib/utils"
 import { GridElement } from "./GridElement"
-import { Container, FillStyleInputs, Text, TextStyleFontWeight } from "pixi.js"
+import { Container, FillInput, Text, TextStyleFontWeight } from "pixi.js"
 
 class CornerMarksElement implements GridElement {
   private readonly x: number
@@ -18,7 +18,7 @@ class CornerMarksElement implements GridElement {
     fontFamily: string,
     fontSize: number,
     fontWeight: TextStyleFontWeight = "normal",
-    fill: FillStyleInputs,
+    fill: FillInput,
   ) {
     this.x = x
     this.y = y
@@ -74,7 +74,7 @@ class CornerMarksElement implements GridElement {
     }
   }
 
-  set fill(fill: FillStyleInputs) {
+  set fill(fill: FillInput) {
     for (let t of this.texts) {
       t.style.fill = fill
     }

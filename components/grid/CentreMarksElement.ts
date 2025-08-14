@@ -1,6 +1,6 @@
 import { xytok } from "../lib/utils"
 import { GridElement } from "./GridElement"
-import { FillStyleInputs, Text } from "pixi.js"
+import { FillInput, Text } from "pixi.js"
 
 class CentreMarksElement implements GridElement {
   private x: number
@@ -13,7 +13,7 @@ class CentreMarksElement implements GridElement {
     y: number,
     fontFamily: string,
     fontSize: number,
-    fill: FillStyleInputs,
+    fill: FillInput,
   ) {
     this.x = x
     this.y = y
@@ -43,7 +43,7 @@ class CentreMarksElement implements GridElement {
     this.text.style.fontSize = fontSize
   }
 
-  set fill(fill: FillStyleInputs) {
+  set fill(fill: FillInput) {
     this.text.style.fill = fill
   }
 

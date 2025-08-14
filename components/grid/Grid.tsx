@@ -49,7 +49,7 @@ import {
 import polygonClipping, { Polygon } from "polygon-clipping"
 import {
   MouseEvent,
-  MutableRefObject,
+  RefObject,
   useCallback,
   useEffect,
   useMemo,
@@ -1728,7 +1728,7 @@ const Grid = ({
           })
         }
       }
-      let elementsToRedraw: MutableRefObject<GridElement[]>[] = [
+      let elementsToRedraw: RefObject<GridElement[]>[] = [
         cellElements,
         gridLineElements,
         regionElements,
