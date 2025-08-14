@@ -36,10 +36,12 @@ const Sidebar = () => {
       expanded: state.expanded,
     })),
   )
-  const { title, rules } = useGame(state => ({
-    title: state.data.title,
-    rules: state.data.rules,
-  }))
+  const { title, rules } = useGame(
+    useShallow(state => ({
+      title: state.data.title,
+      rules: state.data.rules,
+    })),
+  )
 
   const [expanded, setExpanded] = useState(expandedDirect)
   const setExpandedTimer = useRef<number>(undefined)

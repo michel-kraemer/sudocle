@@ -46,12 +46,14 @@ const Pad = () => {
       customColours: state.customColours,
     })),
   )
-  const { data, digits, mode, solved } = useGame(state => ({
-    data: state.data,
-    digits: state.digits,
-    mode: state.mode,
-    solved: state.solved,
-  }))
+  const { data, digits, mode, solved } = useGame(
+    useShallow(state => ({
+      data: state.data,
+      digits: state.digits,
+      mode: state.mode,
+      solved: state.solved,
+    })),
+  )
   const updateGame = useGame(state => state.updateGame)
   const [colours, setColours] = useState<Colour[]>([])
   const [checkReady, setCheckReady] = useState(false)

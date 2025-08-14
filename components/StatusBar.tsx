@@ -3,13 +3,16 @@ import { useGame } from "./hooks/useGame"
 import { useSidebar } from "./hooks/useSidebar"
 import { ID_ABOUT, ID_HELP, ID_RULES, ID_SETTINGS } from "./lib/SidebarTabs"
 import { BookOpen, HelpCircle, Info, Sliders } from "lucide-react"
+import { useShallow } from "zustand/react/shallow"
 
 const StatusBar = () => {
-  const { title, rules, solved } = useGame(state => ({
-    title: state.data.title,
-    rules: state.data.rules,
-    solved: state.solved,
-  }))
+  const { title, rules, solved } = useGame(
+    useShallow(state => ({
+      title: state.data.title,
+      rules: state.data.rules,
+      solved: state.solved,
+    })),
+  )
   const onTabClick = useSidebar(state => state.onTabClick)
 
   return (
