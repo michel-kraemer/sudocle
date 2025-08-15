@@ -67,6 +67,16 @@ class OverlayElement implements GridElement {
       this.text.anchor.set(0.5)
       this.text.style.align = "center"
 
+      // Trim text if it contains exactly one pictographic character (Emojis or
+      // similar characters). This improves how the text is centred.
+      if (
+        this.text.text.length > 1 &&
+        [...new Intl.Segmenter().segment(this.text.text)].length === 1 &&
+        /\p{Extended_Pictographic}/u.test(this.text.text)
+      ) {
+        this.text.style.trim = true
+      }
+
       if (overlay.fontSize !== undefined && overlay.fontSize < 14) {
         this.text.scale.x = 0.75
         this.text.scale.y = 0.75
