@@ -72,10 +72,10 @@ const RangeSlider = ({
             step={step}
           >
             <Slider.Track className="bg-grey-600 relative grow rounded h-[0.29rem]">
-              <Slider.Range className="absolute bg-white rounded-full h-full" />
+              <Slider.Range className="absolute bg-grey-600 rounded-full h-full" />
             </Slider.Track>
             <Slider.Thumb
-              className="block w-[0.6rem] h-[0.6rem] bg-primary rounded hover:bg-violet3 focus:outline-none"
+              className="block w-[0.6rem] h-[0.6rem] bg-primary rounded hover:bg-violet3 focus:outline-hidden"
               aria-label="Volume"
             />
           </Slider.Root>

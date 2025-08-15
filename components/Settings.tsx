@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react"
 import { useShallow } from "zustand/react/shallow"
 
 const Slider = ({ children }: { children: React.ReactNode }) => (
-  <div className="mb-4 max-w-[7rem]">{children}</div>
+  <div className="mb-4 max-w-28">{children}</div>
 )
 
 const PaletteLabel = ({ children }: { children: React.ReactNode }) => (
@@ -55,6 +55,11 @@ const Settings = () => {
   const [coloursCTC, setColoursCTC] = useState<string[]>([])
   const [coloursWong, setColoursWong] = useState<string[]>([])
   const [coloursCustom, setColoursCustom] = useState(customColours)
+
+  function onChangeTheme(theme: string) {
+    setTheme(theme)
+    ;(window as any)._updateTheme()
+  }
 
   function zoomValueToDescription(value: number) {
     if (value === 1) {
@@ -125,7 +130,7 @@ const Settings = () => {
             label: "Dark",
           },
         ]}
-        onChange={setTheme}
+        onChange={onChangeTheme}
       />
 
       <h3>Colour Palette</h3>

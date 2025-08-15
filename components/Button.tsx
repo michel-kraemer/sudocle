@@ -27,12 +27,12 @@ const Button = ({
     <div
       tabIndex={0}
       className={clsx(
-        "flex flex-1 text-fg rounded justify-center items-center cursor-pointer select-none leading-4 relative focus:outline-none transition-colors duration-100 ease-linear hover:bg-button-hover hover:active:bg-primary hover:active:text-bg hover:active:transition-none",
+        "flex flex-1 text-fg rounded justify-center items-center cursor-pointer select-none leading-4 relative focus:outline-hidden transition-colors duration-100 ease-linear hover:bg-button-hover hover:active:bg-primary hover:active:text-bg hover:active:transition-none",
         noPadding ? "p-0" : "p-1",
         active
           ? "bg-button-active"
           : pulsating
-            ? "[&:not(:hover)]:animate-pulsating"
+            ? "not-[&:hover]:animate-pulsating"
             : "bg-grey-700",
       )}
       onClick={onClickInternal}

@@ -1,87 +1,212 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  font-size: 20px;
-  text-rendering: geometricprecision;
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --status-bar-height: 1.65rem;
-}
+@theme {
+  --breakpoint-*: initial;
+  --breakpoint-xs: 350px;
+  --breakpoint-sm: 600px;
+  --breakpoint-md: 800px;
+  --breakpoint-lg: 1000px;
+  --breakpoint-xl: 1250px;
+  --breakpoint-2xl: 1500px;
 
-@media screen(sm) {
-  :root {
-    font-size: 24px;
+  --color-back: rgb(0 0 0);
+  --color-bg: rgb(255 255 255);
+  --color-fg: rgb(51 51 51);
+  --color-grey-500: rgb(204 204 204);
+  --color-grey-600: rgb(222 222 222);
+  --color-grey-700: rgb(237 237 237);
+  --color-fg-500: var(--color-grey-500);
+  --color-fg-600: var(--color-grey-600);
+  --color-fg-700: var(--color-grey-700);
+  --color-primary: rgb(43 64 120);
+  --color-primary-highlight: rgb(58 84 156);
+  --color-alert: rgb(184 31 31);
+  --color-modal-success: rgb(221 236 208);
+  --color-modal-alert: rgb(232 186 186);
+  --color-modal-warning: rgb(236 224 191);
+  --color-digit: rgb(75 106 190);
+  --color-digit-small: rgb(58 84 156);
+  --color-button-hover: var(--color-grey-500);
+  --color-button-active: var(--color-grey-500);
+  --color-selection-yellow: rgb(255 223 41);
+  --color-selection-red: rgb(255 41 73);
+  --color-selection-green: rgb(41 255 109);
+  --color-selection-blue: rgb(41 123 255);
+
+  --font-*: initial;
+  --font-sans:
+    var(--font-roboto), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-condensed:
+    var(--font-roboto-condensed), var(--font-roboto), ui-sans-serif, system-ui,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+    "Noto Color Emoji";
+  --font-baloo:
+    var(--font-baloo), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --animate-*: initial;
+  --animate-pulsating: 1s infinite pulsating ease-out alternate;
+  --animate-fade-in: 200ms fade-in;
+
+  --radius-*: initial;
+  --radius: 10px;
+  --radius-mini: 4px;
+
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes pulsating {
+    0% {
+      background-color: rgb(var(--grey-700));
+    }
+    100% {
+      background-color: rgb(var(--button-active));
+    }
   }
 }
 
-@media screen(md) {
-  :root {
-    font-size: 25px;
+@layer theme {
+  :root,
+  :host {
+    @variant dark {
+      --color-bg: rgb(46 52 64);
+      --color-fg: rgb(236 239 244);
+      --color-grey-500: rgb(46 52 64);
+      --color-grey-600: rgb(61 68 84);
+      --color-grey-700: rgb(69 77 94);
+      --color-fg-500: var(--color-grey-700);
+      --color-fg-600: var(--color-grey-600);
+      --color-fg-700: var(--color-grey-500);
+      --color-primary: rgb(130 162 194);
+      --color-primary-highlight: rgb(163 187 209);
+      --color-alert: rgb(191 97 106);
+      --color-digit: rgb(129 161 193);
+      --color-digit-small: rgb(163 187 210);
+      --color-button-hover: rgb(112 126 153);
+      --color-button-active: rgb(112 126 153);
+    }
   }
 }
 
-@media screen(lg) {
-  :root {
-    font-size: 26px;
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
   }
 }
 
-@media screen(xl) {
-  :root {
-    font-size: 30px;
-  }
-}
+@utility sidebar-page {
+  font-size: 0.6rem;
 
-html,
-body {
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
-  overflow: hidden;
-}
-
-body {
-  font-family: var(--font-family);
-}
-
-a {
-  @apply text-primary;
-  @apply hover:text-primary-highlight;
-  @apply underline;
-}
-
-@layer components {
-  .sidebar-page {
-    font-size: 0.6rem;
-  }
-
-  .sidebar-page h2 {
+  & h2 {
     @apply text-base;
     @apply font-medium;
     @apply my-3;
   }
 
-  .sidebar-page h3 {
+  & h3 {
     @apply text-xs;
     @apply font-normal;
     @apply mt-4;
     @apply mb-2;
   }
 
-  .sidebar-page .lead {
+  & .lead {
     @apply text-xs;
     @apply text-fg/50;
     @apply mb-3;
   }
 
-  .sidebar-page h2:has(+ .lead) {
+  & h2:has(+ .lead) {
     @apply mb-0;
   }
 
-  .sidebar-page p {
+  & p {
     @apply my-2;
     @apply leading-4;
+  }
+}
+
+@utility lead {
+  .sidebar-page & {
+    @apply text-xs;
+    @apply text-fg/50;
+    @apply mb-3;
+  }
+
+  .sidebar-page h2:has(+ &) {
+    @apply mb-0;
+  }
+}
+
+@layer utilities {
+  :root {
+    font-size: 20px;
+    text-rendering: geometricprecision;
+
+    --status-bar-height: 1.65rem;
+  }
+
+  @media (width >= theme(--breakpoint-sm)) {
+    :root {
+      font-size: 24px;
+    }
+  }
+
+  @media (width >= theme(--breakpoint-md)) {
+    :root {
+      font-size: 25px;
+    }
+  }
+
+  @media (width >= theme(--breakpoint-lg)) {
+    :root {
+      font-size: 26px;
+    }
+  }
+
+  @media (width >= theme(--breakpoint-xl)) {
+    :root {
+      font-size: 30px;
+    }
+  }
+
+  html,
+  body {
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: var(--font-family);
+  }
+
+  a {
+    @apply text-primary;
+    @apply hover:text-primary-highlight;
+    @apply underline;
   }
 }

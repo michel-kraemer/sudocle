@@ -89,7 +89,7 @@ const Timer = ({ solved }: TimerProps) => {
         >
           <Pause
             stroke="none"
-            className="[&_rect]:[rx:1] leading-none h-[0.7rem] fill-fg"
+            className="[&_rect]:[rx:1] leading-none h-[0.6rem] fill-fg"
           />
         </div>
       </div>
@@ -97,7 +97,7 @@ const Timer = ({ solved }: TimerProps) => {
         <div className="fixed inset-0 bg-bg/75 flex justify-center items-center z-50 backdrop-blur-lg">
           <div className="flex flex-col justify-center items-center">
             <div className="font-medium pt-5 flex items-center text-sm mb-4">
-              <Pause size="1.3rem" className="mr-1 mb-[1px]" /> Game paused
+              <Pause size="1.3rem" className="mr-1 mb-px" /> Game paused
             </div>
             <div className="w-16 text-[0.6rem] mt-0.5">
               <Button onClick={onContinue}>Continue</Button>

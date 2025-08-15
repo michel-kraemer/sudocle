@@ -217,20 +217,20 @@ function euclidianBresenhamInterpolate(
 }
 
 function getThemeColour(style: CSSStyleDeclaration, color: string): number {
-  return getRGBColor(`rgb(${style.getPropertyValue(color)})`)
+  return getRGBColor(style.getPropertyValue(color))
 }
 
 function getThemeColours(elem: Element): ThemeColours {
   let rootStyle = window.getComputedStyle(elem)
-  let backgroundColor = getThemeColour(rootStyle, "--bg")
-  let foregroundColor = getThemeColour(rootStyle, "--fg")
-  let digitColor = getThemeColour(rootStyle, "--digit")
-  let smallDigitColor = getThemeColour(rootStyle, "--digit-small")
+  let backgroundColor = getThemeColour(rootStyle, "--color-bg")
+  let foregroundColor = getThemeColour(rootStyle, "--color-fg")
+  let digitColor = getThemeColour(rootStyle, "--color-digit")
+  let smallDigitColor = getThemeColour(rootStyle, "--color-digit-small")
 
-  let selectionYellow = getThemeColour(rootStyle, "--selection-yellow")
-  let selectionRed = getThemeColour(rootStyle, "--selection-red")
-  let selectionBlue = getThemeColour(rootStyle, "--selection-blue")
-  let selectionGreen = getThemeColour(rootStyle, "--selection-green")
+  let selectionYellow = getThemeColour(rootStyle, "--color-selection-yellow")
+  let selectionRed = getThemeColour(rootStyle, "--color-selection-red")
+  let selectionBlue = getThemeColour(rootStyle, "--color-selection-blue")
+  let selectionGreen = getThemeColour(rootStyle, "--color-selection-green")
 
   return {
     backgroundColor,

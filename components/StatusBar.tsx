@@ -16,7 +16,7 @@ const StatusBar = () => {
   const onTabClick = useSidebar(state => state.onTabClick)
 
   return (
-    <div className="static flex justify-center items-center w-full bg-grey-700 text-fg text-[0.8rem] font-normal h-[var(--status-bar-height)] pt-[1px] portrait:justify-between portrait:py-0 portrait:px-4">
+    <div className="static flex justify-center items-center w-full bg-grey-700 text-fg text-[0.8rem] font-normal h-(--status-bar-height) pt-px portrait:justify-between portrait:py-0 portrait:px-4">
       <Timer solved={solved} />
       <div className="hidden portrait:flex">
         {title !== undefined && rules !== undefined && (

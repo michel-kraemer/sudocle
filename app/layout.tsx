@@ -1,7 +1,6 @@
 import MatomoInit from "../components/MatomoInit"
 import "../css/colour-palettes.css"
 import "../css/main.css"
-import "../css/themes.css"
 import clsx from "clsx"
 import type { Metadata } from "next"
 import { Baloo_2, Roboto, Roboto_Condensed } from "next/font/google"
@@ -48,8 +47,27 @@ export default function RootLayout({
       className={clsx(
         `${baloo.variable} ${roboto.variable} ${robotoCondensed.variable}`,
       )}
+      suppressHydrationWarning
     >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (!('_updateTheme' in window)) {
+                window._updateTheme = function updateTheme(theme) {
+                  if ("SudocleSettings" in localStorage && JSON.parse(localStorage.SudocleSettings).state?.theme === "dark") {
+                    document.documentElement.classList.add("dark")
+                  } else {
+                    document.documentElement.classList.remove("dark")
+                  }
+                }
+              }
+              try {
+                _updateTheme()
+              } catch (_) {}
+            `,
+          }}
+        />
         <link
           rel="shortcut icon"
           href={`${process.env.__NEXT_ROUTER_BASEPATH}/favicons/favicon.ico`}

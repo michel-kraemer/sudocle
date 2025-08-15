@@ -54,9 +54,8 @@ enableMapSet()
 const IndexPage = () => {
   const game: GameState = useGame()
   const updateGame = useGame(state => state.updateGame)
-  const { theme, colourPalette } = useSettings(
+  const { colourPalette } = useSettings(
     useShallow(state => ({
-      theme: state.theme,
       colourPalette: state.colourPalette,
     })),
   )
@@ -643,7 +642,6 @@ const IndexPage = () => {
     <>
       <div
         className="bg-bg text-fg h-screen"
-        data-theme={theme}
         data-colour-palette={colourPalette}
         onMouseDown={onMouseDown}
         ref={appRef}
