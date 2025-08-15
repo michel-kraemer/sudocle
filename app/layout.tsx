@@ -10,7 +10,7 @@ const baloo = Baloo_2({
   style: ["normal"],
   subsets: ["latin"],
   display: "swap", // force "swap" even in production mode
-  variable: "--font-baloo",
+  variable: "--raw-font-baloo",
 })
 
 const roboto = Roboto({
@@ -18,7 +18,7 @@ const roboto = Roboto({
   style: ["normal", "italic"],
   subsets: ["latin"],
   display: "swap", // force "swap" even in production mode
-  variable: "--font-roboto",
+  variable: "--raw-font-roboto",
 })
 
 const robotoCondensed = Roboto_Condensed({
@@ -26,7 +26,7 @@ const robotoCondensed = Roboto_Condensed({
   style: ["normal"],
   subsets: ["latin"],
   display: "swap", // force "swap" even in production mode
-  variable: "--font-roboto-condensed",
+  variable: "--raw-font-roboto-condensed",
 })
 
 export const metadata: Metadata = {

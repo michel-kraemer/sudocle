@@ -36,16 +36,10 @@
   --color-selection-blue: rgb(41 123 255);
 
   --font-*: initial;
-  --font-sans:
-    var(--font-roboto), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-condensed:
-    var(--font-roboto-condensed), var(--font-roboto), ui-sans-serif, system-ui,
-    sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
-    "Noto Color Emoji";
-  --font-baloo:
-    var(--font-baloo), ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-roboto: var(--raw-font-roboto);
+  --font-condensed: var(--raw-font-roboto-condensed), var(--font-roboto);
+  --font-baloo: var(--raw-font-baloo);
+  --default-font-family: var(--font-roboto);
 
   --animate-*: initial;
   --animate-pulsating: 1s infinite pulsating ease-out alternate;
@@ -198,10 +192,6 @@
     max-width: 100%;
     max-height: 100%;
     overflow: hidden;
-  }
-
-  body {
-    font-family: var(--font-family);
   }
 
   a {

@@ -7,7 +7,7 @@ const Shortcuts = ({ children }: { children: React.ReactNode }) => (
 )
 
 const Key = ({ children }: { children: React.ReactNode }) => (
-  <kbd className="font-sans inline-block border border-fg-500 rounded-mini bg-bg/75 py-0.5 px-1 leading-tight min-w-[1.7em] text-center">
+  <kbd className="font-roboto inline-block border border-fg-500 rounded-mini bg-bg/75 py-0.5 px-1 leading-tight min-w-[1.7em] text-center">
     {children}
   </kbd>
 )
