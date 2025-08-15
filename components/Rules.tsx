@@ -1,11 +1,14 @@
 import { useGame } from "./hooks/useGame"
+import { useShallow } from "zustand/react/shallow"
 
 const Rules = () => {
-  const { title, author, rules } = useGame(state => ({
-    title: state.data.title,
-    author: state.data.author,
-    rules: state.data.rules,
-  }))
+  const { title, author, rules } = useGame(
+    useShallow(state => ({
+      title: state.data.title,
+      author: state.data.author,
+      rules: state.data.rules,
+    })),
+  )
 
   return (
     <div className="sidebar-page">
