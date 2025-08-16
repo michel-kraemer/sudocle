@@ -60,10 +60,10 @@
 
   @keyframes pulsating {
     0% {
-      background-color: rgb(var(--grey-700));
+      background-color: var(--color-grey-700);
     }
     100% {
-      background-color: rgb(var(--button-active));
+      background-color: var(--color-button-active);
     }
   }
 }
