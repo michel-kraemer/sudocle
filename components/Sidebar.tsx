@@ -105,12 +105,12 @@ const Sidebar = () => {
   return (
     <div
       className={clsx(
-        "absolute top-0 right-0 bottom-0 w-[620px] max-w-full flex z-30000 transition-transform",
+        "absolute top-0 right-0 bottom-0 w-[620px] max-w-full flex z-30000",
         visible
-          ? "translate-x-0 duration-300 ease-in-out"
-          : "translate-x-[calc(100%-2.5rem)] duration-200 ease-in",
+          ? "translate-x-0 duration-300 ease-in-out transition-transform"
+          : "md:translate-x-[calc(100%-2.5rem)] duration-200 ease-in",
         {
-          "w-10 portrait:z-[-2000]": !expanded,
+          "w-10 z-[-2000] md:z-0": !expanded,
         },
       )}
     >
@@ -180,8 +180,9 @@ const Sidebar = () => {
       </div>
       <div
         className={clsx(
-          "absolute top-8 right-8 cursor-pointer hover:text-primary",
-          { hidden: !expanded },
+          "absolute top-8 right-8 cursor-pointer hover:text-primary transition-opacity duration-300",
+          visible ? "opacity-100" : "opacity-0",
+          { "md:hidden md:opacity-100": !expanded },
         )}
       >
         <X size="1rem" onClick={() => onTabClick(activeTabId)} />
