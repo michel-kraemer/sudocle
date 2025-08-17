@@ -1,5 +1,6 @@
 "use client"
 
+import Button from "../../components/Button"
 import Modal from "../../components/Modal"
 import Pad from "../../components/Pad"
 import Sidebar from "../../components/Sidebar"
@@ -21,6 +22,7 @@ import {
   TYPE_INIT,
   TYPE_MODE,
   TYPE_MODE_GROUP,
+  TYPE_PAUSE,
   TYPE_REDO,
   TYPE_SELECTION,
   TYPE_UNDO,
@@ -38,7 +40,7 @@ import lzwDecompress from "../../components/lib/lzwdecompressor"
 import { Data } from "../../components/types/Data"
 import FontFaceObserver from "fontfaceobserver"
 import { enableMapSet } from "immer"
-import { CircleEllipsis, Frown, Sprout, ThumbsUp } from "lucide-react"
+import { CircleEllipsis, Frown, Pause, Sprout, ThumbsUp } from "lucide-react"
 import {
   MouseEvent,
   ReactNode,
@@ -53,7 +55,12 @@ enableMapSet()
 
 const IndexPage = () => {
   const game: GameState = useGame()
-  const updateGame = useGame(state => state.updateGame)
+  const { updateGame, paused } = useGame(
+    useShallow(state => ({
+      updateGame: state.updateGame,
+      paused: state.paused,
+    })),
+  )
   const { colourPalette } = useSettings(
     useShallow(state => ({
       colourPalette: state.colourPalette,
@@ -95,6 +102,12 @@ const IndexPage = () => {
   const onFinishRender = useCallback(() => setRendering(false), [])
 
   const onFinishFirstResize = useCallback(() => setFirstResizing(false), [])
+
+  const onContinue = useCallback(() => {
+    updateGame({
+      type: TYPE_PAUSE,
+    })
+  }, [updateGame])
 
   function collectTextToLoad(data: Data): string {
     let characters = new Set(Array.from("0BESbswy"))
@@ -690,6 +703,18 @@ const IndexPage = () => {
           ) : error ? (
             <div className="text-alert text-center">{error}</div>
           ) : undefined}
+          {paused && (
+            <div className="fixed inset-0 bg-bg/75 flex justify-center items-center backdrop-blur-lg">
+              <div className="flex flex-col justify-center items-center">
+                <div className="font-medium pt-5 flex items-center text-sm mb-4">
+                  <Pause size="1.3rem" className="mr-1 mb-px" /> Game paused
+                </div>
+                <div className="w-16 text-[0.6rem] mt-0.5">
+                  <Button onClick={onContinue}>Continue</Button>
+                </div>
+              </div>
+            </div>
+          )}
           <Sidebar />
         </div>
 

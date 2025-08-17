@@ -1,4 +1,3 @@
-import Button from "./Button"
 import { useGame } from "./hooks/useGame"
 import { TYPE_PAUSE } from "./lib/Actions"
 import { Pause } from "lucide-react"
@@ -18,9 +17,8 @@ const Timer = ({ solved }: TimerProps) => {
   const [s, setSeconds] = useState(0)
   const [m, setMinutes] = useState(0)
   const [h, setHours] = useState(0)
-  const [continueVisible, setContinueVisible] = useState(false)
-  const [pauseStart, setPauseStart] = useState<number>()
   const [pausedElapsed, setPausedElapsed] = useState(0)
+  const pauseStart = useRef<number>(undefined)
   const nextTimer = useRef<number>(undefined)
 
   if (solved && end === undefined) {
@@ -28,28 +26,20 @@ const Timer = ({ solved }: TimerProps) => {
   }
 
   const onPause = useCallback(() => {
+    updateGame({
+      type: TYPE_PAUSE,
+    })
+  }, [updateGame])
+
+  useEffect(() => {
     if (paused) {
-      let nextRemaining = next - pauseStart!
-      setNext(+new Date() - (1000 - nextRemaining))
-      let elapsed = +new Date() - pauseStart!
+      pauseStart.current = +new Date()
+    } else if (pauseStart.current !== undefined) {
+      let elapsed = +new Date() - pauseStart.current
       setPausedElapsed(oldElapsed => oldElapsed + elapsed)
       setNext(+new Date())
-      updateGame({
-        type: TYPE_PAUSE,
-      })
-    } else {
-      updateGame({
-        type: TYPE_PAUSE,
-      })
-      setContinueVisible(true)
-      setPauseStart(+new Date())
     }
-  }, [paused, next, pauseStart, updateGame])
-
-  function onContinue() {
-    setContinueVisible(false)
-    onPause()
-  }
+  }, [paused, pauseStart])
 
   useEffect(() => {
     clearTimeout(nextTimer.current)
@@ -73,9 +63,13 @@ const Timer = ({ solved }: TimerProps) => {
       setHours(newh)
     }
 
+    let timeout = next - now
+    let diff = 1000 - ((elapsed % 1000) - 10)
+    timeout = Math.min(timeout, diff)
+
     nextTimer.current = window.setTimeout(() => {
       setNext(next + 1000)
-    }, next - now)
+    }, timeout)
   }, [s, m, h, start, end, next, paused, pausedElapsed])
 
   return (
@@ -93,18 +87,6 @@ const Timer = ({ solved }: TimerProps) => {
           />
         </div>
       </div>
-      {continueVisible && (
-        <div className="fixed inset-0 bg-bg/75 flex justify-center items-center z-50 backdrop-blur-lg">
-          <div className="flex flex-col justify-center items-center">
-            <div className="font-medium pt-5 flex items-center text-sm mb-4">
-              <Pause size="1.3rem" className="mr-1 mb-px" /> Game paused
-            </div>
-            <div className="w-16 text-[0.6rem] mt-0.5">
-              <Button onClick={onContinue}>Continue</Button>
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }
