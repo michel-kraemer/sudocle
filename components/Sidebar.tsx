@@ -114,7 +114,7 @@ const Sidebar = () => {
         },
       )}
     >
-      <div className="w-8 mt-8 portrait:hidden">
+      <div className="w-8 mt-8 hidden md:block">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 500">
           <defs>
             <filter id="shadow" x="-20%" y="-20%" height="140%" width="140%">

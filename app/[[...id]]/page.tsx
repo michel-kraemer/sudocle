@@ -549,6 +549,10 @@ const IndexPage = () => {
 
   // register resize handler
   useEffect(() => {
+    if (padContainerRef.current === null) {
+      return
+    }
+
     let oldW = 0
     let oldH = 0
 
@@ -567,9 +571,9 @@ const IndexPage = () => {
       let newH
       if (portrait) {
         newW = w
-        newH = h - padContainerRef.current!.offsetHeight
+        newH = h - padContainerRef.current!.clientHeight
       } else {
-        newW = w - padContainerRef.current!.offsetWidth
+        newW = w - padContainerRef.current!.clientWidth
         newH = h
       }
       if (oldW !== newW || oldH !== newH) {
@@ -587,7 +591,7 @@ const IndexPage = () => {
     return () => {
       window.removeEventListener("resize", onResize)
     }
-  }, [])
+  }, [rendering])
 
   // register beforeunload handler
   useEffect(() => {
@@ -648,33 +652,37 @@ const IndexPage = () => {
       >
         {!isTest && <StatusBar />}
         <div
-          className="w-screen flex justify-center items-center py-4 px-12 h-[calc(100vh-var(--status-bar-height))] md:h-[calc(100vh-var(--status-bar-height)*2)] md:px-0 portrait:h-[calc(100vh-var(--status-bar-height))] portrait:flex-col portrait:p-4"
+          className="w-screen flex justify-center items-center pb-4 md:pb-11 px-4 md:px-12 h-dvh pt-[calc(var(--status-bar-height)+4*var(--spacing))] portrait:flex-col"
           ref={gameContainerRef}
         >
-          <div
-            className="flex flex-col justify-center items-center h-full"
-            ref={gridContainerRef}
-          >
-            {game.data && game.data.cells.length > 0 && fontsLoaded && (
-              <Grid
-                portrait={portrait}
-                maxWidth={gridMaxWidth}
-                maxHeight={gridMaxHeight}
-                onFinishRender={onFinishRender}
-                fogDisplayOptions={{
-                  enableFog: true,
-                  enableDropShadow: !isTest,
-                }}
-              />
-            )}
-          </div>
-          {rendering && !error && (
+          {game.data && game.data.cells.length > 0 && fontsLoaded ? (
+            <>
+              <div
+                className="flex flex-col justify-center items-center h-full"
+                ref={gridContainerRef}
+              >
+                <Grid
+                  portrait={portrait}
+                  maxWidth={gridMaxWidth}
+                  maxHeight={gridMaxHeight}
+                  onFinishRender={onFinishRender}
+                  fogDisplayOptions={{
+                    enableFog: true,
+                    enableDropShadow: !isTest,
+                  }}
+                />
+              </div>
+              {!rendering ? (
+                <div className="pad-container" ref={padContainerRef}>
+                  <Pad />
+                </div>
+              ) : undefined}
+            </>
+          ) : error ? (
+            <div className="text-alert text-center">{error}</div>
+          ) : (
             <div className="text-fg-500">Loading ...</div>
           )}
-          {error && <div className="text-alert text-center">{error}</div>}
-          <div className="pad-container" ref={padContainerRef}>
-            {rendering || <Pad />}
-          </div>
           <Sidebar />
         </div>
 

@@ -203,7 +203,7 @@ const Pad = () => {
 
   return (
     <div
-      className="grid grid-cols-[repeat(4,2rem)] grid-rows-[repeat(5,2rem)] gap-1 ml-4 lg:ml-12 portrait:ml-0 portrait:mt-4 portrait:mb-12"
+      className="grid grid-cols-[repeat(4,2rem)] grid-rows-[repeat(5,2rem)] gap-1 ml-4 lg:ml-12 portrait:ml-0 portrait:mt-4"
       ref={ref}
     >
       <Button noPadding onClick={onDelete}>
