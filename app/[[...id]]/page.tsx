@@ -67,6 +67,7 @@ const IndexPage = () => {
   const [gridMaxHeight, setGridMaxHeight] = useState(0)
   const [portrait, setPortrait] = useState(false)
   const [rendering, setRendering] = useState(true)
+  const [firstResizing, setFirstResizing] = useState(true)
   const [error, setError] = useState<ReactNode>()
   const [solvedModalOpen, setSolvedModalOpen] = useState<boolean>(false)
   const [errorModalOpen, setErrorModalOpen] = useState<boolean>(false)
@@ -74,7 +75,7 @@ const IndexPage = () => {
   const [fontsLoaded, setFontsLoaded] = useState(false)
 
   function onMouseDown(e: MouseEvent<HTMLDivElement>) {
-    // check if we hit a target that would clear the selction
+    // check if we hit a target that would clear the selection
     let shouldClearSelection =
       e.target === appRef.current ||
       e.target === gameContainerRef.current ||
@@ -92,6 +93,8 @@ const IndexPage = () => {
   }
 
   const onFinishRender = useCallback(() => setRendering(false), [])
+
+  const onFinishFirstResize = useCallback(() => setFirstResizing(false), [])
 
   function collectTextToLoad(data: Data): string {
     let characters = new Set(Array.from("0BESbswy"))
@@ -651,6 +654,11 @@ const IndexPage = () => {
         ref={appRef}
       >
         {!isTest && <StatusBar />}
+        {!error && (rendering || firstResizing) ? (
+          <div className="text-fg-500 h-dvh w-dvw bg-bg z-100 justify-center items-center flex">
+            <div>Loading ...</div>
+          </div>
+        ) : undefined}
         <div
           className="w-screen flex justify-center items-center pb-4 md:pb-11 px-4 md:px-12 h-dvh pt-[calc(var(--status-bar-height)+4*var(--spacing))] portrait:flex-col"
           ref={gameContainerRef}
@@ -666,6 +674,7 @@ const IndexPage = () => {
                   maxWidth={gridMaxWidth}
                   maxHeight={gridMaxHeight}
                   onFinishRender={onFinishRender}
+                  onFinishFirstResize={onFinishFirstResize}
                   fogDisplayOptions={{
                     enableFog: true,
                     enableDropShadow: !isTest,
@@ -680,9 +689,7 @@ const IndexPage = () => {
             </>
           ) : error ? (
             <div className="text-alert text-center">{error}</div>
-          ) : (
-            <div className="text-fg-500">Loading ...</div>
-          )}
+          ) : undefined}
           <Sidebar />
         </div>
 

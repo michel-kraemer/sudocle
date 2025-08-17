@@ -302,6 +302,7 @@ interface GridProps {
   maxHeight: number
   portrait: boolean
   onFinishRender: () => void
+  onFinishFirstResize: () => void
   fogDisplayOptions?: FogDisplayOptions
 }
 
@@ -310,6 +311,7 @@ const Grid = ({
   maxHeight,
   portrait,
   onFinishRender,
+  onFinishFirstResize,
   fogDisplayOptions = { enableFog: true, enableDropShadow: true },
 }: GridProps) => {
   const ref = useRef<HTMLDivElement>(null)
@@ -1838,6 +1840,10 @@ const Grid = ({
       ref.current!.style.marginLeft = `${additionalMarginX}px`
       ref.current!.style.marginRight = "0"
     }
+
+    if (maxWidth > 0 && maxHeight > 0 && onFinishFirstResize) {
+      onFinishFirstResize()
+    }
   }, [
     app,
     cellSize,
@@ -1855,6 +1861,7 @@ const Grid = ({
     game.colours,
     game.fogLights,
     game.fogRaster,
+    onFinishFirstResize,
   ])
 
   // register keyboard handlers
