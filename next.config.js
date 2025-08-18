@@ -14,6 +14,8 @@ const corsAllowOrigin = process.env.SUDOCLE_CORS_ALLOW_ORIGIN ?? "*"
 const eslintDirs = ["app", "components", "cypress/plugins", "cypress/support"]
 
 const config = {
+  devIndicators: false,
+
   basePath,
 
   // create a folder for each page
