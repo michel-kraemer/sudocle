@@ -32,6 +32,10 @@ const Timer = ({ solved }: TimerProps) => {
   }, [updateGame])
 
   useEffect(() => {
+    if (solved) {
+      // don't react to pause state changes if the puzzle is already solved
+      return
+    }
     if (paused) {
       pauseStart.current = +new Date()
     } else if (pauseStart.current !== undefined) {
@@ -39,7 +43,7 @@ const Timer = ({ solved }: TimerProps) => {
       setPausedElapsed(oldElapsed => oldElapsed + elapsed)
       setNext(+new Date())
     }
-  }, [paused, pauseStart])
+  }, [paused, pauseStart, solved])
 
   useEffect(() => {
     clearTimeout(nextTimer.current)
