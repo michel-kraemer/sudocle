@@ -673,7 +673,7 @@ const IndexPage = () => {
           </div>
         ) : undefined}
         <div
-          className="w-screen flex justify-center items-center pb-4 md:pb-11 px-4 md:px-12 h-dvh pt-[calc(var(--status-bar-height)+4*var(--spacing))] portrait:flex-col"
+          className="w-screen flex justify-center items-center pb-4 md:pb-11 px-2 md:px-12 h-dvh pt-[calc(var(--status-bar-height)+4*var(--spacing))] portrait:flex-col"
           ref={gameContainerRef}
         >
           {game.data && game.data.cells.length > 0 && fontsLoaded ? (
