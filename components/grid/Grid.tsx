@@ -1801,8 +1801,13 @@ const Grid = ({
       // leave 5 pixels of leeway for rounding errors
       let sx = (maxWidth - 5) / allBounds.width
       let sy = (maxHeight - 5) / allBounds.height
-      cellSizeFactor.current = Math.min(sx, sy) * (zoom + ZOOM_DELTA)
-      cs = Math.floor(cellSize * cellSizeFactor.current)
+      if (!("_SUDOCLE_IS_TEST" in window)) {
+        cellSizeFactor.current = Math.min(sx, sy) * (zoom + ZOOM_DELTA)
+        cs = Math.floor(cellSize * cellSizeFactor.current)
+      } else {
+        // in test mode, we don't need to resize and only draw once
+        break
+      }
     }
 
     let marginTop = gridBounds!.y - allBounds!.y
