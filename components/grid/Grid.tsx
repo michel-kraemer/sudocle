@@ -14,7 +14,7 @@ import {
 } from "../lib/Actions"
 import { MODE_PEN } from "../lib/Modes"
 import { getRGBColor } from "../lib/colorutils"
-import { hasFog, ktoxy, pltok, xytok } from "../lib/utils"
+import { hasFog, ktoxy, pltok, unionCells, xytok } from "../lib/utils"
 import { Arrow, DataCell, FogLight, Line } from "../types/Data"
 import { Digit } from "../types/Game"
 import ArrowElement from "./ArrowElement"
@@ -27,6 +27,8 @@ import ColourElement from "./ColourElement"
 import CornerMarksElement from "./CornerMarksElement"
 import DigitElement from "./DigitElement"
 import ExtraRegionElement, { GridExtraRegion } from "./ExtraRegionElement"
+import FogElement from "./FogElement"
+import FogMaskElement from "./FogMaskElement"
 import { GridElement } from "./GridElement"
 import LineElement from "./LineElement"
 import OverlayElement from "./OverlayElement"
@@ -36,7 +38,6 @@ import { ThemeColours } from "./ThemeColours"
 import { produce } from "immer"
 import { flatten } from "lodash"
 import memoizeOne from "memoize-one"
-import { DropShadowFilter } from "pixi-filters/drop-shadow"
 import {
   Application,
   Bounds,
@@ -46,7 +47,6 @@ import {
   Rectangle,
   Ticker,
 } from "pixi.js"
-import polygonClipping, { Polygon } from "polygon-clipping"
 import {
   MouseEvent,
   RefObject,
@@ -99,64 +99,6 @@ type PenWaypointGraphics = Graphics & {
       penCurrentWaypoints: number[]
     }) => void
   }
-}
-
-function unionCells(cells: [number, number][]): number[][][] {
-  let polys = cells.map(cell => {
-    let y = cell[0]
-    let x = cell[1]
-    let r: Polygon = [
-      [
-        [x + 0, y + 0],
-        [x + 1, y + 0],
-        [x + 1, y + 1],
-        [x + 0, y + 1],
-      ],
-    ]
-    return r
-  })
-
-  let unions = polygonClipping.union(polys)
-  for (let u of unions) {
-    for (let p of u) {
-      let f = p[0]
-      let l = p[p.length - 1]
-      if (f[0] === l[0] && f[1] === l[1]) {
-        p.splice(p.length - 1, 1)
-      }
-    }
-  }
-
-  // merge holes into outer polygon if there is a shared point
-  for (let u of unions) {
-    let hi = 1
-    while (hi < u.length) {
-      let hole = u[hi]
-      for (let spi = 0; spi < hole.length; ++spi) {
-        let ph = hole[spi]
-        let sharedPoint = u[0].findIndex(
-          pu => pu[0] === ph[0] && pu[1] === ph[1],
-        )
-        if (sharedPoint >= 0) {
-          // we found a shared point - merge hole into outer polygon
-          u[0] = [
-            ...u[0].slice(0, sharedPoint),
-            ...hole.slice(spi),
-            ...hole.slice(0, spi),
-            ...u[0].slice(sharedPoint),
-          ]
-
-          // delete merged hole
-          u.splice(hi, 1)
-          --hi
-          break
-        }
-      }
-      ++hi
-    }
-  }
-
-  return unions.map(u => u.map(u2 => flatten(u2)))
 }
 
 function hasCageValue(x: number, y: number, cages: GridCage[]): boolean {
@@ -333,7 +275,7 @@ const Grid = ({
   >([])
   const backgroundElement = useRef<Graphics>(undefined)
   const backgroundImageElements = useRef<BackgroundImageElement[]>([])
-  const fogElements = useRef<OldGraphicsEx[]>([])
+  const fogElements = useRef<(FogElement | FogMaskElement)[]>([])
   const givenCornerMarkElements = useRef<CornerMarksElement[]>([])
   const digitElements = useRef<DigitElement[]>([])
   const centreMarkElements = useRef<CentreMarksElement[]>([])
@@ -830,104 +772,19 @@ const Grid = ({
     // ***************** render everything that could contribute to bounds
 
     // add fog
-    let fogMask: OldGraphicsEx | null = null
+    let fogMaskGraphics: Graphics | null = null
     if (game.data.fogLights !== undefined) {
-      let fog: OldGraphicsEx = new Graphics()
-      fog.zIndex = -1
-      fog.data = {
-        draw: function ({ cellSize, currentFogRaster }) {
-          if (currentFogRaster === undefined) {
-            return
-          }
-
-          let flatCells: [number, number][] = []
-          currentFogRaster.forEach((row, y) => {
-            row.forEach((v, x) => {
-              if (v === 1) {
-                flatCells.push([y, x])
-              }
-            })
-          })
-
-          let polygons = unionCells(flatCells)
-          for (let polygon of polygons) {
-            let poly = polygon.map(o => o.map(r => r * cellSize))
-            fog.poly(poly[0])
-            fog.fill(0x8b909b)
-            if (poly.length > 1) {
-              for (let i = 1; i < poly.length; ++i) {
-                fog.poly(poly[i])
-              }
-              fog.cut()
-            }
-          }
-        },
-      }
-      if (fogDisplayOptions.enableDropShadow) {
-        let dropShadow = new DropShadowFilter({
-          offset: { x: 0, y: 0 },
-          blur: 5,
-          quality: 6,
-          alpha: 0.9,
-          color: 0x272e31,
-        })
-        dropShadow.padding = 20
-        fog.filters = [dropShadow]
-      }
+      let fogContainer = new Container()
+      fogContainer.zIndex = -1
+      let fog = new FogElement(fogDisplayOptions.enableDropShadow)
+      fogContainer.addChild(fog.graphics)
       fogElements.current.push(fog)
-      all.addChild(fog)
+      all.addChild(fogContainer)
 
-      fogMask = new Graphics()
-      fogMask.data = {
-        draw: function ({ cellSize, currentFogLights }) {
-          if (currentFogLights !== undefined) {
-            for (let light of currentFogLights) {
-              let y = light.center[0]
-              let x = light.center[1]
-              if (light.size === 3) {
-                fogMask!.rect(
-                  (x - 1) * cellSize,
-                  (y - 1) * cellSize,
-                  cellSize * 3,
-                  cellSize * 3,
-                )
-              } else {
-                fogMask!.rect(x * cellSize, y * cellSize, cellSize, cellSize)
-              }
-            }
-          }
-
-          // always show area outside of grid
-          fogMask!.rect(
-            -5 * cellSize,
-            -5 * cellSize,
-            cellSize * 5,
-            cellSize * (game.data.cells.length + 10),
-          )
-          fogMask!.rect(
-            cellSize * game.data.cells[0].length,
-            -5 * cellSize,
-            cellSize * 5,
-            cellSize * (game.data.cells.length + 10),
-          )
-          fogMask!.rect(
-            0,
-            -5 * cellSize,
-            cellSize * game.data.cells[0].length,
-            cellSize * 5,
-          )
-          fogMask!.rect(
-            0,
-            cellSize * game.data.cells.length,
-            cellSize * game.data.cells[0].length,
-            cellSize * 5,
-          )
-
-          fogMask!.fill(0)
-        },
-      }
+      let fogMask = new FogMaskElement(game.data.cells)
       fogElements.current.push(fogMask)
-      all.addChild(fogMask)
+      all.addChild(fogMask.graphics)
+      fogMaskGraphics = fogMask.graphics
     }
 
     // add cells
@@ -975,7 +832,7 @@ const Grid = ({
     // add cages
     let cageContainer = new Container()
     cageContainer.zIndex = 2
-    cageContainer.mask = fogMask
+    cageContainer.mask = fogMaskGraphics
     for (let cage of cages) {
       let c = new CageElement(cage, regions, defaultFontFamily, 13)
       cageContainer.addChild(c.container)
@@ -1006,7 +863,7 @@ const Grid = ({
     // add extra regions
     let extraRegionContainer = new Container()
     extraRegionContainer.zIndex = -30
-    extraRegionContainer.mask = fogMask
+    extraRegionContainer.mask = fogMaskGraphics
     for (let r of extraRegions) {
       let er = new ExtraRegionElement(r, regions)
       extraRegionContainer.addChild(er.graphics)
@@ -1020,7 +877,7 @@ const Grid = ({
     )
     let svgPathsContainer = new Container()
     svgPathsContainer.zIndex = -15
-    svgPathsContainer.mask = fogMask
+    svgPathsContainer.mask = fogMaskGraphics
     svgPathsWithoutTarget?.forEach(p => {
       let l = new SVGPathElement(p)
       svgPathsContainer.addChild(l.container)
@@ -1054,7 +911,7 @@ const Grid = ({
     // add lines and arrows
     let linesContainer = new Container()
     linesContainer.zIndex = -10
-    linesContainer.mask = fogMask
+    linesContainer.mask = fogMaskGraphics
     lines.forEach(line => {
       let overlays = [
         ...game.data.underlays,
@@ -1075,7 +932,7 @@ const Grid = ({
     // add underlays: lines with target "underlay"
     let underlaysContainer = new Container()
     underlaysContainer.zIndex = -20
-    underlaysContainer.mask = fogMask
+    underlaysContainer.mask = fogMaskGraphics
     let underlayLines = game.data.lines.filter(l => l.target === "underlay")
     underlayLines.forEach(l => {
       let o = new LineElement(l, underlayLines, [])
@@ -1094,7 +951,7 @@ const Grid = ({
     // add overlays: SVG paths with target "overlay"
     let overlaysContainer = new Container()
     overlaysContainer.zIndex = 40
-    overlaysContainer.mask = fogMask
+    overlaysContainer.mask = fogMaskGraphics
     let overlaySvgPaths = game.data.svgPaths?.filter(
       l => l.target === "overlay",
     )
@@ -1139,7 +996,7 @@ const Grid = ({
     if (game.data.metadata?.bgimage !== undefined) {
       let bgContainer = new Container()
       bgContainer.zIndex = -40
-      bgContainer.mask = fogMask
+      bgContainer.mask = fogMaskGraphics
 
       let extent = calculateCellExtent(game.data)
       let bg = new BackgroundImageElement(
@@ -1428,11 +1285,7 @@ const Grid = ({
         }
         draw(options)
       }
-    let oldElementsToMemoize = [
-      fogElements,
-      penLineElements,
-      penHitareaElements,
-    ]
+    let oldElementsToMemoize = [penLineElements, penHitareaElements]
     for (let r of oldElementsToMemoize) {
       for (let e of r.current) {
         if (e.data?.draw !== undefined) {
@@ -1450,6 +1303,7 @@ const Grid = ({
     }
     let elementsToMemoize = [
       cellElements,
+      fogElements,
       gridLineElements,
       regionElements,
       cageElements,
@@ -1713,11 +1567,7 @@ const Grid = ({
       }
 
       // TODO remove
-      let oldElementsToRedraw = [
-        fogElements,
-        penLineElements,
-        penHitareaElements,
-      ]
+      let oldElementsToRedraw = [penLineElements, penHitareaElements]
       for (let r of oldElementsToRedraw) {
         for (let e of r.current) {
           e.data?.draw({
@@ -1732,6 +1582,7 @@ const Grid = ({
       }
       let elementsToRedraw: RefObject<GridElement[]>[] = [
         cellElements,
+        fogElements,
         gridLineElements,
         regionElements,
         cageElements,

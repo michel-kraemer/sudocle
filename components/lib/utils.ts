@@ -1,3 +1,6 @@
+import { flatten } from "lodash"
+import polygonClipping, { Polygon } from "polygon-clipping"
+
 interface Cell {
   row: number
   col: number
@@ -41,4 +44,62 @@ export function cellToScreenCoords(
   cellSize: number,
 ): [number, number] {
   return [cell[1] * cellSize + mx, cell[0] * cellSize + my]
+}
+
+export function unionCells(cells: [number, number][]): number[][][] {
+  let polys = cells.map(cell => {
+    let y = cell[0]
+    let x = cell[1]
+    let r: Polygon = [
+      [
+        [x + 0, y + 0],
+        [x + 1, y + 0],
+        [x + 1, y + 1],
+        [x + 0, y + 1],
+      ],
+    ]
+    return r
+  })
+
+  let unions = polygonClipping.union(polys)
+  for (let u of unions) {
+    for (let p of u) {
+      let f = p[0]
+      let l = p[p.length - 1]
+      if (f[0] === l[0] && f[1] === l[1]) {
+        p.splice(p.length - 1, 1)
+      }
+    }
+  }
+
+  // merge holes into outer polygon if there is a shared point
+  for (let u of unions) {
+    let hi = 1
+    while (hi < u.length) {
+      let hole = u[hi]
+      for (let spi = 0; spi < hole.length; ++spi) {
+        let ph = hole[spi]
+        let sharedPoint = u[0].findIndex(
+          pu => pu[0] === ph[0] && pu[1] === ph[1],
+        )
+        if (sharedPoint >= 0) {
+          // we found a shared point - merge hole into outer polygon
+          u[0] = [
+            ...u[0].slice(0, sharedPoint),
+            ...hole.slice(spi),
+            ...hole.slice(0, spi),
+            ...u[0].slice(sharedPoint),
+          ]
+
+          // delete merged hole
+          u.splice(hi, 1)
+          --hi
+          break
+        }
+      }
+      ++hi
+    }
+  }
+
+  return unions.map(u => u.map(u2 => flatten(u2)))
 }
