@@ -14,9 +14,8 @@ import {
 } from "../lib/Actions"
 import { MODE_PEN } from "../lib/Modes"
 import { getRGBColor } from "../lib/colorutils"
-import { hasFog, ktoxy, pltok, unionCells, xytok } from "../lib/utils"
-import { Arrow, DataCell, FogLight, Line } from "../types/Data"
-import { Digit } from "../types/Game"
+import { hasFog, ktoxy, unionCells } from "../lib/utils"
+import { Arrow, DataCell, Line } from "../types/Data"
 import ArrowElement from "./ArrowElement"
 import BackgroundImageElement from "./BackgroundImageElement"
 import CageElement, { GridCage } from "./CageElement"
@@ -32,17 +31,17 @@ import FogMaskElement from "./FogMaskElement"
 import { GridElement } from "./GridElement"
 import LineElement from "./LineElement"
 import OverlayElement from "./OverlayElement"
+import PenElement from "./PenElement"
+import PenLineElement, { PenLineType } from "./PenLineElement"
 import RegionElement from "./RegionElement"
 import SVGPathElement from "./SVGPathElement"
 import { ThemeColours } from "./ThemeColours"
-import { produce } from "immer"
 import { flatten } from "lodash"
 import memoizeOne from "memoize-one"
 import {
   Application,
   Bounds,
   Container,
-  FederatedPointerEvent,
   Graphics,
   Rectangle,
   Ticker,
@@ -66,41 +65,6 @@ const FONT_SIZE_CENTRE_MARKS_HIGH_DPI = 29
 const FONT_SIZE_CENTRE_MARKS_LOW_DPI = 29
 const MAX_RENDER_LOOP_TIME = 500
 
-const PENLINE_TYPE_CENTER_RIGHT = 0
-const PENLINE_TYPE_CENTER_DOWN = 1
-const PENLINE_TYPE_EDGE_RIGHT = 2
-const PENLINE_TYPE_EDGE_DOWN = 3
-
-// TODO remove
-interface OldGraphicsExData {
-  k?: number
-  draw: (options: {
-    cellSize: number
-    zoomFactor: number
-    currentDigits: Map<number, Digit>
-    currentFogLights: FogLight[] | undefined
-    currentFogRaster: number[][] | undefined
-    themeColours: ThemeColours
-  }) => void
-}
-
-interface OldWithGraphicsExData {
-  data?: OldGraphicsExData
-}
-
-// TODO remove
-type OldGraphicsEx = Graphics & OldWithGraphicsExData
-
-type PenWaypointGraphics = Graphics & {
-  data?: {
-    cellSize?: number
-    draw: (options: {
-      cellSize?: number
-      penCurrentWaypoints: number[]
-    }) => void
-  }
-}
-
 function hasCageValue(x: number, y: number, cages: GridCage[]): boolean {
   for (let cage of cages) {
     if (
@@ -123,39 +87,6 @@ function hasGivenCornerMarks(cell: DataCell): boolean {
     return false
   }
   return cell.pencilMarks !== ""
-}
-
-function euclidianBresenhamInterpolate(
-  x0: number,
-  y0: number,
-  x1: number,
-  y1: number,
-): [number, number][] {
-  let dx = Math.abs(x1 - x0)
-  let sx = x0 < x1 ? 1 : -1
-  let dy = -Math.abs(y1 - y0)
-  let sy = y0 < y1 ? 1 : -1
-  let err = dx + dy
-
-  let result: [number, number][] = []
-  while (true) {
-    if (x0 === x1 && y0 === y1) {
-      break
-    }
-    let e2 = 2 * err
-    if (e2 > dy) {
-      err += dy
-      x0 += sx
-      result.push([x0, y0])
-    }
-    if (e2 < dx) {
-      err += dx
-      y0 += sy
-      result.push([x0, y0])
-    }
-  }
-  result.pop()
-  return result
 }
 
 function getThemeColour(style: CSSStyleDeclaration, color: string): number {
@@ -197,34 +128,6 @@ function drawBackground(
   graphics.hitArea = new Rectangle(0, 0, width, height)
   graphics.rect(0, 0, width, height)
   graphics.fill(themeColours.backgroundColor)
-}
-
-function penWaypointsToKey(
-  wp1: number,
-  wp2: number,
-  penCurrentDrawEdge: boolean,
-): number | undefined {
-  let right
-  let down
-  if (penCurrentDrawEdge) {
-    right = PENLINE_TYPE_EDGE_RIGHT
-    down = PENLINE_TYPE_EDGE_DOWN
-  } else {
-    right = PENLINE_TYPE_CENTER_RIGHT
-    down = PENLINE_TYPE_CENTER_DOWN
-  }
-  let p1 = ktoxy(wp1)
-  let p2 = ktoxy(wp2)
-  if (p2[0] > p1[0]) {
-    return pltok(p1[0], p1[1], right)
-  } else if (p2[0] < p1[0]) {
-    return pltok(p2[0], p2[1], right)
-  } else if (p2[1] > p1[1]) {
-    return pltok(p1[0], p1[1], down)
-  } else if (p2[1] < p1[1]) {
-    return pltok(p2[0], p2[1], down)
-  }
-  return undefined
 }
 
 interface FogDisplayOptions {
@@ -283,12 +186,8 @@ const Grid = ({
   const colourElements = useRef<ColourElement[]>([])
   const selectionElements = useRef<ColourElement[]>([])
   const errorElements = useRef<ColourElement[]>([])
-  const penCurrentWaypoints = useRef<number[]>([])
-  const penCurrentWaypointsAdd = useRef(true)
-  const penCurrentWaypointsElements = useRef<PenWaypointGraphics[]>([])
-  const penHitareaElements = useRef<OldGraphicsEx[]>([])
-  const penCurrentDrawEdge = useRef(false)
-  const penLineElements = useRef<OldGraphicsEx[]>([])
+  const penLineElements = useRef<PenLineElement[]>([])
+  const penElements = useRef<PenElement[]>([])
 
   const renderLoopStarted = useRef(0)
   const rendering = useRef(false)
@@ -466,140 +365,6 @@ const Grid = ({
     }
   }, [app])
 
-  const onPenMove = useCallback(
-    (e: FederatedPointerEvent, cellSize: number) => {
-      if (e.target === null) {
-        // pointer is not over the hit area
-        return
-      }
-      if (e.buttons !== 1) {
-        // let mouse button is not pressed
-        return
-      }
-
-      let gridBounds = gridElement.current!.getBounds()
-      let x = e.global.x - gridBounds.x
-      let y = e.global.y - gridBounds.y
-
-      let fCellX = x / cellSize
-      let fCellY = y / cellSize
-      let cellX = Math.floor(fCellX)
-      let cellY = Math.floor(fCellY)
-      let cellDX = fCellX - cellX
-      let cellDY = fCellY - cellY
-      if (penCurrentWaypoints.current.length === 0) {
-        // snap to cell edge or cell center
-        if (
-          cellDX >= 0.25 &&
-          cellDX <= 0.75 &&
-          cellDY >= 0.25 &&
-          cellDY <= 0.75
-        ) {
-          penCurrentDrawEdge.current = false
-        } else {
-          penCurrentDrawEdge.current = true
-          if (cellDX >= 0.5) {
-            cellX++
-          }
-          if (cellDY >= 0.5) {
-            cellY++
-          }
-        }
-      } else {
-        if (penCurrentDrawEdge.current) {
-          if (cellDX >= 0.5) {
-            cellX++
-          }
-          if (cellDY >= 0.5) {
-            cellY++
-          }
-        }
-      }
-
-      let k = xytok(cellX, cellY)
-
-      if (penCurrentWaypoints.current.length === 0) {
-        penCurrentWaypoints.current = [k]
-      } else if (
-        penCurrentWaypoints.current[penCurrentWaypoints.current.length - 1] ===
-        k
-      ) {
-        // nothing to do
-        return
-      } else {
-        penCurrentWaypoints.current = produce(
-          penCurrentWaypoints.current,
-          pcw => {
-            let toAdd = []
-            if (pcw.length > 0) {
-              let fp = pcw[pcw.length - 1]
-              let fpp = ktoxy(fp)
-              let dx = Math.abs(cellX - fpp[0])
-              let dy = Math.abs(cellY - fpp[1])
-              if (dx + dy !== 1) {
-                // cursor was moved diagonally or jumped to a distant cell
-                // interpolate between the last cell and the new one
-                let interpolated = euclidianBresenhamInterpolate(
-                  fpp[0],
-                  fpp[1],
-                  cellX,
-                  cellY,
-                )
-                for (let ip of interpolated) {
-                  toAdd.push(xytok(ip[0], ip[1]))
-                }
-              }
-            }
-            toAdd.push(k)
-
-            // check if we've moved backwards and, if so, how much
-            let matched = 0
-            for (
-              let a = pcw.length - 2, b = 0;
-              a >= 0 && b < toAdd.length;
-              --a, ++b
-            ) {
-              if (pcw[a] === toAdd[b]) {
-                matched++
-              } else {
-                break
-              }
-            }
-            if (matched > 0) {
-              // remove as many waypoints as we've moved back
-              pcw.splice(-matched)
-            } else {
-              // we did not move backwards - just add the new waypoints
-              for (let ap of toAdd) {
-                pcw.push(ap)
-              }
-            }
-          },
-        )
-
-        // check if we are adding a pen line or removing it
-        if (penCurrentWaypoints.current.length > 1) {
-          let firstKey = penWaypointsToKey(
-            penCurrentWaypoints.current[0],
-            penCurrentWaypoints.current[1],
-            penCurrentDrawEdge.current,
-          )
-          let visible = penLineElements.current.some(
-            e => e.data?.k === firstKey && e.visible,
-          )
-          penCurrentWaypointsAdd.current = !visible
-        }
-      }
-
-      // render waypoints
-      penCurrentWaypointsElements.current.forEach(e =>
-        e.data?.draw({ penCurrentWaypoints: penCurrentWaypoints.current }),
-      )
-      renderNow()
-    },
-    [renderNow],
-  )
-
   const onKeyDown = useCallback(
     (e: KeyboardEvent) => {
       let digit = e.code.match("Digit([0-9])")
@@ -667,20 +432,10 @@ const Grid = ({
   }
 
   const onPointerUp = useCallback(() => {
-    if (penCurrentWaypoints.current.length > 0) {
-      let penLines = []
-      for (let i = 0; i < penCurrentWaypoints.current.length - 1; ++i) {
-        let k = penWaypointsToKey(
-          penCurrentWaypoints.current[i],
-          penCurrentWaypoints.current[i + 1],
-          penCurrentDrawEdge.current,
-        )
-        if (k !== undefined) {
-          penLines.push(k)
-        }
-      }
+    let result = penElements.current[0].onPointerUp()
+    if (result.penLines.length > 0) {
       let action: PenLinesAction["action"]
-      if (penCurrentWaypointsAdd.current) {
+      if (result.add) {
         action = ACTION_PUSH
       } else {
         action = ACTION_REMOVE
@@ -688,18 +443,10 @@ const Grid = ({
       updateGame({
         type: TYPE_PENLINES,
         action,
-        k: penLines,
+        k: result.penLines,
       })
-      penCurrentWaypoints.current = []
-      penCurrentDrawEdge.current = false
-
-      // render waypoints (this will basically remove them from the grid)
-      penCurrentWaypointsElements.current.forEach(e =>
-        e.data?.draw({ penCurrentWaypoints: penCurrentWaypoints.current }),
-      )
-      renderNow()
     }
-  }, [updateGame, renderNow])
+  }, [updateGame])
 
   useEffect(() => {
     currentMode.current = game.mode
@@ -712,11 +459,7 @@ const Grid = ({
       }
     }
 
-    penHitareaElements.current.forEach(
-      e => (e.visible = game.mode === MODE_PEN),
-    )
-
-    penCurrentWaypoints.current = []
+    penElements.current.forEach(e => (e.active = game.mode === MODE_PEN))
   }, [app, game.mode])
 
   useEffect(() => {
@@ -766,8 +509,7 @@ const Grid = ({
     //   corner marks             50
     //   centre marks             50
     //   pen lines                60
-    //   pen waypoints            70
-    //   pen tool hitarea         80
+    //   pen tool                 70
 
     // ***************** render everything that could contribute to bounds
 
@@ -1151,149 +893,82 @@ const Grid = ({
     all.addChild(errorContainer)
 
     // create invisible elements for pen lines
+    let penLineContainer = new Container()
+    penLineContainer.zIndex = 60
     game.data.cells.forEach((row, y) => {
       row.forEach((_col, x) => {
-        function makeLine(
-          rx: number,
-          ry: number,
-          horiz: boolean,
-          dx: number,
-          dy: number,
-          type: number,
-        ) {
-          let line: OldGraphicsEx = new Graphics()
-          line.visible = false
-          line.zIndex = 60
-          line.data = {
-            k: pltok(rx, ry, type),
-            draw: function ({ cellSize }) {
-              line.moveTo(0, 0)
-              if (horiz) {
-                line.lineTo(cellSize, 0)
-              } else {
-                line.lineTo(0, cellSize)
-              }
-              line.x = (rx + dx) * cellSize
-              line.y = (ry + dy) * cellSize
-              line.stroke({
-                width: 2 * SCALE_FACTOR,
-                color: 0,
-                cap: "round",
-                join: "round",
-              })
-            },
-          }
-          all.addChild(line)
-          penLineElements.current.push(line)
+        if (x < row.length - 1) {
+          let l1 = new PenLineElement(
+            x,
+            y,
+            true,
+            0.5,
+            0.5,
+            PenLineType.CenterRight,
+          )
+          penLineElements.current.push(l1)
+          penLineContainer.addChild(l1.graphics)
         }
 
-        if (x < row.length - 1) {
-          makeLine(x, y, true, 0.5, 0.5, PENLINE_TYPE_CENTER_RIGHT)
-        }
-        makeLine(x, y, true, 0, 0, PENLINE_TYPE_EDGE_RIGHT)
+        let l2 = new PenLineElement(x, y, true, 0, 0, PenLineType.EdgeRight)
+        penLineElements.current.push(l2)
+        penLineContainer.addChild(l2.graphics)
+
         if (y === game.data.cells.length - 1) {
-          makeLine(x, y + 1, true, 0, 0, PENLINE_TYPE_EDGE_RIGHT)
+          let l3 = new PenLineElement(
+            x,
+            y + 1,
+            true,
+            0,
+            0,
+            PenLineType.EdgeRight,
+          )
+          penLineElements.current.push(l3)
+          penLineContainer.addChild(l3.graphics)
         }
+
         if (y < game.data.cells.length - 1) {
-          makeLine(x, y, false, 0.5, 0.5, PENLINE_TYPE_CENTER_DOWN)
+          let l4 = new PenLineElement(
+            x,
+            y,
+            false,
+            0.5,
+            0.5,
+            PenLineType.CenterDown,
+          )
+          penLineElements.current.push(l4)
+          penLineContainer.addChild(l4.graphics)
         }
-        makeLine(x, y, false, 0, 0, PENLINE_TYPE_EDGE_DOWN)
+
+        let l5 = new PenLineElement(x, y, false, 0, 0, PenLineType.EdgeDown)
+        penLineElements.current.push(l5)
+        penLineContainer.addChild(l5.graphics)
+
         if (x === row.length - 1) {
-          makeLine(x + 1, y, false, 0, 0, PENLINE_TYPE_EDGE_DOWN)
+          let l6 = new PenLineElement(
+            x + 1,
+            y,
+            false,
+            0,
+            0,
+            PenLineType.EdgeDown,
+          )
+          penLineElements.current.push(l6)
+          penLineContainer.addChild(l6.graphics)
         }
       })
     })
+    all.addChild(penLineContainer)
 
-    // create element that visualises current pen waypoints
-    let penWaypoints: PenWaypointGraphics = new Graphics()
-    penWaypoints.zIndex = 70
-    penWaypoints.data = {
-      draw: function ({ cellSize, penCurrentWaypoints }) {
-        let that = penWaypoints.data!
-        that.cellSize = cellSize ?? that.cellSize
-        if (that.cellSize === undefined) {
-          return
-        }
-
-        penWaypoints.clear()
-        if (penCurrentWaypoints.length > 1) {
-          let color
-          if (penCurrentWaypointsAdd.current) {
-            color = 0x009e73
-          } else {
-            color = 0xde3333
-          }
-          let d = 0.5
-          if (penCurrentDrawEdge.current) {
-            d = 0
-          }
-          let p0 = ktoxy(penCurrentWaypoints[0])
-          penWaypoints.moveTo(
-            (p0[0] + d) * that.cellSize,
-            (p0[1] + d) * that.cellSize,
-          )
-          for (let i = 0; i < penCurrentWaypoints.length - 1; ++i) {
-            let p = ktoxy(penCurrentWaypoints[i + 1])
-            penWaypoints.lineTo(
-              (p[0] + d) * that.cellSize,
-              (p[1] + d) * that.cellSize,
-            )
-          }
-          penWaypoints.stroke({
-            width: 3 * SCALE_FACTOR,
-            color,
-            cap: "round",
-            join: "round",
-          })
-        }
-      },
-    }
-    all.addChild(penWaypoints)
-    penCurrentWaypointsElements.current.push(penWaypoints)
-
-    // add invisible hit area for pen tool
-    let penHitArea: OldGraphicsEx = new Graphics()
-    penHitArea.eventMode = "static"
-    penHitArea.cursor = "crosshair"
-    penHitArea.zIndex = 80
-    penHitArea.visible = false
-    penHitArea.data = {
-      draw: function ({ cellSize }) {
-        penHitArea.hitArea = new Rectangle(
-          0,
-          0,
-          game.data.cells[0].length * cellSize,
-          game.data.cells.length * cellSize,
-        )
-        penHitArea.removeAllListeners()
-        penHitArea.on("pointermove", e => onPenMove(e, cellSize))
-      },
-    }
-    all.addChild(penHitArea)
-    penHitareaElements.current.push(penHitArea)
+    // add pen tool
+    let penContainer = new Container()
+    penContainer.zIndex = 70
+    let pen = new PenElement(game.data.cells, renderNow)
+    penContainer.addChild(pen.container)
+    penElements.current.push(pen)
+    all.addChild(penContainer)
 
     // memoize draw calls to improve performance
-    // TODO remove
-    const oldWrapDraw =
-      (
-        e: OldWithGraphicsExData,
-        draw: NonNullable<OldWithGraphicsExData["data"]>["draw"],
-      ): NonNullable<OldWithGraphicsExData["data"]>["draw"] =>
-      options => {
-        if (e instanceof Graphics) {
-          e.clear()
-        }
-        draw(options)
-      }
-    let oldElementsToMemoize = [penLineElements, penHitareaElements]
-    for (let r of oldElementsToMemoize) {
-      for (let e of r.current) {
-        if (e.data?.draw !== undefined) {
-          e.data.draw = memoizeOne(oldWrapDraw(e, e.data.draw))
-        }
-      }
-    }
-
     const wrapDraw = (e: GridElement): GridElement["draw"] => {
       let oldDraw = e.draw.bind(e)
       return options => {
@@ -1320,28 +995,12 @@ const Grid = ({
       colourElements,
       selectionElements,
       errorElements,
+      penLineElements,
+      penElements,
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
         e.draw = memoizeOne(wrapDraw(e))
-      }
-    }
-
-    const wrapDrawWaypoints =
-      (
-        e: PenWaypointGraphics,
-        draw: NonNullable<PenWaypointGraphics["data"]>["draw"],
-      ): NonNullable<PenWaypointGraphics["data"]>["draw"] =>
-      options => {
-        // TODO instanceof not necessary in the future
-        if (e instanceof Graphics) {
-          e.clear()
-        }
-        draw(options)
-      }
-    for (let e of penCurrentWaypointsElements.current) {
-      if (e.data?.draw !== undefined) {
-        e.data.draw = memoizeOne(wrapDrawWaypoints(e, e.data.draw))
       }
     }
 
@@ -1374,9 +1033,8 @@ const Grid = ({
       colourElements.current = []
       selectionElements.current = []
       errorElements.current = []
-      penCurrentWaypointsElements.current = []
-      penHitareaElements.current = []
       penLineElements.current = []
+      penElements.current = []
       backgroundImageElements.current = []
 
       document.removeEventListener("pointercancel", onPointerUp)
@@ -1389,8 +1047,8 @@ const Grid = ({
     regions,
     cages,
     extraRegions,
-    onPenMove,
     updateGame,
+    renderNow,
     onFinishRender,
     onPointerUp,
     fogDisplayOptions.enableDropShadow,
@@ -1487,8 +1145,11 @@ const Grid = ({
       }
     }
 
+    for (let pe of penElements.current) {
+      pe.gamePenLines = game.penLines
+    }
     for (let pl of penLineElements.current) {
-      pl.visible = game.penLines.has(pl.data!.k!)
+      pl.visible = game.penLines.has(pl.k)
     }
 
     for (let e of errorElements.current) {
@@ -1566,20 +1227,6 @@ const Grid = ({
         e.fill = themeColours.foregroundColor
       }
 
-      // TODO remove
-      let oldElementsToRedraw = [penLineElements, penHitareaElements]
-      for (let r of oldElementsToRedraw) {
-        for (let e of r.current) {
-          e.data?.draw({
-            cellSize: cs,
-            zoomFactor: cellSizeFactor.current,
-            currentDigits: game.digits,
-            currentFogLights: game.fogLights,
-            currentFogRaster: game.fogRaster,
-            themeColours,
-          })
-        }
-      }
       let elementsToRedraw: RefObject<GridElement[]>[] = [
         cellElements,
         fogElements,
@@ -1599,6 +1246,8 @@ const Grid = ({
         colourElements,
         selectionElements,
         errorElements,
+        penLineElements,
+        penElements,
       ]
       let gridOffset = { x: gridElement.current!.x, y: gridElement.current!.y }
       for (let r of elementsToRedraw) {
@@ -1614,13 +1263,6 @@ const Grid = ({
             gridOffset,
           })
         }
-      }
-
-      for (let e of penCurrentWaypointsElements.current) {
-        e.data?.draw({
-          cellSize: cs,
-          penCurrentWaypoints: penCurrentWaypoints.current,
-        })
       }
 
       allBounds = allElement.current!.getBounds()

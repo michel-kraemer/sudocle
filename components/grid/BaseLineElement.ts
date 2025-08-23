@@ -318,8 +318,8 @@ class BaseLineElement<T extends Line | Arrow> implements GridElement {
         vx /= vl
         vy /= vl
 
-        // Start new line if we're going backwards (i.e. if the direction
-        // of the current line segement is opposite the direction of the
+        // Start a new line if we're going backwards (i.e. if the direction
+        // of the current line segment is opposite the direction of the
         // last segment. We need to do this to make caps at such turning
         // points actually round and to avoid other drawing issues.
         if ((vx === lvx && vy === -lvy) || (vx === -lvx && vy === lvy)) {
@@ -362,7 +362,7 @@ class BaseLineElement<T extends Line | Arrow> implements GridElement {
     cellSize: number
     unitSize: number
     gridOffset: { x: number; y: number }
-  }): void {
+  }) {
     if ("strokeDashArray" in this.baseLine) {
       this.drawLineGraphics(
         this.getPoints(options.cellSize, options.gridOffset),

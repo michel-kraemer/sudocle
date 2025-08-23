@@ -41,7 +41,7 @@ class BackgroundImageElement implements GridElement {
     this.placeholder?.clear()
   }
 
-  draw(options: { cellSize: number }): void {
+  draw(options: { cellSize: number }) {
     this.cellSize = options.cellSize
 
     this.container.x = this.extent.minX * this.cellSize - this.cellSize / 4

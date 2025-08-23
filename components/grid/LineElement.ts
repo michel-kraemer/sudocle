@@ -35,7 +35,7 @@ class LineElement extends BaseLineElement<Line> {
     cellSize: number
     unitSize: number
     gridOffset: { x: number; y: number }
-  }): void {
+  }) {
     super.draw(options)
 
     if (this.baseLine.backgroundColor !== undefined) {

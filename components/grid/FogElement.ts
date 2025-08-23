@@ -22,7 +22,7 @@ class FogElement implements GridElement {
     }
   }
 
-  clear(): void {
+  clear() {
     this.graphics.clear()
   }
 

@@ -23,7 +23,7 @@ class ExtraRegionElement implements GridElement {
     this.graphics.clear()
   }
 
-  draw(options: { cellSize: number }): void {
+  draw(options: { cellSize: number }) {
     let disposedOutline = disposePolygon(
       this.extraRegion.outline.map(v => v * options.cellSize),
       this.regions.map(rarr => rarr.map(v => v * options.cellSize)),

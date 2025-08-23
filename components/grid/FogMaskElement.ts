@@ -4,14 +4,14 @@ import { Graphics } from "pixi.js"
 
 class FogMaskElement implements GridElement {
   readonly graphics: Graphics
-  readonly cells: DataCell[][]
+  private readonly cells: DataCell[][]
 
   constructor(cells: DataCell[][]) {
     this.graphics = new Graphics()
     this.cells = cells
   }
 
-  clear(): void {
+  clear() {
     this.graphics.clear()
   }
 

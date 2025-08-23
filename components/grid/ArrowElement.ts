@@ -20,15 +20,12 @@ class ArrowElement extends BaseLineElement<Arrow> {
     this.container.addChild(this.headGraphics)
   }
 
-  clear(): void {
+  clear() {
     super.clear()
     this.headGraphics.clear()
   }
 
-  draw(options: {
-    cellSize: number
-    gridOffset: { x: number; y: number }
-  }): void {
+  draw(options: { cellSize: number; gridOffset: { x: number; y: number } }) {
     // calculate length
     let points = this.getPoints(options.cellSize, options.gridOffset)
     let lastPointX = points[points.length - 2]

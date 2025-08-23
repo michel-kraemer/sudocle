@@ -66,7 +66,7 @@ class CageElement implements GridElement {
     this.topleftBg?.clear()
   }
 
-  draw(options: { cellSize: number; themeColours: ThemeColours }): void {
+  draw(options: { cellSize: number; themeColours: ThemeColours }) {
     // draw outline
     let disposedOutline = disposePolygon(
       this.cage.outline.map(v => v * options.cellSize),
