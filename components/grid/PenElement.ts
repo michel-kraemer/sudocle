@@ -299,7 +299,7 @@ class PenElement implements GridElement {
         this.wayPointsGraphics.lineTo((p[0] + d) * cs, (p[1] + d) * cs)
       }
       this.wayPointsGraphics.stroke({
-        width: 3 * SCALE_FACTOR,
+        width: 5 * SCALE_FACTOR,
         color,
         cap: "round",
         join: "round",
