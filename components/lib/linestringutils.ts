@@ -118,3 +118,38 @@ export function euclidianBresenhamInterpolate(
   result.pop()
   return result
 }
+
+export function bresenhamInterpolate(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+): [number, number][] {
+  let dx = Math.abs(x1 - x0)
+  let sx = x0 < x1 ? 1 : -1
+  let dy = -Math.abs(y1 - y0)
+  let sy = y0 < y1 ? 1 : -1
+  let err = dx + dy
+
+  let result: [number, number][] = []
+  while (true) {
+    let e2 = 2 * err
+    if (e2 >= dy) {
+      if (x0 === x1) {
+        break
+      }
+      err = err + dy
+      x0 = x0 + sx
+    }
+    if (e2 <= dx) {
+      if (y0 === y1) {
+        break
+      }
+      err = err + dx
+      y0 = y0 + sy
+    }
+    result.push([x0, y0])
+  }
+  result.pop()
+  return result
+}

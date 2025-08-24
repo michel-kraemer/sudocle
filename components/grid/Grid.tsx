@@ -898,64 +898,70 @@ const Grid = ({
     game.data.cells.forEach((row, y) => {
       row.forEach((_col, x) => {
         if (x < row.length - 1) {
-          let l1 = new PenLineElement(
-            x,
-            y,
-            true,
-            0.5,
-            0.5,
-            PenLineType.CenterRight,
-          )
+          let l1 = new PenLineElement(x, y, 0.5, 0.5, PenLineType.CenterRight)
           penLineElements.current.push(l1)
           penLineContainer.addChild(l1.graphics)
         }
 
-        let l2 = new PenLineElement(x, y, true, 0, 0, PenLineType.EdgeRight)
+        let l2 = new PenLineElement(x, y, 0, 0, PenLineType.EdgeRight)
         penLineElements.current.push(l2)
         penLineContainer.addChild(l2.graphics)
 
         if (y === game.data.cells.length - 1) {
-          let l3 = new PenLineElement(
-            x,
-            y + 1,
-            true,
-            0,
-            0,
-            PenLineType.EdgeRight,
-          )
+          let l3 = new PenLineElement(x, y + 1, 0, 0, PenLineType.EdgeRight)
           penLineElements.current.push(l3)
           penLineContainer.addChild(l3.graphics)
         }
 
         if (y < game.data.cells.length - 1) {
-          let l4 = new PenLineElement(
-            x,
-            y,
-            false,
-            0.5,
-            0.5,
-            PenLineType.CenterDown,
-          )
+          let l4 = new PenLineElement(x, y, 0.5, 0.5, PenLineType.CenterDown)
           penLineElements.current.push(l4)
           penLineContainer.addChild(l4.graphics)
         }
 
-        let l5 = new PenLineElement(x, y, false, 0, 0, PenLineType.EdgeDown)
+        let l5 = new PenLineElement(x, y, 0, 0, PenLineType.EdgeDown)
         penLineElements.current.push(l5)
         penLineContainer.addChild(l5.graphics)
 
         if (x === row.length - 1) {
-          let l6 = new PenLineElement(
-            x + 1,
-            y,
-            false,
-            0,
-            0,
-            PenLineType.EdgeDown,
-          )
+          let l6 = new PenLineElement(x + 1, y, 0, 0, PenLineType.EdgeDown)
           penLineElements.current.push(l6)
           penLineContainer.addChild(l6.graphics)
         }
+
+        if (x < row.length - 1) {
+          if (y > 0) {
+            let d1 = new PenLineElement(
+              x,
+              y,
+              0.5,
+              0.5,
+              PenLineType.CenterRightUp,
+            )
+            penLineElements.current.push(d1)
+            penLineContainer.addChild(d1.graphics)
+          }
+
+          if (y < game.data.cells.length - 1) {
+            let d2 = new PenLineElement(
+              x,
+              y,
+              0.5,
+              0.5,
+              PenLineType.CenterRightDown,
+            )
+            penLineElements.current.push(d2)
+            penLineContainer.addChild(d2.graphics)
+          }
+        }
+
+        let d3 = new PenLineElement(x, y, 0, 1, PenLineType.EdgeRightUp)
+        penLineElements.current.push(d3)
+        penLineContainer.addChild(d3.graphics)
+
+        let d4 = new PenLineElement(x, y, 0, 0, PenLineType.EdgeRightDown)
+        penLineElements.current.push(d4)
+        penLineContainer.addChild(d4.graphics)
       })
     })
     all.addChild(penLineContainer)

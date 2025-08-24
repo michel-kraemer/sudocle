@@ -1,4 +1,4 @@
-import { euclidianBresenhamInterpolate } from "../lib/linestringutils"
+import { bresenhamInterpolate } from "../lib/linestringutils"
 import { ktoxy, pltok, xytok } from "../lib/utils"
 import { DataCell } from "../types/Data"
 import { SCALE_FACTOR } from "./Grid"
@@ -14,19 +14,43 @@ function penWaypointsToKey(
 ): number | undefined {
   let right
   let down
+  let rightUp
+  let rightDown
   if (penCurrentDrawEdge) {
     right = PenLineType.EdgeRight
+    rightUp = PenLineType.EdgeRightUp
+    rightDown = PenLineType.EdgeRightDown
     down = PenLineType.EdgeDown
   } else {
     right = PenLineType.CenterRight
+    rightUp = PenLineType.CenterRightUp
+    rightDown = PenLineType.CenterRightDown
     down = PenLineType.CenterDown
   }
   let p1 = ktoxy(wp1)
   let p2 = ktoxy(wp2)
   if (p2[0] > p1[0]) {
-    return pltok(p1[0], p1[1], right)
+    if (p2[1] < p1[1]) {
+      if (penCurrentDrawEdge) {
+        return pltok(p1[0], p1[1] - 1, rightUp)
+      }
+      return pltok(p1[0], p1[1], rightUp)
+    } else if (p2[1] > p1[1]) {
+      return pltok(p1[0], p1[1], rightDown)
+    } else {
+      return pltok(p1[0], p1[1], right)
+    }
   } else if (p2[0] < p1[0]) {
-    return pltok(p2[0], p2[1], right)
+    if (p2[1] < p1[1]) {
+      return pltok(p2[0], p2[1], rightDown)
+    } else if (p2[1] > p1[1]) {
+      if (penCurrentDrawEdge) {
+        return pltok(p2[0], p2[1] - 1, rightUp)
+      }
+      return pltok(p2[0], p2[1], rightUp)
+    } else {
+      return pltok(p2[0], p2[1], right)
+    }
   } else if (p2[1] > p1[1]) {
     return pltok(p1[0], p1[1], down)
   } else if (p2[1] < p1[1]) {
@@ -130,25 +154,15 @@ class PenElement implements GridElement {
       // `(cellSize / 5) * 2` appears to be a radius that works pretty good in
       // practice, i.e. a radius with which the tool behaves as the user expects
       // in almost all cases
-      if (dist <= (cellSize / 5) * 2) {
-        this.currentDrawEdge = false
-      } else {
-        this.currentDrawEdge = true
-        if (cellDX >= 0.5) {
-          cellX++
-        }
-        if (cellDY >= 0.5) {
-          cellY++
-        }
+      this.currentDrawEdge = dist > (cellSize / 5) * 2
+    }
+
+    if (this.currentDrawEdge) {
+      if (cellDX >= 0.5) {
+        cellX++
       }
-    } else {
-      if (this.currentDrawEdge) {
-        if (cellDX >= 0.5) {
-          cellX++
-        }
-        if (cellDY >= 0.5) {
-          cellY++
-        }
+      if (cellDY >= 0.5) {
+        cellY++
       }
     }
 
@@ -160,19 +174,57 @@ class PenElement implements GridElement {
       // nothing to do
       return
     } else {
+      let previousWaypoint =
+        this.currentWaypoints[this.currentWaypoints.length - 1]
+      let previousWaypointPoint = ktoxy(previousWaypoint)
+      let previousWaypointCellX = previousWaypointPoint[0]
+      let previousWaypointCellY = previousWaypointPoint[1]
+      let previousWaypointX = previousWaypointCellX * cellSize
+      let previousWaypointY = previousWaypointCellY * cellSize
+      if (!this.currentDrawEdge) {
+        previousWaypointX += cellSize / 2
+        previousWaypointY += cellSize / 2
+      }
+
+      // don't do anything if we've moved diagonally but not enough yet, for
+      // example if we've moved right down but only crossed the edge to the
+      // right but not the one to the bottom yet
+      let dx = x - previousWaypointX
+      let dy = y - previousWaypointY
+      let angle = (Math.atan2(dy, dx) * 180) / Math.PI
+      if (angle >= 45 - 22.5 && angle <= 45 + 22.5) {
+        // right down
+        if (dx <= cellSize / 2 || dy <= cellSize / 2) {
+          return
+        }
+      } else if (angle >= 135 - 22.5 && angle <= 135 + 22.5) {
+        // left down
+        if (-dx <= cellSize / 2 || dy <= cellSize / 2) {
+          return
+        }
+      } else if (angle <= -45 + 22.5 && angle >= -45 - 22.5) {
+        // right up
+        if (dx <= cellSize / 2 || -dy <= cellSize / 2) {
+          return
+        }
+      } else if (angle <= -135 + 22.5 && angle >= -135 - 22.5) {
+        // left up
+        if (-dx <= cellSize / 2 || -dy <= cellSize / 2) {
+          return
+        }
+      }
+
       this.currentWaypoints = produce(this.currentWaypoints, pcw => {
         let toAdd = []
         if (pcw.length > 0) {
-          let fp = pcw[pcw.length - 1]
-          let fpp = ktoxy(fp)
-          let dx = Math.abs(cellX - fpp[0])
-          let dy = Math.abs(cellY - fpp[1])
+          let dx = Math.abs(cellX - previousWaypointCellX)
+          let dy = Math.abs(cellY - previousWaypointCellY)
           if (dx + dy !== 1) {
             // cursor was moved diagonally or jumped to a distant cell
             // interpolate between the last cell and the new one
-            let interpolated = euclidianBresenhamInterpolate(
-              fpp[0],
-              fpp[1],
+            let interpolated = bresenhamInterpolate(
+              previousWaypointCellX,
+              previousWaypointCellY,
               cellX,
               cellY,
             )
