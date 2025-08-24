@@ -121,14 +121,16 @@ class PenElement implements GridElement {
     let cellY = Math.floor(fCellY)
     let cellDX = fCellX - cellX
     let cellDY = fCellY - cellY
+
     if (this.currentWaypoints.length === 0) {
       // snap to cell edge or cell center
-      if (
-        cellDX >= 0.25 &&
-        cellDX <= 0.75 &&
-        cellDY >= 0.25 &&
-        cellDY <= 0.75
-      ) {
+      let cellCenterX = cellX * cellSize + cellSize / 2
+      let cellCenterY = cellY * cellSize + cellSize / 2
+      let dist = Math.hypot(cellCenterX - x, cellCenterY - y)
+      // `(cellSize / 5) * 2` appears to be a radius that works pretty good in
+      // practice, i.e. a radius with which the tool behaves as the user expects
+      // in almost all cases
+      if (dist <= (cellSize / 5) * 2) {
         this.currentDrawEdge = false
       } else {
         this.currentDrawEdge = true
