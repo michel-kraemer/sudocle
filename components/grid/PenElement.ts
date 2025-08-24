@@ -122,11 +122,7 @@ class PenElement implements GridElement {
     return { penLines, add }
   }
 
-  private onPenMove(
-    e: FederatedPointerEvent,
-    cellSize: number,
-    gridOffset: { x: number; y: number },
-  ) {
+  private onPenMove(e: FederatedPointerEvent, cellSize: number) {
     if (e.target === null) {
       // pointer is not over the hit area
       return
@@ -136,8 +132,7 @@ class PenElement implements GridElement {
       return
     }
 
-    let x = e.global.x - gridOffset.x
-    let y = e.global.y - gridOffset.y
+    let { x, y } = e.getLocalPosition(this.container)
 
     let fCellX = x / cellSize
     let fCellY = y / cellSize
@@ -158,10 +153,10 @@ class PenElement implements GridElement {
     }
 
     if (this.currentDrawEdge) {
-      if (cellDX >= 0.5) {
+      if (cellDX > 0.5) {
         cellX++
       }
-      if (cellDY >= 0.5) {
+      if (cellDY > 0.5) {
         cellY++
       }
     }
@@ -307,10 +302,7 @@ class PenElement implements GridElement {
     }
   }
 
-  private updateHitArea(
-    cellSize: number,
-    gridOffset: { x: number; y: number },
-  ) {
+  private updateHitArea(cellSize: number) {
     this.hitAreaGraphics.hitArea = new Rectangle(
       0,
       0,
@@ -319,14 +311,12 @@ class PenElement implements GridElement {
     )
 
     this.hitAreaGraphics.removeAllListeners()
-    this.hitAreaGraphics.on("pointermove", e =>
-      this.onPenMove(e, cellSize, gridOffset),
-    )
+    this.hitAreaGraphics.on("pointermove", e => this.onPenMove(e, cellSize))
   }
 
-  draw(options: { cellSize: number; gridOffset: { x: number; y: number } }) {
+  draw(options: { cellSize: number }) {
     this.updateWayPoints(options.cellSize)
-    this.updateHitArea(options.cellSize, options.gridOffset)
+    this.updateHitArea(options.cellSize)
   }
 }
 
