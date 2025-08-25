@@ -1,18 +1,19 @@
 import emptyGrid from "../../../public/empty-grid.json" assert { type: "json" }
+import { NextRequest } from "next/server"
 
 const URLS = [
   "https://firebasestorage.googleapis.com/v0/b/sudoku-sandbox.appspot.com/o/{}?alt=media",
-  "https://sudokupad.app/api/puzzle/{}"
+  "https://sudokupad.app/api/puzzle/{}",
 ]
 
 const MAX_AGE_EMPTY_SECONDS = 1209600 // 14 days
 const MAX_AGE_OTHER = 86400 // 1 day
 
 export async function GET(
-  _: Request,
-  segmentData: { params: Promise<{ id: string[] }> }
-) {
-  let params = await segmentData.params
+  _: NextRequest,
+  context: { params: Promise<{ id?: string[] }> },
+): Promise<Response> {
+  let params = await context.params
 
   try {
     if (params.id === undefined || params.id.length === 0) {
@@ -36,7 +37,7 @@ export async function GET(
 
     if (response === undefined) {
       return new Response("No puzzle loaded", {
-        status: 500
+        status: 500,
       })
     }
 
@@ -44,8 +45,8 @@ export async function GET(
       return new Response(
         `The puzzle with the ID \u2018${id}’ does not exist`,
         {
-          status: 404
-        }
+          status: 404,
+        },
       )
     }
 
@@ -53,13 +54,13 @@ export async function GET(
       `Failed to load puzzle with ID \u2018${id}’. ` +
         `Received HTTP status code ${response.status} from server.`,
       {
-        status: 500
-      }
+        status: 500,
+      },
     )
   } catch (error) {
     console.error(error)
     return new Response("Internal server error", {
-      status: 500
+      status: 500,
     })
   }
 }
