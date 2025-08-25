@@ -3,11 +3,13 @@ import { useGame } from "./hooks/useGame"
 import { useSettings } from "./hooks/useSettings"
 import {
   ACTION_REMOVE,
+  ACTION_ROTATE,
   ACTION_SET,
   TYPE_CHECK,
   TYPE_COLOURS,
   TYPE_DIGITS,
   TYPE_MODE,
+  TYPE_MODE_GROUP,
   TYPE_REDO,
   TYPE_UNDO,
 } from "./lib/Actions"
@@ -22,7 +24,14 @@ import {
 } from "./lib/Modes"
 import clsx from "clsx"
 import Color from "color"
-import { Check, Delete, Redo, Undo } from "lucide-react"
+import {
+  ArrowLeftToLine,
+  Check,
+  Delete,
+  Ellipsis,
+  Redo,
+  Undo,
+} from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useShallow } from "zustand/react/shallow"
 
@@ -116,6 +125,13 @@ const Pad = () => {
       type: TYPE_MODE,
       action: ACTION_SET,
       mode,
+    })
+  }
+
+  function onRotateModeGroup() {
+    updateGame({
+      type: TYPE_MODE_GROUP,
+      action: ACTION_ROTATE,
     })
   }
 
@@ -273,7 +289,13 @@ const Pad = () => {
       {mode !== MODE_COLOUR && (
         <>
           <div className="flex col-span-2">{digitButtons[9]}</div>
-          <Placeholder />
+          <Button noPadding onClick={() => onRotateModeGroup()}>
+            {mode === MODE_PEN ? (
+              <ArrowLeftToLine size="0.95rem" />
+            ) : (
+              <Ellipsis size="0.95rem" />
+            )}
+          </Button>
         </>
       )}
       {mode === MODE_COLOUR && (
