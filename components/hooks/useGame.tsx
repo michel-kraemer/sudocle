@@ -16,6 +16,7 @@ import {
   DigitsAction,
   ModeAction,
   ModeGroupAction,
+  PenColourAction,
   PenLinesAction,
   SelectionAction,
   TYPE_CHECK,
@@ -25,6 +26,7 @@ import {
   TYPE_MODE,
   TYPE_MODE_GROUP,
   TYPE_PAUSE,
+  TYPE_PENCOLOUR,
   TYPE_PENLINES,
   TYPE_REDO,
   TYPE_SELECTION,
@@ -59,7 +61,7 @@ const EmptyData: Data = {
   solved: false,
 }
 
-interface Colour {
+export interface Colour {
   colour: number
 }
 
@@ -85,7 +87,7 @@ interface PersistentGameState {
   cornerMarks: Map<number, Set<number | string>>
   centreMarks: Map<number, Set<number | string>>
   colours: Map<number, Colour>
-  penLines: Set<number>
+  penLines: Map<number, Colour>
   fogLights?: FogLight[]
   fogRaster?: number[][]
 }
@@ -96,6 +98,7 @@ export interface GameState extends PersistentGameState {
   modeGroup: number
   enabledModes0: Mode[]
   enabledModes1: Mode[]
+  penColour: number
   selection: Set<number>
   errors: Errors
   undoStates: PersistentGameState[]
@@ -277,7 +280,8 @@ function makeEmptyState(data?: Data): GameState {
     cornerMarks: makeGivenMarks(data, c => c.cornermarks),
     centreMarks: makeGivenMarks(data, c => c.centremarks),
     colours: new Map(),
-    penLines: new Set(),
+    penLines: new Map(),
+    penColour: 1,
     selection: new Set(),
     errors: { type: "unknown" },
     undoStates: [],
@@ -511,15 +515,19 @@ function coloursReducer(
   }
 }
 
-function penLinesReducer(penLines: Set<number>, action: PenLinesAction) {
+function penLinesReducer(
+  penLines: Map<number, Colour>,
+  action: PenLinesAction,
+  penColour: number,
+) {
   switch (action.action) {
     case ACTION_PUSH: {
       if (Array.isArray(action.k)) {
         for (let k of action.k) {
-          penLines.add(k)
+          penLines.set(k, { colour: penColour })
         }
       } else {
-        penLines.add(action.k)
+        penLines.set(action.k, { colour: penColour })
       }
       return
     }
@@ -534,6 +542,14 @@ function penLinesReducer(penLines: Set<number>, action: PenLinesAction) {
       }
       return
     }
+  }
+}
+
+function penColourReducer(draft: GameState, action: PenColourAction) {
+  switch (action.action) {
+    case ACTION_SET:
+      draft.penColour = action.digit
+      break
   }
 }
 
@@ -813,7 +829,11 @@ function gameReducerNoUndo(state: GameState, mode: string, action: Action) {
       return
 
     case TYPE_PENLINES:
-      penLinesReducer(state.penLines, action)
+      penLinesReducer(state.penLines, action, state.penColour)
+      return
+
+    case TYPE_PENCOLOUR:
+      penColourReducer(state, action)
       return
 
     case TYPE_SELECTION:

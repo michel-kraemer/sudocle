@@ -1,3 +1,4 @@
+import { Colour } from "../hooks/useGame"
 import { bresenhamInterpolate } from "../lib/linestringutils"
 import { ktoxy, pltok, xytok } from "../lib/utils"
 import { DataCell } from "../types/Data"
@@ -69,7 +70,7 @@ class PenElement implements GridElement {
   private currentDrawEdge = false
   private currentAdd = true
   private currentWaypoints: number[] = []
-  gamePenLines = new Set<number>()
+  gamePenLines = new Map<number, Colour>()
 
   constructor(cells: DataCell[][], renderNow: () => void) {
     this.cells = cells

@@ -27,6 +27,28 @@
   --color-11-pos: 10;
   --color-9-pos: 11;
   --color-12-pos: 12;
+
+  /* pen colours - first colour must always be pure black */
+  --pen-color-1: #000;      /* black */
+  --pen-color-4: #c3db9b;   /* slightly darker green */
+  --pen-color-5: #b97baf;   /* slightly darker purple */
+  --pen-color-6: #e8945f;   /* slightly darker orange */
+  --pen-color-7: #df6165;   /* slightly darker red */
+  --pen-color-8: #f7cc71;   /* slightly darker yellow */
+  --pen-color-9: #628ec7;   /* slightly darker blue */
+  --pen-color-11: #a0583a;  /* slightly darker brown */
+  --pen-color-12: #baddd7;  /* slightly darker cyan */
+
+  /* pen colour positions on pad */
+  --pen-color-1-pos: 1;
+  --pen-color-4-pos: 2;
+  --pen-color-5-pos: 3;
+  --pen-color-6-pos: 4;
+  --pen-color-7-pos: 5;
+  --pen-color-8-pos: 6;
+  --pen-color-11-pos: 7;
+  --pen-color-9-pos: 8;
+  --pen-color-12-pos: 9;
 }
 
 /* prettier-ignore */
@@ -41,6 +63,28 @@
   --color-7: #e6261f;  /* red */
   --color-8: #f7d038;  /* yellow */
   --color-9: #34bbe6;  /* blue */
+
+  /* pen colours - first colour must always be pure black */
+  --pen-color-1: #000;     /* black */
+  --pen-color-2: #666;     /* dark grey */
+  --pen-color-3: #bfbfbf;  /* grey */
+  --pen-color-4: #8fc83f;  /* slightly darker green */
+  --pen-color-5: #be34c9;  /* slightly darker purple */
+  --pen-color-6: #d46a2c;  /* slightly darker orange */
+  --pen-color-7: #cf221b;  /* slightly darker red */
+  --pen-color-8: #dcbf32;  /* slightly darker yellow */
+  --pen-color-9: #2c9bb8;  /* slightly darker blue */
+
+  /* pen colour positions on pad */
+  --pen-color-1-pos: 1;
+  --pen-color-2-pos: 2;
+  --pen-color-3-pos: 3;
+  --pen-color-4-pos: 4;
+  --pen-color-5-pos: 5;
+  --pen-color-6-pos: 6;
+  --pen-color-7-pos: 7;
+  --pen-color-8-pos: 8;
+  --pen-color-9-pos: 9;
 }
 
 /* prettier-ignore */
@@ -68,4 +112,26 @@
   --color-9-pos: 8;
   --color-7-pos: 9;
   --color-5-pos: 10;
+
+  /* pen colours - first colour must always be pure black */
+  --pen-color-1: #000;              /* black */
+  --pen-color-2: #939ba6;           /* dark grey */
+  --pen-color-6: rgb(207 143 0);    /* slightly darker orange */
+  --pen-color-10: rgb(77 162 210);  /* slightly darker sky blue */
+  --pen-color-4: rgb(0 142 103);    /* slightly darker bluish green */
+  --pen-color-8: rgb(216 205 59);   /* slightly darker yellow */
+  --pen-color-9: rgb(0 102 158);    /* slightly darker blue */
+  --pen-color-7: rgb(192 85 0);     /* slightly darker vermillon */
+  --pen-color-5: rgb(183 109 150);  /* slightly darker reddish purple */
+
+  /* pen colour positions on pad */
+  --pen-color-1-pos: 1;
+  --pen-color-2-pos: 2;
+  --pen-color-6-pos: 3;
+  --pen-color-10-pos: 4;
+  --pen-color-4-pos: 5;
+  --pen-color-8-pos: 6;
+  --pen-color-9-pos: 7;
+  --pen-color-7-pos: 8;
+  --pen-color-5-pos: 9;
 }

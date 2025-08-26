@@ -10,6 +10,7 @@ import {
   TYPE_DIGITS,
   TYPE_MODE,
   TYPE_MODE_GROUP,
+  TYPE_PENCOLOUR,
   TYPE_REDO,
   TYPE_UNDO,
 } from "./lib/Actions"
@@ -65,12 +66,14 @@ const Pad = () => {
   )
   const updateGame = useGame(state => state.updateGame)
   const [colours, setColours] = useState<Colour[]>([])
+  const [penColours, setPenColours] = useState<Colour[]>([])
   const [checkReady, setCheckReady] = useState(false)
 
   useEffect(() => {
     let computedStyle = getComputedStyle(ref.current!)
     let nColours = +computedStyle.getPropertyValue("--colors")
     let newColours: Colour[] = []
+    let newPenColours: Colour[] = []
     if (colourPalette !== "custom" || customColours.length === 0) {
       for (let i = 0; i < nColours; ++i) {
         let col = computedStyle.getPropertyValue(`--color-${i + 1}`)
@@ -79,6 +82,17 @@ const Pad = () => {
           colour: col,
           digit: i + 1,
           light: Color(col.trim()).luminosity() > 0.9,
+        }
+        let penCol = computedStyle.getPropertyValue(`--pen-color-${i + 1}`)
+        if (penCol !== "") {
+          let penPos = +computedStyle.getPropertyValue(
+            `--pen-color-${i + 1}-pos`,
+          )
+          newPenColours[penPos - 1] = {
+            colour: penCol,
+            digit: i + 1,
+            light: Color(penCol.trim()).contrast(Color("#ededed")) < 1.2,
+          }
         }
       }
     } else {
@@ -90,8 +104,14 @@ const Pad = () => {
           light: Color(col.trim()).luminosity() > 0.9,
         }
       }
+
+      newPenColours = newColours.slice(0, 9).map(nc => ({
+        ...nc,
+        light: Color(nc.colour.trim()).contrast(Color("#ededed")) < 1.2,
+      }))
     }
     setColours(newColours)
+    setPenColours(newPenColours)
   }, [colourPalette, customColours])
 
   useEffect(() => {
@@ -115,6 +135,14 @@ const Pad = () => {
   function onColour(digit: number) {
     updateGame({
       type: TYPE_COLOURS,
+      action: ACTION_SET,
+      digit,
+    })
+  }
+
+  function onPenColour(digit: number) {
+    updateGame({
+      type: TYPE_PENCOLOUR,
       action: ACTION_SET,
       digit,
     })
@@ -210,6 +238,25 @@ const Pad = () => {
       while (digitButtons.length < 12) {
         digitButtons.push(<div></div>)
       }
+    }
+  } else if (mode === MODE_PEN) {
+    for (let c of penColours) {
+      digitButtons.push(
+        <Button key={c.digit} noPadding onClick={() => onPenColour(c.digit)}>
+          <div className="flex flex-1 h-full rounded items-center px-1.5">
+            <div
+              className={clsx("w-full h-[5px] rounded-full", {
+                "border border-grey-500": c.light,
+              })}
+              style={{ backgroundColor: c.colour }}
+            ></div>
+          </div>
+        </Button>,
+      )
+    }
+
+    while (digitButtons.length < 12) {
+      digitButtons.push(<Placeholder />)
     }
   } else {
     while (digitButtons.length < 12) {

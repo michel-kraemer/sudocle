@@ -1127,15 +1127,19 @@ const Grid = ({
     }
 
     let colours = []
+    let penColours = []
     if (colourPalette !== "custom" || customColours.length === 0) {
       let computedStyle = getComputedStyle(ref.current!)
       let nColours = +computedStyle.getPropertyValue("--colors")
       for (let i = 0; i < nColours; ++i) {
         colours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
+        penColours[i] = computedStyle.getPropertyValue(`--pen-color-${i + 1}`)
       }
     } else {
       colours = customColours
+      penColours = customColours
     }
+
     for (let e of colourElements.current) {
       let colour = game.colours.get(e.k)
       if (colour !== undefined) {
@@ -1155,7 +1159,18 @@ const Grid = ({
       pe.gamePenLines = game.penLines
     }
     for (let pl of penLineElements.current) {
-      pl.visible = game.penLines.has(pl.k)
+      let colour = game.penLines.get(pl.k)
+      if (colour !== undefined) {
+        let palCol = penColours[colour.colour - 1]
+        if (palCol === undefined) {
+          palCol = penColours[1] || penColours[0]
+        }
+        let colourNumber = getRGBColor(palCol)
+        pl.colour = colourNumber
+        pl.visible = true
+      } else {
+        pl.visible = false
+      }
     }
 
     for (let e of errorElements.current) {

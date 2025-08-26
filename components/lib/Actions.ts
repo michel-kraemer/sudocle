@@ -7,6 +7,7 @@ export const TYPE_CORNER_MARKS = "cornerMarks"
 export const TYPE_CENTRE_MARKS = "centreMarks"
 export const TYPE_COLOURS = "colours"
 export const TYPE_PENLINES = "penLines"
+export const TYPE_PENCOLOUR = "penColour"
 export const TYPE_SELECTION = "selection"
 export const TYPE_UNDO = "undo"
 export const TYPE_REDO = "redo"
@@ -58,6 +59,12 @@ export interface PenLinesAction {
   readonly k: number | number[]
 }
 
+export interface PenColourAction {
+  readonly type: typeof TYPE_PENCOLOUR
+  readonly action: typeof ACTION_SET
+  readonly digit: number
+}
+
 export interface SelectionAction {
   readonly type: typeof TYPE_SELECTION
   readonly action:
@@ -101,6 +108,7 @@ export type Action =
   | DigitsAction
   | ColoursAction
   | PenLinesAction
+  | PenColourAction
   | SelectionAction
   | UndoAction
   | RedoAction

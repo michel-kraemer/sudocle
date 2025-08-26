@@ -44,6 +44,10 @@ class PenLineElement implements GridElement {
     this.graphics.clear()
   }
 
+  set colour(colour: number) {
+    this.graphics.strokeStyle.color = colour
+  }
+
   set visible(visible: boolean) {
     this.graphics.visible = visible
   }
@@ -75,7 +79,7 @@ class PenLineElement implements GridElement {
     this.graphics.y = (this.ry + this.dy) * options.cellSize
     this.graphics.stroke({
       width: width * SCALE_FACTOR,
-      color: 0,
+      color: this.graphics.strokeStyle.color,
       cap: "round",
       join: "round",
     })
