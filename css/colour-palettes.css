@@ -30,14 +30,14 @@
 
   /* pen colours - first colour must always be pure black */
   --pen-color-1: #000;      /* black */
-  --pen-color-4: #c3db9b;   /* slightly darker green */
+  --pen-color-4: #8eba62;   /* slightly darker green */
   --pen-color-5: #b97baf;   /* slightly darker purple */
   --pen-color-6: #e8945f;   /* slightly darker orange */
   --pen-color-7: #df6165;   /* slightly darker red */
   --pen-color-8: #f7cc71;   /* slightly darker yellow */
-  --pen-color-9: #628ec7;   /* slightly darker blue */
+  --pen-color-9: #5787c4;   /* slightly darker blue */
   --pen-color-11: #a0583a;  /* slightly darker brown */
-  --pen-color-12: #baddd7;  /* slightly darker cyan */
+  --pen-color-12: #70c7cb;  /* slightly darker cyan */
 
   /* pen colour positions on pad */
   --pen-color-1-pos: 1;
