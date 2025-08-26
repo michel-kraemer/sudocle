@@ -56,11 +56,12 @@ const Pad = () => {
       customColours: state.customColours,
     })),
   )
-  const { data, digits, mode, solved } = useGame(
+  const { data, digits, mode, penColour, solved } = useGame(
     useShallow(state => ({
       data: state.data,
       digits: state.digits,
       mode: state.mode,
+      penColour: state.penColour,
       solved: state.solved,
     })),
   )
@@ -242,7 +243,12 @@ const Pad = () => {
   } else if (mode === MODE_PEN) {
     for (let c of penColours) {
       digitButtons.push(
-        <Button key={c.digit} noPadding onClick={() => onPenColour(c.digit)}>
+        <Button
+          active={c.digit === penColour}
+          key={c.digit}
+          noPadding
+          onClick={() => onPenColour(c.digit)}
+        >
           <div className="flex flex-1 h-full rounded items-center px-1.5">
             <div
               className={clsx("w-full h-[5px] rounded-full", {
