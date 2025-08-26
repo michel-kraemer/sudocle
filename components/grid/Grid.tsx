@@ -1362,6 +1362,8 @@ const Grid = ({
     fontSizeFactorDigits,
     fontSizeFactorCentreMarks,
     fontSizeFactorCornerMarks,
+    colourPalette,
+    customColours,
     game.data,
     game.mode,
     game.digits,
