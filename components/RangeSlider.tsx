@@ -55,7 +55,7 @@ const RangeSlider = ({
 
   return (
     <>
-      <form className="flex h-4 flex-col">
+      <form className="flex flex-col">
         <label htmlFor={id} className="block mb-1">
           {label}
         </label>

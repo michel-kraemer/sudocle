@@ -204,6 +204,7 @@ const Grid = ({
     fontSizeFactorDigits,
     fontSizeFactorCornerMarks,
     fontSizeFactorCentreMarks,
+    penWidth,
   } = useSettings(
     useShallow(state => ({
       colourPalette: state.colourPalette,
@@ -214,6 +215,7 @@ const Grid = ({
       fontSizeFactorDigits: state.fontSizeFactorDigits,
       fontSizeFactorCornerMarks: state.fontSizeFactorCornerMarks,
       fontSizeFactorCentreMarks: state.fontSizeFactorCentreMarks,
+      penWidth: state.penWidth,
     })),
   )
 
@@ -1248,6 +1250,11 @@ const Grid = ({
         e.fill = themeColours.foregroundColor
       }
 
+      // change width of pen line elements
+      for (let e of penLineElements.current) {
+        e.width = penWidth
+      }
+
       let elementsToRedraw: RefObject<GridElement[]>[] = [
         cellElements,
         fogElements,
@@ -1379,6 +1386,7 @@ const Grid = ({
     fontSizeFactorCornerMarks,
     colourPalette,
     customColours,
+    penWidth,
     game.data,
     game.mode,
     game.digits,
@@ -1469,6 +1477,7 @@ const Grid = ({
     fontSizeFactorDigits,
     fontSizeFactorCentreMarks,
     fontSizeFactorCornerMarks,
+    penWidth,
     maxWidth,
     maxHeight,
     portrait,

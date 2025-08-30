@@ -48,13 +48,26 @@ class PenLineElement implements GridElement {
     this.graphics.strokeStyle.color = colour
   }
 
+  set width(width: number) {
+    if (
+      width <= 2 &&
+      (this.type === PenLineType.CenterRightUp ||
+        this.type === PenLineType.EdgeRightUp ||
+        this.type === PenLineType.CenterRightDown ||
+        this.type === PenLineType.EdgeRightDown)
+    ) {
+      this.graphics.strokeStyle.width = width * SCALE_FACTOR * 1.1
+    } else {
+      this.graphics.strokeStyle.width = width * SCALE_FACTOR
+    }
+  }
+
   set visible(visible: boolean) {
     this.graphics.visible = visible
   }
 
   draw(options: { cellSize: number }) {
     this.graphics.moveTo(0, 0)
-    let width = 2
     switch (this.type) {
       case PenLineType.CenterRight:
       case PenLineType.EdgeRight:
@@ -67,18 +80,16 @@ class PenLineElement implements GridElement {
       case PenLineType.CenterRightUp:
       case PenLineType.EdgeRightUp:
         this.graphics.lineTo(options.cellSize, -options.cellSize)
-        width = 2.5
         break
       case PenLineType.CenterRightDown:
       case PenLineType.EdgeRightDown:
         this.graphics.lineTo(options.cellSize, options.cellSize)
-        width = 2.5
         break
     }
     this.graphics.x = (this.rx + this.dx) * options.cellSize
     this.graphics.y = (this.ry + this.dy) * options.cellSize
     this.graphics.stroke({
-      width: width * SCALE_FACTOR,
+      width: this.graphics.strokeStyle.width,
       color: this.graphics.strokeStyle.color,
       cap: "round",
       join: "round",

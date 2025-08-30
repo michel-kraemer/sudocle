@@ -5,10 +5,6 @@ import { useSettings } from "./hooks/useSettings"
 import { useEffect, useRef, useState } from "react"
 import { useShallow } from "zustand/react/shallow"
 
-const Slider = ({ children }: { children: React.ReactNode }) => (
-  <div className="mb-4 max-w-28">{children}</div>
-)
-
 const PaletteLabel = ({ children }: { children: React.ReactNode }) => (
   <div className="flex flex-col items-start">{children}</div>
 )
@@ -22,6 +18,7 @@ const Settings = () => {
     fontSizeFactorDigits,
     fontSizeFactorCornerMarks,
     fontSizeFactorCentreMarks,
+    penWidth,
     setColourPalette,
     setTheme,
     setCustomColours: setSettingsCustomColours,
@@ -29,6 +26,7 @@ const Settings = () => {
     setFontSizeFactorDigits,
     setFontSizeFactorCornerMarks,
     setFontSizeFactorCentreMarks,
+    setPenWidth,
   } = useSettings(
     useShallow(state => ({
       colourPalette: state.colourPalette,
@@ -38,6 +36,7 @@ const Settings = () => {
       fontSizeFactorDigits: state.fontSizeFactorDigits,
       fontSizeFactorCornerMarks: state.fontSizeFactorCornerMarks,
       fontSizeFactorCentreMarks: state.fontSizeFactorCentreMarks,
+      penWidth: state.penWidth,
       setColourPalette: state.setColourPalette,
       setTheme: state.setTheme,
       setCustomColours: state.setCustomColours,
@@ -45,6 +44,7 @@ const Settings = () => {
       setFontSizeFactorDigits: state.setFontSizeFactorDigits,
       setFontSizeFactorCornerMarks: state.setFontSizeFactorCornerMarks,
       setFontSizeFactorCentreMarks: state.setFontSizeFactorCentreMarks,
+      setPenWidth: state.setPenWidth,
     })),
   )
 
@@ -85,6 +85,13 @@ const Settings = () => {
       return "Maximum"
     }
     return undefined
+  }
+
+  function penWidthToDescription(value: number) {
+    if (value === 2) {
+      return "Default"
+    }
+    return `${value}`
   }
 
   function onUpdateCustomColours(colours: string[]) {
@@ -186,7 +193,7 @@ const Settings = () => {
       />
 
       <h3>Zoom</h3>
-      <Slider>
+      <div className="mb-5 max-w-28">
         <RangeSlider
           id="range-zoom"
           min={0.9}
@@ -196,10 +203,10 @@ const Settings = () => {
           onChange={setZoom}
           valueToDescription={zoomValueToDescription}
         />
-      </Slider>
+      </div>
 
       <h3>Font sizes</h3>
-      <Slider>
+      <div className="mb-1.5 max-w-28">
         <RangeSlider
           id="range-digits"
           label="Digits"
@@ -210,8 +217,8 @@ const Settings = () => {
           onChange={setFontSizeFactorDigits}
           valueToDescription={fontSizeValueToDescription}
         />
-      </Slider>
-      <Slider>
+      </div>
+      <div className="mb-1.5 max-w-28">
         <RangeSlider
           id="range-corner-marks"
           label="Corner marks"
@@ -222,8 +229,8 @@ const Settings = () => {
           onChange={setFontSizeFactorCornerMarks}
           valueToDescription={fontSizeValueToDescription}
         />
-      </Slider>
-      <Slider>
+      </div>
+      <div className="mb-5 max-w-28">
         <RangeSlider
           id="range-centre-marks"
           label="Centre marks"
@@ -234,7 +241,20 @@ const Settings = () => {
           onChange={setFontSizeFactorCentreMarks}
           valueToDescription={fontSizeValueToDescription}
         />
-      </Slider>
+      </div>
+
+      <h3>Pen width</h3>
+      <div className="mb-5 max-w-28">
+        <RangeSlider
+          id="pen-width"
+          min={0.5}
+          max={5}
+          step={0.5}
+          value={penWidth}
+          onChange={setPenWidth}
+          valueToDescription={penWidthToDescription}
+        />
+      </div>
     </div>
   )
 }
