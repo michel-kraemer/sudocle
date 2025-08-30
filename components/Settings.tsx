@@ -19,6 +19,7 @@ const Settings = () => {
     fontSizeFactorCornerMarks,
     fontSizeFactorCentreMarks,
     penWidth,
+    penOpacity,
     setColourPalette,
     setTheme,
     setCustomColours: setSettingsCustomColours,
@@ -27,6 +28,7 @@ const Settings = () => {
     setFontSizeFactorCornerMarks,
     setFontSizeFactorCentreMarks,
     setPenWidth,
+    setPenOpacity,
   } = useSettings(
     useShallow(state => ({
       colourPalette: state.colourPalette,
@@ -37,6 +39,7 @@ const Settings = () => {
       fontSizeFactorCornerMarks: state.fontSizeFactorCornerMarks,
       fontSizeFactorCentreMarks: state.fontSizeFactorCentreMarks,
       penWidth: state.penWidth,
+      penOpacity: state.penOpacity,
       setColourPalette: state.setColourPalette,
       setTheme: state.setTheme,
       setCustomColours: state.setCustomColours,
@@ -45,6 +48,7 @@ const Settings = () => {
       setFontSizeFactorCornerMarks: state.setFontSizeFactorCornerMarks,
       setFontSizeFactorCentreMarks: state.setFontSizeFactorCentreMarks,
       setPenWidth: state.setPenWidth,
+      setPenOpacity: state.setPenOpacity,
     })),
   )
 
@@ -89,6 +93,13 @@ const Settings = () => {
 
   function penWidthToDescription(value: number) {
     if (value === 2) {
+      return "Default"
+    }
+    return `${value}`
+  }
+
+  function penOpacityToDescription(value: number) {
+    if (value === 1) {
       return "Default"
     }
     return `${value}`
@@ -243,16 +254,29 @@ const Settings = () => {
         />
       </div>
 
-      <h3>Pen width</h3>
-      <div className="mb-5 max-w-28">
+      <h3>Pen</h3>
+      <div className="mb-1.5 max-w-28">
         <RangeSlider
           id="pen-width"
+          label="Width"
           min={0.5}
           max={5}
           step={0.5}
           value={penWidth}
           onChange={setPenWidth}
           valueToDescription={penWidthToDescription}
+        />
+      </div>
+      <div className="mb-5 max-w-28">
+        <RangeSlider
+          id="pen-width"
+          label="Opacity"
+          min={0.25}
+          max={1}
+          step={0.05}
+          value={penOpacity}
+          onChange={setPenOpacity}
+          valueToDescription={penOpacityToDescription}
         />
       </div>
     </div>

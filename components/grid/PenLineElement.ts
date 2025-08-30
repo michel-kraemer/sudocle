@@ -62,6 +62,10 @@ class PenLineElement implements GridElement {
     }
   }
 
+  set alpha(alpha: number) {
+    this.graphics.alpha = alpha
+  }
+
   set visible(visible: boolean) {
     this.graphics.visible = visible
   }

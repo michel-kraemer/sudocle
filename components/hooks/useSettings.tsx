@@ -12,6 +12,7 @@ interface Settings {
   fontSizeFactorCornerMarks: number
   fontSizeFactorCentreMarks: number
   penWidth: number
+  penOpacity: number
 
   setColourPalette(colourPalette: string): void
   setTheme(theme: string): void
@@ -22,6 +23,7 @@ interface Settings {
   setFontSizeFactorCornerMarks(fontSizeFactorCornerMarks: number): void
   setFontSizeFactorCentreMarks(fontSizeFactorCentreMarks: number): void
   setPenWidth(penWidth: number): void
+  setPenOpacity(penOpacity: number): void
 }
 
 export const useSettings = create<Settings>()(
@@ -36,6 +38,7 @@ export const useSettings = create<Settings>()(
       fontSizeFactorCornerMarks: 1,
       fontSizeFactorCentreMarks: 1,
       penWidth: 2,
+      penOpacity: 1,
 
       setColourPalette: (colourPalette: string) => {
         set(draft => {
@@ -81,6 +84,11 @@ export const useSettings = create<Settings>()(
       setPenWidth: (penWidth: number) =>
         set(draft => {
           draft.penWidth = penWidth
+        }),
+
+      setPenOpacity: (penOpacity: number) =>
+        set(draft => {
+          draft.penOpacity = penOpacity
         }),
     })),
     {
