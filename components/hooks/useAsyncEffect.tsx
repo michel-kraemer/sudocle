@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 
-export interface UseAsyncEffectResult {
-  result: any
+export interface UseAsyncEffectResult<T> {
+  result: T | undefined
   error: any
   isLoading: boolean
 }
@@ -11,15 +11,15 @@ export interface UseAsyncEffectResult {
  * Provided "for free" by François Zaninotto
  * See https://marmelab.com/blog/2023/01/11/use-async-effect-react.html
  */
-export const useAsyncEffect = (
-  mountCallback: () => Promise<any>,
-  unmountCallback: () => Promise<any>,
+export function useAsyncEffect<T>(
+  mountCallback: () => Promise<T>,
+  unmountCallback: () => Promise<void>,
   deps: any[] = [],
-): UseAsyncEffectResult => {
+): UseAsyncEffectResult<T> {
   const isMounted = useRef(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<unknown>(undefined)
-  const [result, setResult] = useState<any>()
+  const [result, setResult] = useState<T>()
 
   useEffect(() => {
     isMounted.current = true
