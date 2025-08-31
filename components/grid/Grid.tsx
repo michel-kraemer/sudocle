@@ -32,7 +32,7 @@ import { GridElement, memoizeDraw } from "./GridElement"
 import LineElement from "./LineElement"
 import OverlayElement from "./OverlayElement"
 import PenElement from "./PenElement"
-import PenLineElement, { PenLineType } from "./PenLineElement"
+import PenLineElement from "./PenLineElement"
 import RegionElement from "./RegionElement"
 import SVGPathElement from "./SVGPathElement"
 import { ThemeColours } from "./ThemeColours"
@@ -929,75 +929,9 @@ const Grid = ({
     // create invisible elements for pen lines
     let penLineContainer = new Container()
     penLineContainer.zIndex = 60
-    game.data.cells.forEach((row, y) => {
-      row.forEach((_col, x) => {
-        if (x < row.length - 1) {
-          let l1 = new PenLineElement(x, y, 0.5, 0.5, PenLineType.CenterRight)
-          penLineElements.current.push(l1)
-          penLineContainer.addChild(l1.graphics)
-        }
-
-        let l2 = new PenLineElement(x, y, 0, 0, PenLineType.EdgeRight)
-        penLineElements.current.push(l2)
-        penLineContainer.addChild(l2.graphics)
-
-        if (y === game.data.cells.length - 1) {
-          let l3 = new PenLineElement(x, y + 1, 0, 0, PenLineType.EdgeRight)
-          penLineElements.current.push(l3)
-          penLineContainer.addChild(l3.graphics)
-        }
-
-        if (y < game.data.cells.length - 1) {
-          let l4 = new PenLineElement(x, y, 0.5, 0.5, PenLineType.CenterDown)
-          penLineElements.current.push(l4)
-          penLineContainer.addChild(l4.graphics)
-        }
-
-        let l5 = new PenLineElement(x, y, 0, 0, PenLineType.EdgeDown)
-        penLineElements.current.push(l5)
-        penLineContainer.addChild(l5.graphics)
-
-        if (x === row.length - 1) {
-          let l6 = new PenLineElement(x + 1, y, 0, 0, PenLineType.EdgeDown)
-          penLineElements.current.push(l6)
-          penLineContainer.addChild(l6.graphics)
-        }
-
-        if (x < row.length - 1) {
-          if (y > 0) {
-            let d1 = new PenLineElement(
-              x,
-              y,
-              0.5,
-              0.5,
-              PenLineType.CenterRightUp,
-            )
-            penLineElements.current.push(d1)
-            penLineContainer.addChild(d1.graphics)
-          }
-
-          if (y < game.data.cells.length - 1) {
-            let d2 = new PenLineElement(
-              x,
-              y,
-              0.5,
-              0.5,
-              PenLineType.CenterRightDown,
-            )
-            penLineElements.current.push(d2)
-            penLineContainer.addChild(d2.graphics)
-          }
-        }
-
-        let d3 = new PenLineElement(x, y, 0, 1, PenLineType.EdgeRightUp)
-        penLineElements.current.push(d3)
-        penLineContainer.addChild(d3.graphics)
-
-        let d4 = new PenLineElement(x, y, 0, 0, PenLineType.EdgeRightDown)
-        penLineElements.current.push(d4)
-        penLineContainer.addChild(d4.graphics)
-      })
-    })
+    let penLineElement = new PenLineElement()
+    penLineContainer.addChild(penLineElement.graphics)
+    penLineElements.current.push(penLineElement)
     all.addChild(penLineContainer)
 
     // add pen tool
@@ -1172,14 +1106,6 @@ const Grid = ({
     for (let pe of penElements.current) {
       pe.gamePenLines = game.penLines
     }
-    for (let pl of penLineElements.current) {
-      let colour = game.penLines.get(pl.k)
-      if (colour !== undefined) {
-        pl.visible = true
-      } else {
-        pl.visible = false
-      }
-    }
 
     for (let e of errorElements.current) {
       e.visible =
@@ -1263,7 +1189,6 @@ const Grid = ({
 
       // change width and opacity of pen line elements
       for (let e of penLineElements.current) {
-        e.width = penWidth
         e.alpha = penOpacity
       }
 
@@ -1296,10 +1221,12 @@ const Grid = ({
             cellSize: cs,
             zoomFactor: cellSizeFactor.current,
             unitSize: (cs / cellSize) * SCALE_FACTOR,
+            penWidth,
             currentColours: game.colours,
             currentDigits: game.digits,
             currentFogLights: game.fogLights,
             currentFogRaster: game.fogRaster,
+            currentPenLines: game.penLines,
             themeColours,
             paletteColours: colours,
             palettePenColours: penColours,
@@ -1409,6 +1336,7 @@ const Grid = ({
     game.colours,
     game.fogLights,
     game.fogRaster,
+    game.penLines,
     onFinishFirstResize,
   ])
 

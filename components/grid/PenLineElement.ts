@@ -1,5 +1,5 @@
 import { Colour } from "../hooks/useGame"
-import { pltok } from "../lib/utils"
+import { ktopl } from "../lib/utils"
 import { SCALE_FACTOR } from "./Grid"
 import { DrawOptionField, GridElement } from "./GridElement"
 import { Graphics } from "pixi.js"
@@ -16,48 +16,14 @@ export enum PenLineType {
 }
 
 class PenLineElement implements GridElement {
-  readonly k: number
-  private readonly rx: number
-  private readonly ry: number
-  private readonly dx: number
-  private readonly dy: number
-  private readonly type: PenLineType
   readonly graphics: Graphics
-  colour: Colour | undefined
 
-  constructor(
-    rx: number,
-    ry: number,
-    dx: number,
-    dy: number,
-    type: PenLineType,
-  ) {
-    this.k = pltok(rx, ry, type)
-    this.rx = rx
-    this.ry = ry
-    this.dx = dx
-    this.dy = dy
-    this.type = type
+  constructor() {
     this.graphics = new Graphics()
-    this.graphics.visible = false
   }
 
   clear() {
     this.graphics.clear()
-  }
-
-  set width(width: number) {
-    if (
-      width <= 2 &&
-      (this.type === PenLineType.CenterRightUp ||
-        this.type === PenLineType.EdgeRightUp ||
-        this.type === PenLineType.CenterRightDown ||
-        this.type === PenLineType.EdgeRightDown)
-    ) {
-      this.graphics.strokeStyle.width = width * SCALE_FACTOR * 1.1
-    } else {
-      this.graphics.strokeStyle.width = width * SCALE_FACTOR
-    }
   }
 
   set alpha(alpha: number) {
@@ -68,38 +34,86 @@ class PenLineElement implements GridElement {
     this.graphics.visible = visible
   }
 
-  drawOptionsToMemoize(): DrawOptionField[] {
-    return [DrawOptionField.CellSize]
-  }
+  private drawLine(x: number, y: number, type: PenLineType, cellSize: number) {
+    let xx = x * cellSize
+    let yy = y * cellSize
 
-  draw(options: { cellSize: number }) {
-    this.graphics.moveTo(0, 0)
-    switch (this.type) {
+    if (
+      type === PenLineType.CenterRight ||
+      type === PenLineType.CenterDown ||
+      type === PenLineType.CenterRightUp ||
+      type === PenLineType.CenterRightDown
+    ) {
+      xx += cellSize / 2
+      yy += cellSize / 2
+    }
+
+    this.graphics.moveTo(xx, yy)
+    switch (type) {
       case PenLineType.CenterRight:
       case PenLineType.EdgeRight:
-        this.graphics.lineTo(options.cellSize, 0)
+        this.graphics.lineTo(xx + cellSize, yy)
         break
       case PenLineType.CenterDown:
       case PenLineType.EdgeDown:
-        this.graphics.lineTo(0, options.cellSize)
+        this.graphics.lineTo(xx, yy + cellSize)
         break
       case PenLineType.CenterRightUp:
       case PenLineType.EdgeRightUp:
-        this.graphics.lineTo(options.cellSize, -options.cellSize)
+        this.graphics.lineTo(xx + cellSize, yy - cellSize)
         break
       case PenLineType.CenterRightDown:
       case PenLineType.EdgeRightDown:
-        this.graphics.lineTo(options.cellSize, options.cellSize)
+        this.graphics.lineTo(xx + cellSize, yy + cellSize)
         break
     }
-    this.graphics.x = (this.rx + this.dx) * options.cellSize
-    this.graphics.y = (this.ry + this.dy) * options.cellSize
-    this.graphics.stroke({
-      width: this.graphics.strokeStyle.width,
-      color: this.graphics.strokeStyle.color,
-      cap: "round",
-      join: "round",
-    })
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [
+      DrawOptionField.CellSize,
+      DrawOptionField.CurrentPenLines,
+      DrawOptionField.PalettePenColours,
+      DrawOptionField.PenWidth,
+    ]
+  }
+
+  draw(options: {
+    cellSize: number
+    currentPenLines: Map<number, Colour>
+    palettePenColours: number[]
+    penWidth: number
+  }) {
+    for (let [k, c] of options.currentPenLines) {
+      let [x, y, t] = ktopl(k)
+
+      let color =
+        options.palettePenColours[c.colour - 1] ??
+        options.palettePenColours[1] ??
+        options.palettePenColours[0]
+
+      let width: number
+      if (
+        options.penWidth <= 2 &&
+        (t === PenLineType.CenterRightUp ||
+          t === PenLineType.EdgeRightUp ||
+          t === PenLineType.CenterRightDown ||
+          t === PenLineType.EdgeRightDown)
+      ) {
+        width = options.penWidth * SCALE_FACTOR * 1.1
+      } else {
+        width = options.penWidth * SCALE_FACTOR
+      }
+
+      this.drawLine(x, y, t, options.cellSize)
+
+      this.graphics.stroke({
+        width,
+        color,
+        cap: "round",
+        join: "round",
+      })
+    }
   }
 }
 

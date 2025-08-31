@@ -9,10 +9,12 @@ export interface DrawOptions {
   cellSize: number
   zoomFactor: number
   unitSize: number
+  penWidth: number
   currentColours: Map<number, Colour>
   currentDigits: Map<number, Digit>
   currentFogLights: FogLight[] | undefined
   currentFogRaster: number[][] | undefined
+  currentPenLines: Map<number, Colour>
   themeColours: ThemeColours
   paletteColours: number[]
   palettePenColours: number[]
@@ -25,9 +27,11 @@ export enum DrawOptionField {
   CurrentDigits,
   CurrentFogLights,
   CurrentFogRaster,
+  CurrentPenLines,
   GridOffset,
   PaletteColours,
   PalettePenColours,
+  PenWidth,
   ThemeColours,
   UnitSize,
   ZoomFactor,
@@ -92,8 +96,25 @@ export function memoizeDraw(
             }
             break
 
+          case DrawOptionField.CurrentPenLines:
+            if (
+              !_.isEqual(
+                newInputs[0].currentPenLines,
+                lastInputs[0].currentPenLines,
+              )
+            ) {
+              return false
+            }
+            break
+
           case DrawOptionField.GridOffset:
             if (!_.isEqual(newInputs[0].gridOffset, lastInputs[0].gridOffset)) {
+              return false
+            }
+            break
+
+          case DrawOptionField.PenWidth:
+            if (newInputs[0].penWidth !== lastInputs[0].penWidth) {
               return false
             }
             break

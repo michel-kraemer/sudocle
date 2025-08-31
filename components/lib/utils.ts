@@ -26,6 +26,10 @@ export function pltok(x: number, y: number, type: number): number {
   return (x << 20) | (y << 8) | type
 }
 
+export function ktopl(k: number): [number, number, number] {
+  return [k >> 20, (k >> 8) & 0xfff, k & 0xff]
+}
+
 export function hasFog(
   fogRaster: number[][] | undefined,
   x: number,
