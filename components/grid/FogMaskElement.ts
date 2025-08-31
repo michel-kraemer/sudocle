@@ -1,5 +1,5 @@
 import { DataCell, FogLight } from "../types/Data"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { Graphics } from "pixi.js"
 
 class FogMaskElement implements GridElement {
@@ -13,6 +13,10 @@ class FogMaskElement implements GridElement {
 
   clear() {
     this.graphics.clear()
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize, DrawOptionField.CurrentFogLights]
   }
 
   draw(options: {

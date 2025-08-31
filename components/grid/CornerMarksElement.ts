@@ -1,5 +1,5 @@
 import { hasFog, xytok } from "../lib/utils"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { Container, FillInput, Text, TextStyleFontWeight } from "pixi.js"
 
 class CornerMarksElement implements GridElement {
@@ -81,6 +81,10 @@ class CornerMarksElement implements GridElement {
   }
 
   clear() {}
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize, DrawOptionField.CurrentFogRaster]
+  }
 
   draw(options: {
     cellSize: number

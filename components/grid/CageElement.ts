@@ -1,7 +1,7 @@
 import { getAlpha, getRGBColor } from "../lib/colorutils"
 import { drawDashedLineString } from "../lib/linestringutils"
 import { disposePolygon, shrinkPolygon } from "../lib/polygonutils"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { Container, Graphics, Text } from "pixi.js"
 
@@ -64,6 +64,10 @@ class CageElement implements GridElement {
   clear() {
     this.outline.clear()
     this.topleftBg?.clear()
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize, DrawOptionField.ThemeColours]
   }
 
   draw(options: { cellSize: number; themeColours: ThemeColours }) {

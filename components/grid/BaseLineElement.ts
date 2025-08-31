@@ -3,7 +3,7 @@ import { drawDashedLineString } from "../lib/linestringutils"
 import { cellToScreenCoords } from "../lib/utils"
 import { Arrow, Line, Overlay } from "../types/Data"
 import { SCALE_FACTOR } from "./Grid"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { flatten, isEqual } from "lodash"
 import { Container, Graphics } from "pixi.js"
 
@@ -356,6 +356,14 @@ class BaseLineElement<T extends Line | Arrow> implements GridElement {
       this.shortenStart,
       this.shortenEnd,
     )
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [
+      DrawOptionField.CellSize,
+      DrawOptionField.UnitSize,
+      DrawOptionField.GridOffset,
+    ]
   }
 
   draw(options: {

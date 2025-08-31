@@ -3,7 +3,7 @@ import { bresenhamInterpolate } from "../lib/linestringutils"
 import { ktoxy, pltok, xytok } from "../lib/utils"
 import { DataCell } from "../types/Data"
 import { SCALE_FACTOR } from "./Grid"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { PenLineType } from "./PenLineElement"
 import { produce } from "immer"
 import { Container, FederatedPointerEvent, Graphics, Rectangle } from "pixi.js"
@@ -313,6 +313,10 @@ class PenElement implements GridElement {
 
     this.hitAreaGraphics.removeAllListeners()
     this.hitAreaGraphics.on("pointermove", e => this.onPenMove(e, cellSize))
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize]
   }
 
   draw(options: { cellSize: number }) {

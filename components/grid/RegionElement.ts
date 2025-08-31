@@ -1,4 +1,4 @@
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { Graphics } from "pixi.js"
 
@@ -13,6 +13,10 @@ class RegionElement implements GridElement {
 
   clear() {
     this.graphics.clear()
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize, DrawOptionField.ThemeColours]
   }
 
   draw(options: { cellSize: number; themeColours: ThemeColours }) {

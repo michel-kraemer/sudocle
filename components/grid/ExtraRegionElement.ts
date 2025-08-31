@@ -1,6 +1,6 @@
 import { getRGBColor } from "../lib/colorutils"
 import { disposePolygon, shrinkPolygon } from "../lib/polygonutils"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { Graphics } from "pixi.js"
 
 export interface GridExtraRegion {
@@ -21,6 +21,10 @@ class ExtraRegionElement implements GridElement {
 
   clear() {
     this.graphics.clear()
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize]
   }
 
   draw(options: { cellSize: number }) {

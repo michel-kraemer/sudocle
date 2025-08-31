@@ -1,5 +1,5 @@
 import { SVGPath } from "../types/Data"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { Assets, Container, Graphics, Sprite } from "pixi.js"
 
 // This is rather complex, but PIXI's Graphics.svg() does not support all SVG
@@ -81,6 +81,10 @@ class SVGPathElement implements GridElement {
 
   clear() {
     this.placeholder?.clear()
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.UnitSize]
   }
 
   draw(options: { unitSize: number }) {

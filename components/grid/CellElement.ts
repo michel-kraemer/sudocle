@@ -8,7 +8,7 @@ import {
 } from "../lib/Actions"
 import { MODE_PEN } from "../lib/Modes"
 import { xytok } from "../lib/utils"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { ThemeColours } from "./ThemeColours"
 import { FederatedPointerEvent, Graphics, Rectangle } from "pixi.js"
 
@@ -45,6 +45,10 @@ class CellElement implements GridElement {
 
   clear() {
     this.graphics.clear()
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize, DrawOptionField.ThemeColours]
   }
 
   draw(options: { cellSize: number; themeColours: ThemeColours }) {

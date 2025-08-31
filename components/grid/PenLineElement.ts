@@ -1,6 +1,7 @@
+import { Colour } from "../hooks/useGame"
 import { pltok } from "../lib/utils"
 import { SCALE_FACTOR } from "./Grid"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { Graphics } from "pixi.js"
 
 export enum PenLineType {
@@ -22,6 +23,7 @@ class PenLineElement implements GridElement {
   private readonly dy: number
   private readonly type: PenLineType
   readonly graphics: Graphics
+  colour: Colour | undefined
 
   constructor(
     rx: number,
@@ -44,10 +46,6 @@ class PenLineElement implements GridElement {
     this.graphics.clear()
   }
 
-  set colour(colour: number) {
-    this.graphics.strokeStyle.color = colour
-  }
-
   set width(width: number) {
     if (
       width <= 2 &&
@@ -68,6 +66,10 @@ class PenLineElement implements GridElement {
 
   set visible(visible: boolean) {
     this.graphics.visible = visible
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize]
   }
 
   draw(options: { cellSize: number }) {

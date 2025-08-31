@@ -1,5 +1,5 @@
 import { xytok } from "../lib/utils"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { FillInput, Text } from "pixi.js"
 
 class DigitElement implements GridElement {
@@ -43,6 +43,10 @@ class DigitElement implements GridElement {
   }
 
   clear() {}
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize]
+  }
 
   draw(options: { cellSize: number }) {
     this.text.x = this.x * options.cellSize + options.cellSize / 2

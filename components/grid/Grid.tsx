@@ -28,7 +28,7 @@ import DigitElement from "./DigitElement"
 import ExtraRegionElement, { GridExtraRegion } from "./ExtraRegionElement"
 import FogElement from "./FogElement"
 import FogMaskElement from "./FogMaskElement"
-import { GridElement } from "./GridElement"
+import { GridElement, memoizeDraw } from "./GridElement"
 import LineElement from "./LineElement"
 import OverlayElement from "./OverlayElement"
 import PenElement from "./PenElement"
@@ -37,7 +37,6 @@ import RegionElement from "./RegionElement"
 import SVGPathElement from "./SVGPathElement"
 import { ThemeColours } from "./ThemeColours"
 import { flatten } from "lodash"
-import memoizeOne from "memoize-one"
 import {
   Application,
   Bounds,
@@ -116,6 +115,37 @@ function getThemeColours(elem: Element): ThemeColours {
       green: selectionGreen,
       blue: selectionBlue,
     },
+  }
+}
+
+function getColourPaletteColours(
+  elem: Element,
+  colourPalette: string,
+  customColours: string[],
+): { colours: number[]; penColours: number[] } {
+  let colours: number[] = []
+  let penColours: number[] = []
+  if (colourPalette !== "custom" || customColours.length === 0) {
+    let computedStyle = window.getComputedStyle(elem)
+    let nColours = +computedStyle.getPropertyValue("--colors")
+    for (let i = 0; i < nColours; ++i) {
+      let c = computedStyle.getPropertyValue(`--color-${i + 1}`)
+      if (c !== "") {
+        colours[i] = getRGBColor(c)
+      }
+      let pc = computedStyle.getPropertyValue(`--pen-color-${i + 1}`)
+      if (pc !== "") {
+        penColours[i] = getRGBColor(pc)
+      }
+    }
+  } else {
+    colours = customColours.map(c => getRGBColor(c))
+    penColours = colours
+  }
+
+  return {
+    colours,
+    penColours,
   }
 }
 
@@ -865,7 +895,7 @@ const Grid = ({
     colourContainer.zIndex = 0
     game.data.cells.forEach((row, y) => {
       row.forEach((_col, x) => {
-        let ce = new ColourElement(x, y, 0)
+        let ce = new ColourElement(x, y)
         colourContainer.addChild(ce.graphics)
         colourElements.current.push(ce)
       })
@@ -1010,7 +1040,7 @@ const Grid = ({
     ]
     for (let r of elementsToMemoize) {
       for (let e of r.current) {
-        e.draw = memoizeOne(wrapDraw(e))
+        e.draw = memoizeDraw(wrapDraw(e), e.drawOptionsToMemoize())
       }
     }
 
@@ -1130,29 +1160,9 @@ const Grid = ({
       }
     }
 
-    let colours = []
-    let penColours = []
-    if (colourPalette !== "custom" || customColours.length === 0) {
-      let computedStyle = getComputedStyle(ref.current!)
-      let nColours = +computedStyle.getPropertyValue("--colors")
-      for (let i = 0; i < nColours; ++i) {
-        colours[i] = computedStyle.getPropertyValue(`--color-${i + 1}`)
-        penColours[i] = computedStyle.getPropertyValue(`--pen-color-${i + 1}`)
-      }
-    } else {
-      colours = customColours
-      penColours = customColours
-    }
-
     for (let e of colourElements.current) {
       let colour = game.colours.get(e.k)
       if (colour !== undefined) {
-        let palCol = colours[colour.colour - 1]
-        if (palCol === undefined) {
-          palCol = colours[1] || colours[0]
-        }
-        let colourNumber = getRGBColor(palCol)
-        e.colour = colourNumber
         e.visible = true
       } else {
         e.visible = false
@@ -1165,12 +1175,6 @@ const Grid = ({
     for (let pl of penLineElements.current) {
       let colour = game.penLines.get(pl.k)
       if (colour !== undefined) {
-        let palCol = penColours[colour.colour - 1]
-        if (palCol === undefined) {
-          palCol = penColours[1] || penColours[0]
-        }
-        let colourNumber = getRGBColor(palCol)
-        pl.colour = colourNumber
         pl.visible = true
       } else {
         pl.visible = false
@@ -1214,6 +1218,11 @@ const Grid = ({
     allElement.current!.x = allElement.current!.y = 0
 
     let themeColours = getThemeColours(ref.current!)
+    let { colours, penColours } = getColourPaletteColours(
+      ref.current!,
+      colourPalette,
+      customColours,
+    )
 
     // optimised font sizes for different screens
     let fontSizeCornerMarks =
@@ -1287,10 +1296,13 @@ const Grid = ({
             cellSize: cs,
             zoomFactor: cellSizeFactor.current,
             unitSize: (cs / cellSize) * SCALE_FACTOR,
+            currentColours: game.colours,
             currentDigits: game.digits,
             currentFogLights: game.fogLights,
             currentFogRaster: game.fogRaster,
             themeColours,
+            paletteColours: colours,
+            palettePenColours: penColours,
             gridOffset,
           })
         }

@@ -1,5 +1,5 @@
 import { unionCells } from "../lib/utils"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { DropShadowFilter } from "pixi-filters/drop-shadow"
 import { Graphics } from "pixi.js"
 
@@ -24,6 +24,10 @@ class FogElement implements GridElement {
 
   clear() {
     this.graphics.clear()
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize, DrawOptionField.CurrentFogRaster]
   }
 
   draw(options: {

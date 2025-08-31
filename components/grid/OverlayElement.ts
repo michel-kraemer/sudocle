@@ -2,7 +2,7 @@ import { getAlpha, getRGBColor, isGrey } from "../lib/colorutils"
 import { cellToScreenCoords } from "../lib/utils"
 import { Overlay } from "../types/Data"
 import { SCALE_FACTOR } from "./Grid"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import Color from "color"
 import { Container, Graphics, Text } from "pixi.js"
 
@@ -88,6 +88,14 @@ class OverlayElement implements GridElement {
 
   clear() {
     this.graphics?.clear()
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [
+      DrawOptionField.CellSize,
+      DrawOptionField.ZoomFactor,
+      DrawOptionField.GridOffset,
+    ]
   }
 
   draw(options: {

@@ -1,5 +1,5 @@
 import { CellExtent } from "./CellExtent"
-import { GridElement } from "./GridElement"
+import { DrawOptionField, GridElement } from "./GridElement"
 import { Assets, Container, Graphics, Sprite } from "pixi.js"
 
 class BackgroundImageElement implements GridElement {
@@ -39,6 +39,10 @@ class BackgroundImageElement implements GridElement {
 
   clear() {
     this.placeholder?.clear()
+  }
+
+  drawOptionsToMemoize(): DrawOptionField[] {
+    return [DrawOptionField.CellSize]
   }
 
   draw(options: { cellSize: number }) {
