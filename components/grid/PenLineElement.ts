@@ -1,8 +1,9 @@
 import { Colour } from "../hooks/useGame"
 import { ktopl } from "../lib/utils"
+import { DataCell } from "../types/Data"
 import { SCALE_FACTOR } from "./Grid"
 import { DrawOptionField, GridElement } from "./GridElement"
-import { Graphics } from "pixi.js"
+import { Graphics, RenderTexture, Renderer, Sprite } from "pixi.js"
 
 export enum PenLineType {
   CenterRight = 0,
@@ -16,10 +17,17 @@ export enum PenLineType {
 }
 
 class PenLineElement implements GridElement {
-  readonly graphics: Graphics
+  sprite: Sprite
+  private readonly graphics: Graphics
+  private renderTexture: RenderTexture | undefined
+  private readonly cells: DataCell[][]
+  private readonly renderer: Renderer
 
-  constructor() {
+  constructor(cells: DataCell[][], renderer: Renderer) {
+    this.sprite = new Sprite()
     this.graphics = new Graphics()
+    this.cells = cells
+    this.renderer = renderer
   }
 
   clear() {
@@ -27,7 +35,11 @@ class PenLineElement implements GridElement {
   }
 
   set alpha(alpha: number) {
-    this.graphics.alpha = alpha
+    // this.graphics.alpha makes overlapping half-transparent lines look darker
+    // at the intersection points. We therefore render into an offscreen render
+    // texture, which we put into a sprite. We can then set the alpha on this
+    // sprite to make everything look perfect.
+    this.sprite.alpha = alpha
   }
 
   set visible(visible: boolean) {
@@ -84,6 +96,21 @@ class PenLineElement implements GridElement {
     palettePenColours: number[]
     penWidth: number
   }) {
+    // update offscreen render texture
+    let width = this.cells[0].length * options.cellSize
+    let height = this.cells.length * options.cellSize
+    if (this.renderTexture === undefined) {
+      this.renderTexture = RenderTexture.create({
+        width,
+        height,
+        resolution: this.renderer.resolution,
+        antialias: true,
+      })
+    } else {
+      this.renderTexture.resize(width, height, this.renderer.resolution)
+    }
+
+    // draw lines
     for (let [k, c] of options.currentPenLines) {
       let [x, y, t] = ktopl(k)
 
@@ -114,6 +141,13 @@ class PenLineElement implements GridElement {
         join: "round",
       })
     }
+
+    // render this.graphics into offscreen render texture and update sprite
+    this.renderer.render({
+      container: this.graphics,
+      target: this.renderTexture,
+    })
+    this.sprite.texture = this.renderTexture
   }
 }
 
