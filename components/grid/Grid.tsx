@@ -926,7 +926,7 @@ const Grid = ({
     })
     all.addChild(errorContainer)
 
-    // create invisible elements for pen lines
+    // create pen lines element
     let penLineContainer = new Container()
     penLineContainer.zIndex = 60
     let penLineElement = new PenLineElement(game.data.cells, app.renderer)
