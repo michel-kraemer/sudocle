@@ -114,8 +114,13 @@ class PenLineElement implements GridElement {
       this.renderTexture.resize(width, height, this.renderer.resolution)
     }
 
+    // sort lines by color - this avoid strange artifacts when lines of
+    // different colors overlap
+    let currentPenLines = [...options.currentPenLines]
+    currentPenLines.sort((a, b) => a[1].colour - b[1].colour)
+
     // draw lines
-    for (let [k, c] of options.currentPenLines) {
+    for (let [k, c] of currentPenLines) {
       let [x, y, t] = ktopl(k)
 
       let color =
