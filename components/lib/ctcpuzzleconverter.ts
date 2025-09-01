@@ -7,12 +7,16 @@ import {
   FogLight,
   Overlay,
   Settings,
+  TriggerEffect,
+  TriggerEffectType,
+  TriggerType,
 } from "../types/Data"
 import parseSolution from "./parsesolution"
+import { parseCells } from "./utils"
 import Color from "color"
 import rename from "deep-rename-keys"
 import JSON5 from "json5"
-import { isString } from "lodash"
+import { isArray, isString } from "lodash"
 
 const KEYS: Record<string, string> = {
   c: "color",
@@ -252,6 +256,37 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     settings.nogrid = true
   }
 
+  let triggerEffects: TriggerEffect[] = []
+  if (puzzle.triggereffect !== undefined) {
+    if (isArray(puzzle.triggereffect)) {
+      for (let te of puzzle.triggereffect) {
+        let effect:
+          | { type: TriggerEffectType; cells: [number, number][] }
+          | undefined
+        if (
+          te.effect !== undefined &&
+          te.effect.type === "foglight" &&
+          isString(te.effect.cells)
+        ) {
+          effect = { type: "foglight", cells: parseCells(te.effect.cells) }
+        }
+
+        let trigger: { type: TriggerType; cell: [number, number] } | undefined
+        if (
+          te.trigger !== undefined &&
+          te.trigger.type === "cellvalue" &&
+          isString(te.trigger.cell)
+        ) {
+          trigger = { type: "cellvalue", cell: parseCells(te.trigger.cell)[0] }
+        }
+
+        if (effect !== undefined && trigger !== undefined) {
+          triggerEffects.push({ effect, trigger })
+        }
+      }
+    }
+  }
+
   let result: Data = {
     cellSize: defaultCellSize,
     cells,
@@ -270,6 +305,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     rules,
     metadata,
     settings,
+    triggerEffects,
     solved: false,
   }
 

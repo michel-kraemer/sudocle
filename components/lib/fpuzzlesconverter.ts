@@ -8,8 +8,12 @@ import {
   Line,
   Metadata,
   Overlay,
+  TriggerEffect,
+  TriggerEffectType,
+  TriggerType,
 } from "../types/Data"
-import { chunk, isString, mean } from "lodash"
+import { parseCells } from "./utils"
+import { chunk, isArray, isString, mean } from "lodash"
 
 interface FPuzzlesCell {
   value?: number | string
@@ -125,6 +129,11 @@ interface FPuzzlesText {
   angle?: number
 }
 
+interface FPuzzlesTriggerEffect {
+  effect: { type: string; cells: string }
+  trigger: { type: string; cell: string }
+}
+
 interface FPuzzlesData {
   size?: number
   grid: FPuzzlesCell[][]
@@ -159,6 +168,7 @@ interface FPuzzlesData {
   solution?: (number | string | undefined)[]
   fogofwar?: string[]
   foglight?: string[]
+  triggereffect: FPuzzlesTriggerEffect[]
   metadata?: Metadata
 }
 
@@ -955,6 +965,37 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     })
   }
 
+  let triggerEffects: TriggerEffect[] = []
+  if (puzzle.triggereffect !== undefined) {
+    if (isArray(puzzle.triggereffect)) {
+      for (let te of puzzle.triggereffect) {
+        let effect:
+          | { type: TriggerEffectType; cells: [number, number][] }
+          | undefined
+        if (
+          te.effect !== undefined &&
+          te.effect.type === "foglight" &&
+          isString(te.effect.cells)
+        ) {
+          effect = { type: "foglight", cells: parseCells(te.effect.cells) }
+        }
+
+        let trigger: { type: TriggerType; cell: [number, number] } | undefined
+        if (
+          te.trigger !== undefined &&
+          te.trigger.type === "cellvalue" &&
+          isString(te.trigger.cell)
+        ) {
+          trigger = { type: "cellvalue", cell: parseCells(te.trigger.cell)[0] }
+        }
+
+        if (effect !== undefined && trigger !== undefined) {
+          triggerEffects.push({ effect, trigger })
+        }
+      }
+    }
+  }
+
   let result: Data = {
     cellSize: 50,
     cells,
@@ -968,6 +1009,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     solution,
     fogLights,
     metadata: puzzle.metadata,
+    triggerEffects,
     solved: false,
   }
 

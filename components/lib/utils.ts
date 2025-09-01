@@ -107,3 +107,13 @@ export function unionCells(cells: [number, number][]): number[][][] {
 
   return unions.map(u => u.map(u2 => flatten(u2)))
 }
+
+// Parse strings in the form "RyCx..." to coordinates [[y,x],...]
+export function parseCells(cells: string): [number, number][] {
+  let r = new RegExp(/R([0-9]+)C([0-9]+)/gi)
+  let result: [number, number][] = []
+  for (let m of cells.matchAll(r)) {
+    result.push([+m[1] - 1, +m[2] - 1])
+  }
+  return result
+}

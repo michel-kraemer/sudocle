@@ -58,6 +58,7 @@ const EmptyData: Data = {
   arrows: [],
   underlays: [],
   overlays: [],
+  triggerEffects: [],
   solved: false,
 }
 
@@ -177,21 +178,59 @@ function makeFogLights(
     return undefined
   }
 
+  // convert trigger effects to map if there is one
+  let triggerEffects: Map<number, [number, number][]> | undefined
+  if (data.triggerEffects.length > 0) {
+    triggerEffects = new Map()
+    for (let te of data.triggerEffects) {
+      if (te.effect.type === "foglight") {
+        let k = xytok(te.trigger.cell[1], te.trigger.cell[0])
+        let o = triggerEffects.get(k)
+        if (o === undefined) {
+          o = [...te.effect.cells]
+          triggerEffects.set(k, o)
+        } else {
+          for (let c of te.effect.cells) {
+            o.push(c)
+          }
+        }
+      }
+    }
+  }
+
+  // determine fog lights
   let r: FogLight[] = [...data.fogLights]
   if (data.solution !== undefined) {
     digits.forEach((v, k) => {
       let [x, y] = ktoxy(k)
       let expected = data.solution![y][x]
-      if (!v.given && v.digit === expected) {
-        r.push({
-          center: [y, x],
-          size: 3,
-        })
-      } else if (v.given && v.discovered) {
-        r.push({
-          center: [y, x],
-          size: 1,
-        })
+
+      if (triggerEffects !== undefined) {
+        // use trigger effects to determine fog lights
+        let o = triggerEffects.get(k)
+        if (o !== undefined && v.digit === expected) {
+          for (let c of o) {
+            r.push({
+              center: c,
+              size: 1,
+            })
+          }
+        }
+      } else {
+        // No trigger effects available. Just compare with the expected solution
+        if (!v.given && v.digit === expected) {
+          // if digit is not given, uncover a square of 3x3 cells
+          r.push({
+            center: [y, x],
+            size: 3,
+          })
+        } else if (v.given && v.discovered) {
+          // if the digit is given, uncover only this very cell
+          r.push({
+            center: [y, x],
+            size: 1,
+          })
+        }
       }
     })
   }

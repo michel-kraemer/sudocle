@@ -1,4 +1,6 @@
 type Target = "cell-grids" | "overlay" | "underlay" | "cages"
+export type TriggerEffectType = "foglight"
+export type TriggerType = "cellvalue"
 
 export interface DataCell {
   value?: number | string
@@ -71,6 +73,11 @@ export interface Settings {
   nogrid: boolean
 }
 
+export interface TriggerEffect {
+  effect: { type: TriggerEffectType; cells: [number, number][] }
+  trigger: { type: TriggerType; cell: [number, number] }
+}
+
 export interface Data {
   readonly cellSize: number
   readonly cells: DataCell[][]
@@ -89,5 +96,6 @@ export interface Data {
   readonly rules?: string
   readonly metadata?: Metadata
   readonly settings?: Settings
+  readonly triggerEffects: TriggerEffect[]
   readonly solved: boolean
 }
