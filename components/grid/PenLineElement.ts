@@ -60,6 +60,10 @@ class PenLineElement implements GridElement {
       yy += cellSize / 2
     }
 
+    if (type === PenLineType.EdgeRightUp) {
+      yy += cellSize
+    }
+
     this.graphics.moveTo(xx, yy)
     switch (type) {
       case PenLineType.CenterRight:
