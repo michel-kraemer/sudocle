@@ -965,7 +965,7 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
     })
   }
 
-  let triggerEffects: TriggerEffect[] = []
+  let triggerEffects: TriggerEffect[] | undefined = undefined
   if (puzzle.triggereffect !== undefined) {
     if (isArray(puzzle.triggereffect)) {
       for (let te of puzzle.triggereffect) {
@@ -990,6 +990,9 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
         }
 
         if (effect !== undefined && trigger !== undefined) {
+          if (triggerEffects === undefined) {
+            triggerEffects = []
+          }
           triggerEffects.push({ effect, trigger })
         }
       }

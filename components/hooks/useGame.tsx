@@ -180,7 +180,7 @@ function makeFogLights(
 
   // convert trigger effects to map if there is one
   let triggerEffects: Map<number, [number, number][]> | undefined
-  if (data.triggerEffects.length > 0) {
+  if (data.triggerEffects !== undefined && data.triggerEffects.length > 0) {
     triggerEffects = new Map()
     for (let te of data.triggerEffects) {
       if (te.effect.type === "foglight") {

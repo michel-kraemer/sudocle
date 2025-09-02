@@ -96,6 +96,6 @@ export interface Data {
   readonly rules?: string
   readonly metadata?: Metadata
   readonly settings?: Settings
-  readonly triggerEffects: TriggerEffect[]
+  readonly triggerEffects?: TriggerEffect[]
   readonly solved: boolean
 }

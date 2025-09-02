@@ -256,7 +256,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
     settings.nogrid = true
   }
 
-  let triggerEffects: TriggerEffect[] = []
+  let triggerEffects: TriggerEffect[] | undefined = undefined
   if (puzzle.triggereffect !== undefined) {
     if (isArray(puzzle.triggereffect)) {
       for (let te of puzzle.triggereffect) {
@@ -281,6 +281,9 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
         }
 
         if (effect !== undefined && trigger !== undefined) {
+          if (triggerEffects === undefined) {
+            triggerEffects = []
+          }
           triggerEffects.push({ effect, trigger })
         }
       }
