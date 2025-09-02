@@ -3,7 +3,7 @@ import { ktopl } from "../lib/utils"
 import { DataCell } from "../types/Data"
 import { SCALE_FACTOR } from "./Grid"
 import { DrawOptionField, GridElement } from "./GridElement"
-import { Graphics, RenderTexture, Renderer, Sprite } from "pixi.js"
+import { Graphics, RenderTexture, Renderer, Sprite, Texture } from "pixi.js"
 
 export enum PenLineType {
   CenterRight = 0,
@@ -151,11 +151,14 @@ class PenLineElement implements GridElement {
       })
     }
 
-    // render this.graphics into offscreen render texture and update sprite
+    // render this.graphics into offscreen render texture
     this.renderer.render({
       container: this.graphics,
       target: this.renderTexture,
     })
+
+    // reset sprite texture: this correctly updates the sprite's size and bounds
+    this.sprite.texture = Texture.EMPTY
     this.sprite.texture = this.renderTexture
   }
 }
