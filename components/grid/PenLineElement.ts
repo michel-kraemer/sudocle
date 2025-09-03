@@ -3,7 +3,15 @@ import { ktopl } from "../lib/utils"
 import { DataCell } from "../types/Data"
 import { SCALE_FACTOR } from "./Grid"
 import { DrawOptionField, GridElement } from "./GridElement"
-import { Graphics, RenderTexture, Renderer, Sprite, Texture } from "pixi.js"
+import { PEN_MAX_WIDTH } from "./PenElement"
+import {
+  Graphics,
+  Matrix,
+  RenderTexture,
+  Renderer,
+  Sprite,
+  Texture,
+} from "pixi.js"
 
 export enum PenLineType {
   CenterRight = 0,
@@ -100,9 +108,11 @@ class PenLineElement implements GridElement {
     palettePenColours: number[]
     penWidth: number
   }) {
-    // update offscreen render texture
-    let width = this.cells[0].length * options.cellSize
-    let height = this.cells.length * options.cellSize
+    // Update offscreen render texture. Add margin so lines on the grid's edge
+    // are fully visible.
+    let margin = (PEN_MAX_WIDTH - 1) * SCALE_FACTOR
+    let width = this.cells[0].length * options.cellSize + margin * 2
+    let height = this.cells.length * options.cellSize + margin * 2
     if (this.renderTexture === undefined) {
       this.renderTexture = RenderTexture.create({
         width,
@@ -128,7 +138,7 @@ class PenLineElement implements GridElement {
         options.palettePenColours[1] ??
         options.palettePenColours[0]
 
-      let width: number
+      let penWidth: number
       if (
         options.penWidth <= 2 &&
         (t === PenLineType.CenterRightUp ||
@@ -136,15 +146,15 @@ class PenLineElement implements GridElement {
           t === PenLineType.CenterRightDown ||
           t === PenLineType.EdgeRightDown)
       ) {
-        width = options.penWidth * SCALE_FACTOR * 1.1
+        penWidth = options.penWidth * SCALE_FACTOR * 1.1
       } else {
-        width = options.penWidth * SCALE_FACTOR
+        penWidth = options.penWidth * SCALE_FACTOR
       }
 
       this.drawLine(x, y, t, options.cellSize)
 
       this.graphics.stroke({
-        width,
+        width: penWidth,
         color,
         cap: "round",
         join: "round",
@@ -152,14 +162,20 @@ class PenLineElement implements GridElement {
     }
 
     // render this.graphics into offscreen render texture
+    // take margin into account
     this.renderer.render({
       container: this.graphics,
       target: this.renderTexture,
+      transform: new Matrix().translate(margin, margin),
     })
 
     // reset sprite texture: this correctly updates the sprite's size and bounds
     this.sprite.texture = Texture.EMPTY
     this.sprite.texture = this.renderTexture
+
+    // move sprite
+    this.sprite.x = -margin
+    this.sprite.y = -margin
   }
 }
 
