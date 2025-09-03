@@ -1017,6 +1017,18 @@ export const useGame = create<GameStateWithActions>()(
               // fix invalid line breaks in rules
               canonicalData.rules = canonicalData.rules.replaceAll(/\\n/g, "\n")
             }
+
+            // make sure the 'fogLights' is initialized if there are trigger
+            // effects for fog
+            if (
+              canonicalData.fogLights === undefined &&
+              canonicalData.triggerEffects !== undefined &&
+              canonicalData.triggerEffects.some(
+                e => e.effect.type === "foglight",
+              )
+            ) {
+              canonicalData.fogLights = []
+            }
           }
 
           return makeEmptyState(canonicalData)
