@@ -64,5 +64,11 @@ export function calculateCellExtent(data: Data): CellExtent {
     }
   }
 
+  if (data.triggerEffects !== undefined) {
+    for (let te of data.triggerEffects) {
+      add(r, te.effect.cells)
+    }
+  }
+
   return r
 }
