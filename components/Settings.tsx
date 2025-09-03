@@ -1,6 +1,7 @@
 import Palette from "./Palette"
 import RadioGroup from "./RadioGroup"
 import RangeSlider from "./RangeSlider"
+import { PEN_MAX_WIDTH } from "./grid/PenElement"
 import { useSettings } from "./hooks/useSettings"
 import { useEffect, useRef, useState } from "react"
 import { useShallow } from "zustand/react/shallow"
@@ -260,7 +261,7 @@ const Settings = () => {
           id="pen-width"
           label="Width"
           min={0.5}
-          max={5}
+          max={PEN_MAX_WIDTH}
           step={0.5}
           value={penWidth}
           onChange={setPenWidth}

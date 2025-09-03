@@ -8,6 +8,8 @@ import { PenLineType } from "./PenLineElement"
 import { produce } from "immer"
 import { Container, FederatedPointerEvent, Graphics, Rectangle } from "pixi.js"
 
+export const PEN_MAX_WIDTH = 5
+
 function penWaypointsToKey(
   wp1: number,
   wp2: number,
@@ -295,7 +297,7 @@ class PenElement implements GridElement {
         this.wayPointsGraphics.lineTo((p[0] + d) * cs, (p[1] + d) * cs)
       }
       this.wayPointsGraphics.stroke({
-        width: 5 * SCALE_FACTOR,
+        width: PEN_MAX_WIDTH * SCALE_FACTOR,
         color,
         cap: "round",
         join: "round",
@@ -305,10 +307,10 @@ class PenElement implements GridElement {
 
   private updateHitArea(cellSize: number) {
     this.hitAreaGraphics.hitArea = new Rectangle(
-      0,
-      0,
-      this.cells[0].length * cellSize,
-      this.cells.length * cellSize,
+      -PEN_MAX_WIDTH,
+      -PEN_MAX_WIDTH,
+      this.cells[0].length * cellSize + PEN_MAX_WIDTH * 2,
+      this.cells.length * cellSize + PEN_MAX_WIDTH * 2,
     )
 
     this.hitAreaGraphics.removeAllListeners()
