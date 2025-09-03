@@ -1,13 +1,23 @@
 import { unionCells } from "../lib/utils"
+import { DataCell } from "../types/Data"
 import { DrawOptionField, GridElement } from "./GridElement"
 import { DropShadowFilter } from "pixi-filters/drop-shadow"
-import { Graphics } from "pixi.js"
+import { Container, Graphics } from "pixi.js"
 
 class FogElement implements GridElement {
-  readonly graphics: Graphics
+  readonly container: Container
+  private readonly graphics: Graphics
+  private readonly mask: Graphics
+  private readonly cells: DataCell[][]
 
-  constructor(enableDropShadow: boolean) {
+  constructor(cells: DataCell[][], enableDropShadow: boolean) {
+    this.container = new Container()
     this.graphics = new Graphics()
+    this.mask = new Graphics()
+    this.container.addChild(this.graphics)
+    this.container.addChild(this.mask)
+
+    this.cells = cells
 
     if (enableDropShadow) {
       let dropShadow = new DropShadowFilter({
@@ -20,10 +30,13 @@ class FogElement implements GridElement {
       dropShadow.padding = 20
       this.graphics.filters = [dropShadow]
     }
+
+    this.graphics.mask = this.mask
   }
 
   clear() {
     this.graphics.clear()
+    this.mask.clear()
   }
 
   drawOptionsToMemoize(): DrawOptionField[] {
@@ -47,6 +60,13 @@ class FogElement implements GridElement {
       })
     })
 
+    // draw mask that is just as large as the grid
+    let maskWidth = this.cells[0].length * options.cellSize
+    let maskHeight = this.cells.length * options.cellSize
+    this.mask.rect(0, 0, maskWidth, maskHeight)
+    this.mask.fill(0)
+
+    // draw fog
     let polygons = unionCells(flatCells)
     for (let polygon of polygons) {
       let poly = polygon.map(o => o.map(r => r * options.cellSize))

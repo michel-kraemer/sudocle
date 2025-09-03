@@ -552,8 +552,11 @@ const Grid = ({
     if (game.data.fogLights !== undefined) {
       let fogContainer = new Container()
       fogContainer.zIndex = -1
-      let fog = new FogElement(fogDisplayOptions.enableDropShadow)
-      fogContainer.addChild(fog.graphics)
+      let fog = new FogElement(
+        game.data.cells,
+        fogDisplayOptions.enableDropShadow,
+      )
+      fogContainer.addChild(fog.container)
       fogElements.current.push(fog)
       all.addChild(fogContainer)
 
