@@ -6,6 +6,11 @@ import { useSettings } from "./hooks/useSettings"
 import { useEffect, useRef, useState } from "react"
 import { useShallow } from "zustand/react/shallow"
 
+const DEFAULT_ZOOM = 1
+const DEFAULT_FONTSIZEFACTOR = 1
+const DEFAULT_PEN_WIDTH = 2
+const DEFAULT_PEN_OPACITY = 1
+
 const PaletteLabel = ({ children }: { children: React.ReactNode }) => (
   <div className="flex flex-col items-start">{children}</div>
 )
@@ -67,7 +72,7 @@ const Settings = () => {
   }
 
   function zoomValueToDescription(value: number) {
-    if (value === 1) {
+    if (value === DEFAULT_ZOOM) {
       return "Default"
     }
     return `x${value}`
@@ -78,7 +83,7 @@ const Settings = () => {
       return "Tiny"
     } else if (value === 0.875) {
       return "Small"
-    } else if (value === 1) {
+    } else if (value === DEFAULT_FONTSIZEFACTOR) {
       return "Normal"
     } else if (value === 1.125) {
       return "Large"
@@ -93,14 +98,14 @@ const Settings = () => {
   }
 
   function penWidthToDescription(value: number) {
-    if (value === 2) {
+    if (value === DEFAULT_PEN_WIDTH) {
       return "Default"
     }
     return `${value}`
   }
 
   function penOpacityToDescription(value: number) {
-    if (value === 1) {
+    if (value === DEFAULT_PEN_OPACITY) {
       return "Default"
     }
     return `${value}`
@@ -212,6 +217,7 @@ const Settings = () => {
           max={1.25}
           step={0.05}
           value={zoom}
+          defaultValue={DEFAULT_ZOOM}
           onChange={setZoom}
           valueToDescription={zoomValueToDescription}
         />
@@ -226,6 +232,7 @@ const Settings = () => {
           max={1.5}
           step={0.125}
           value={fontSizeFactorDigits}
+          defaultValue={DEFAULT_FONTSIZEFACTOR}
           onChange={setFontSizeFactorDigits}
           valueToDescription={fontSizeValueToDescription}
         />
@@ -238,6 +245,7 @@ const Settings = () => {
           max={1.5}
           step={0.125}
           value={fontSizeFactorCornerMarks}
+          defaultValue={DEFAULT_FONTSIZEFACTOR}
           onChange={setFontSizeFactorCornerMarks}
           valueToDescription={fontSizeValueToDescription}
         />
@@ -251,6 +259,7 @@ const Settings = () => {
           step={0.125}
           value={fontSizeFactorCentreMarks}
           onChange={setFontSizeFactorCentreMarks}
+          defaultValue={DEFAULT_FONTSIZEFACTOR}
           valueToDescription={fontSizeValueToDescription}
         />
       </div>
@@ -264,6 +273,7 @@ const Settings = () => {
           max={PEN_MAX_WIDTH}
           step={0.5}
           value={penWidth}
+          defaultValue={DEFAULT_PEN_WIDTH}
           onChange={setPenWidth}
           valueToDescription={penWidthToDescription}
         />
@@ -276,6 +286,7 @@ const Settings = () => {
           max={1}
           step={0.05}
           value={penOpacity}
+          defaultValue={DEFAULT_PEN_OPACITY}
           onChange={setPenOpacity}
           valueToDescription={penOpacityToDescription}
         />

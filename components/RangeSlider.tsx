@@ -9,6 +9,7 @@ interface RangeSliderProps {
   step?: number
   label?: ReactNode
   value: number
+  defaultValue: number
   onChange: (value: number) => void
   valueChangeOnMouseUp?: boolean
   valueToDescription: (value: number) => string | undefined
@@ -21,6 +22,7 @@ const RangeSlider = ({
   step = 1,
   label,
   value,
+  defaultValue,
   onChange,
   valueToDescription,
 }: RangeSliderProps) => {
@@ -45,12 +47,21 @@ const RangeSlider = ({
     setDescriptionPosition(((v - min) * 100) / (max - min))
   }
 
-  function onPointerDown() {
-    setDescriptionVisible(true)
+  function onPointerDown(e: React.PointerEvent) {
+    if (e.altKey) {
+      onDefault(e)
+    } else {
+      setDescriptionVisible(true)
+    }
   }
 
   function onPointerUp() {
     setDescriptionVisible(false)
+  }
+
+  function onDefault(e: React.MouseEvent) {
+    onChangeInternal([defaultValue])
+    e.preventDefault()
   }
 
   return (
@@ -67,6 +78,7 @@ const RangeSlider = ({
             onValueChange={onChangeInternal}
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
+            onDoubleClick={onDefault}
             min={min}
             max={max}
             step={step}
