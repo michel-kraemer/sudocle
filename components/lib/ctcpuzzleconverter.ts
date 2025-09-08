@@ -222,6 +222,26 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let arrows: Arrow[] = puzzle.arrows
 
   let fogLights: FogLight[] | undefined = undefined
+  if (
+    puzzle.foglight !== undefined &&
+    isArray(puzzle.foglight) &&
+    puzzle.foglight.length > 0
+  ) {
+    fogLights = []
+    for (let l of puzzle.foglight) {
+      if (isString(l)) {
+        fogLights.push({
+          center: parseCells(l)[0],
+          size: 1,
+        })
+      } else {
+        fogLights.push({
+          center: l,
+          size: 1,
+        })
+      }
+    }
+  }
 
   let solution: (number | undefined)[][] | undefined = undefined
   if (isString(puzzle.metadata?.solution)) {
