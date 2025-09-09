@@ -40,7 +40,14 @@ import lzwDecompress from "../../components/lib/lzwdecompressor"
 import { Data } from "../../components/types/Data"
 import FontFaceObserver from "fontfaceobserver"
 import { enableMapSet } from "immer"
-import { CircleEllipsis, Frown, Pause, Sprout, ThumbsUp } from "lucide-react"
+import {
+  Check,
+  CircleEllipsis,
+  Frown,
+  Pause,
+  Sprout,
+  ThumbsUp,
+} from "lucide-react"
 import {
   MouseEvent,
   ReactNode,
@@ -750,13 +757,19 @@ const IndexPage = () => {
           ) : undefined}
           {paused && (
             <div className="fixed inset-0 bg-bg/75 flex justify-center items-center backdrop-blur-lg">
-              <div className="flex flex-col justify-center items-center">
+              <div className="flex flex-col justify-center items-center mb-8">
                 <div className="font-medium pt-5 flex items-center text-sm mb-4">
                   <Pause size="1.3rem" className="mr-1 mb-px" /> Game paused
                 </div>
                 <div className="w-16 text-[0.6rem] mt-0.5">
                   <Button onClick={onContinue}>Continue</Button>
                 </div>
+              </div>
+              <div className="absolute bottom-3 text-[0.6rem] text-gray-600 dark:text-gray-400 flex flex-row items-start gap-1 px-4">
+                <span className="text-green-700 dark:text-green-600 mb-[0.5rem]">
+                  <Check size="0.9rem" />
+                </span>
+                Game saved. You may now close this page and continue later.
               </div>
             </div>
           )}
