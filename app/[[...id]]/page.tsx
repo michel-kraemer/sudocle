@@ -55,10 +55,21 @@ enableMapSet()
 
 const IndexPage = () => {
   const game: GameState = useGame()
-  const { updateGame, paused } = useGame(
+  const {
+    updateGame,
+    paused,
+    saveGame,
+    hasSavedGame,
+    loadSavedGame,
+    deleteSavedGame,
+  } = useGame(
     useShallow(state => ({
       updateGame: state.updateGame,
       paused: state.paused,
+      saveGame: state.saveGame,
+      hasSavedGame: state.hasSavedGame,
+      loadSavedGame: state.loadSavedGame,
+      deleteSavedGame: state.deleteSavedGame,
     })),
   )
   const { colourPalette } = useSettings(
@@ -80,6 +91,7 @@ const IndexPage = () => {
   const [errorModalOpen, setErrorModalOpen] = useState<boolean>(false)
   const [isTest, setIsTest] = useState(false)
   const [fontsLoaded, setFontsLoaded] = useState(false)
+  const didCheckForSavedGame = useRef<boolean>(false)
 
   function onMouseDown(e: MouseEvent<HTMLDivElement>) {
     // check if we hit a target that would clear the selection
@@ -122,7 +134,7 @@ const IndexPage = () => {
   }
 
   const loadCompressedPuzzleFromString = useCallback(
-    (str: string) => {
+    (id: string, str: string) => {
       let puzzle: string
       if (str.length > 16 && str.startsWith("fpuzzles")) {
         puzzle = decodeURIComponent(str.substring(8))
@@ -171,6 +183,7 @@ const IndexPage = () => {
 
       updateGame({
         type: TYPE_INIT,
+        puzzleId: id,
         data: convertedPuzzle,
       })
     },
@@ -199,6 +212,7 @@ const IndexPage = () => {
       setIsTest(true)
       updateGame({
         type: TYPE_INIT,
+        puzzleId: JSON.stringify(json),
         data: json,
       })
       return json
@@ -213,7 +227,7 @@ const IndexPage = () => {
         data.startsWith("ctc") ||
         data.startsWith("scl")
       ) {
-        loadCompressedPuzzleFromString(data)
+        loadCompressedPuzzleFromString(id, data)
       } else if (data === "test") {
         loadFromTest()
       } else if (data.startsWith("{")) {
@@ -232,6 +246,7 @@ const IndexPage = () => {
         }
         updateGame({
           type: TYPE_INIT,
+          puzzleId: id,
           data: json,
         })
       } else {
@@ -657,6 +672,36 @@ const IndexPage = () => {
         break
     }
   }, [game.errors, game.checkCounter])
+
+  // load saved game after initialize and save game state on pause
+  useEffect(() => {
+    if (game.data.cells.length === 0) {
+      // game is not loaded yet
+      return
+    }
+
+    if (!didCheckForSavedGame.current) {
+      // resume game if there is a saved state
+      if (hasSavedGame()) {
+        loadSavedGame()
+      }
+      didCheckForSavedGame.current = true
+    } else {
+      // save game on pause and delete saved game on unpause
+      if (paused) {
+        saveGame()
+      } else {
+        deleteSavedGame()
+      }
+    }
+  }, [
+    game.data,
+    paused,
+    saveGame,
+    hasSavedGame,
+    loadSavedGame,
+    deleteSavedGame,
+  ])
 
   return (
     <>

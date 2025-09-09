@@ -91,6 +91,7 @@ export interface RedoAction {
 
 export interface InitAction {
   readonly type: typeof TYPE_INIT
+  readonly puzzleId: string
   readonly data?: any
 }
 

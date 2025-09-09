@@ -45,7 +45,7 @@ import parseSolution from "../lib/parsesolution"
 import { hasFog, ktoxy, xytok } from "../lib/utils"
 import { Data, DataCell, FogLight } from "../types/Data"
 import { Digit } from "../types/Game"
-import { isEqual, isString } from "lodash"
+import { isEqual, isMap, isPlainObject, isSet, isString } from "lodash"
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
 
@@ -94,6 +94,7 @@ interface PersistentGameState {
 }
 
 export interface GameState extends PersistentGameState {
+  readonly puzzleId: string
   readonly data: Data
   mode: Mode
   modeGroup: number
@@ -110,6 +111,10 @@ export interface GameState extends PersistentGameState {
 }
 
 interface GameStateWithActions extends GameState {
+  saveGame(): void
+  hasSavedGame(): boolean
+  loadSavedGame(): void
+  deleteSavedGame(): void
   updateGame(action: Action): void
 }
 
@@ -305,11 +310,12 @@ function parseFogLights(str: string): FogLight[] {
   return result
 }
 
-function makeEmptyState(data?: Data): GameState {
+function makeEmptyState(puzzleId?: string, data?: Data): GameState {
   let digits = makeGivenDigits(data)
   let fogLights = makeFogLights(data ?? EmptyData, digits)
 
   return {
+    puzzleId: puzzleId ?? "",
     data: data ?? EmptyData,
     mode: MODE_NORMAL,
     modeGroup: 0,
@@ -901,6 +907,106 @@ export const useGame = create<GameStateWithActions>()(
   immer((set, get) => ({
     ...makeEmptyState(),
 
+    saveGame: () => {
+      function gameStateToString(state: GameState): string {
+        function replacer(key: string, value: any) {
+          if (key === "puzzleId" || key === "data") {
+            return undefined
+          }
+          if (isMap(value)) {
+            let sm = Array.from(value.entries())
+            return { $type: "Map", value: sm }
+          } else if (isSet(value)) {
+            let ss = Array.from(value)
+            return { $type: "Set", value: ss }
+          }
+          return value
+        }
+
+        return JSON.stringify({ timestamp: +new Date(), state }, replacer)
+      }
+
+      function limitUndoStates(
+        state: GameState,
+        maxUndoStates: number,
+      ): GameState {
+        let limitedState = state
+        if (state.undoStates.length > maxUndoStates) {
+          let before = Math.round((maxUndoStates / 3) * 2)
+          let after = maxUndoStates - before
+          let start = state.nextUndoState - before
+          let end = state.nextUndoState + after
+          if (start < 0) {
+            end += -start
+            start = 0
+          } else if (end > state.undoStates.length) {
+            start -= end - state.undoStates.length
+            end = state.undoStates.length
+          }
+          limitedState = { ...state }
+          limitedState.undoStates = state.undoStates.slice(start, end)
+          limitedState.nextUndoState = state.nextUndoState - start
+        }
+        return limitedState
+      }
+
+      let state = get()
+
+      // TODO clean unused saved games after XX days
+
+      // The maximum size of key+value in localStorage is 5MB. Limit the number
+      // of undo states to 100 and then even further until the saved game state
+      // is smaller than 2MB (just to be on the safe side)
+      let key = `SudocleSavedGame_${state.puzzleId}`
+      let maxUndoStates = 100
+      let limitedState = limitUndoStates(state, maxUndoStates)
+      let str = gameStateToString(limitedState)
+      while (maxUndoStates > 0 && key.length + str.length > 1024 * 1024 * 2) {
+        maxUndoStates -= 1
+        limitedState = limitUndoStates(state, maxUndoStates)
+        str = gameStateToString(limitedState)
+      }
+
+      window.localStorage.setItem(key, str)
+    },
+
+    hasSavedGame: () => {
+      let state = get()
+      return localStorage.getItem(`SudocleSavedGame_${state.puzzleId}`) !== null
+    },
+
+    loadSavedGame: () =>
+      set(draft => {
+        function stringToGameState(str: string): any {
+          function reviver(_key: string, value: any) {
+            if (isPlainObject(value) && "$type" in value && "value" in value) {
+              if (value.$type === "Map") {
+                return new Map(value.value)
+              } else if (value.$type === "Set") {
+                return new Set(value.value)
+              }
+            }
+            return value
+          }
+
+          return JSON.parse(str, reviver)
+        }
+
+        let str = localStorage.getItem(`SudocleSavedGame_${draft.puzzleId}`)
+        if (str === null) {
+          // nothing to load
+          return
+        }
+
+        let loadedState = stringToGameState(str)
+        Object.assign(draft, loadedState.state)
+      }),
+
+    deleteSavedGame: () => {
+      let state = get()
+      window.localStorage.removeItem(`SudocleSavedGame_${state.puzzleId}`)
+    },
+
     updateGame: (action: Action) =>
       set(draft => {
         if (action.type === TYPE_INIT) {
@@ -1031,7 +1137,7 @@ export const useGame = create<GameStateWithActions>()(
             }
           }
 
-          return makeEmptyState(canonicalData)
+          return makeEmptyState(action.puzzleId, canonicalData)
         }
 
         if (action.type !== TYPE_PAUSE && draft.paused) {
