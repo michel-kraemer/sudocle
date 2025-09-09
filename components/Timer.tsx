@@ -9,9 +9,10 @@ interface TimerProps {
 
 const Timer = ({ solved }: TimerProps) => {
   const paused = useGame(state => state.paused)
+  const timerOnPause = useGame(state => state.timerOnPause)
   const updateGame = useGame(state => state.updateGame)
 
-  const [start] = useState(+new Date())
+  const [start, setStart] = useState(+new Date())
   const [end, setEnd] = useState<number>()
   const [next, setNext] = useState(+new Date())
   const [s, setSeconds] = useState(0)
@@ -20,16 +21,21 @@ const Timer = ({ solved }: TimerProps) => {
   const [pausedElapsed, setPausedElapsed] = useState(0)
   const pauseStart = useRef<number>(undefined)
   const nextTimer = useRef<number>(undefined)
+  const lastTimerOnPause = useRef<number>(0)
 
   if (solved && end === undefined) {
     setEnd(+new Date())
   }
 
   const onPause = useCallback(() => {
+    let now = end ?? +new Date()
+    let elapsed = now - start - pausedElapsed
+    lastTimerOnPause.current = elapsed
     updateGame({
       type: TYPE_PAUSE,
+      timerOnPause: elapsed,
     })
-  }, [updateGame])
+  }, [updateGame, start, end, pausedElapsed])
 
   useEffect(() => {
     if (solved) {
@@ -38,12 +44,19 @@ const Timer = ({ solved }: TimerProps) => {
     }
     if (paused) {
       pauseStart.current = +new Date()
+      if (lastTimerOnPause.current !== timerOnPause) {
+        // The timer was not paused using `onPause`. This usually means the
+        // `timerOnPause` value comes from a saved game. Reset `start` to
+        // simulate that `timerOnPause` milliseconds have already been elapsed.
+        setStart(oldStart => oldStart - timerOnPause)
+        setPausedElapsed(0)
+      }
     } else if (pauseStart.current !== undefined) {
       let elapsed = +new Date() - pauseStart.current
       setPausedElapsed(oldElapsed => oldElapsed + elapsed)
       setNext(+new Date())
     }
-  }, [paused, pauseStart, solved])
+  }, [paused, timerOnPause, solved])
 
   useEffect(() => {
     clearTimeout(nextTimer.current)

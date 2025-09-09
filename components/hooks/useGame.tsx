@@ -31,6 +31,7 @@ import {
   TYPE_REDO,
   TYPE_SELECTION,
   TYPE_UNDO,
+  TYPE_UNPAUSE,
 } from "../lib/Actions"
 import {
   MODE_CENTRE,
@@ -107,6 +108,7 @@ export interface GameState extends PersistentGameState {
   nextUndoState: number
   solved: boolean
   paused: boolean
+  timerOnPause: number
   checkCounter: number
 }
 
@@ -333,6 +335,7 @@ function makeEmptyState(puzzleId?: string, data?: Data): GameState {
     nextUndoState: 0,
     solved: data?.solved ?? false,
     paused: false,
+    timerOnPause: 0,
     checkCounter: 0,
     fogLights,
     fogRaster: makeFogRaster(data ?? EmptyData, fogLights),
@@ -1140,7 +1143,7 @@ export const useGame = create<GameStateWithActions>()(
           return makeEmptyState(action.puzzleId, canonicalData)
         }
 
-        if (action.type !== TYPE_PAUSE && draft.paused) {
+        if (action.type !== TYPE_UNPAUSE && draft.paused) {
           // ignore any interaction when paused
           return
         }
@@ -1185,7 +1188,12 @@ export const useGame = create<GameStateWithActions>()(
         }
 
         if (action.type === TYPE_PAUSE) {
-          draft.paused = !draft.paused
+          draft.paused = true
+          draft.timerOnPause = action.timerOnPause
+          return
+        }
+        if (action.type === TYPE_UNPAUSE) {
+          draft.paused = false
           return
         }
 

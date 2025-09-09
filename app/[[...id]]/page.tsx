@@ -22,10 +22,10 @@ import {
   TYPE_INIT,
   TYPE_MODE,
   TYPE_MODE_GROUP,
-  TYPE_PAUSE,
   TYPE_REDO,
   TYPE_SELECTION,
   TYPE_UNDO,
+  TYPE_UNPAUSE,
 } from "../../components/lib/Actions"
 import {
   MODE_CENTRE,
@@ -117,7 +117,7 @@ const IndexPage = () => {
 
   const onContinue = useCallback(() => {
     updateGame({
-      type: TYPE_PAUSE,
+      type: TYPE_UNPAUSE,
     })
   }, [updateGame])
 
