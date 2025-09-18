@@ -51,7 +51,7 @@
     "eslint": "^9.35.0",
     "eslint-config-next": "15.5.2",
     "eslint-webpack-plugin": "^5.0.2",
-    "npm-check-updates": "^18.1.0",
+    "npm-check-updates": "^18.2.1",
     "odiff-bin": "^3.2.1",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
