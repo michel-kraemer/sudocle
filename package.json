@@ -55,7 +55,7 @@
     "odiff-bin": "^3.2.1",
     "postcss": "^8.5.6",
     "prettier": "^3.6.2",
-    "prettier-plugin-tailwindcss": "^0.6.14",
+    "prettier-plugin-tailwindcss": "^0.7.1",
     "start-server-and-test": "^2.1.0",
     "tailwindcss": "^4.1.13"
   },
