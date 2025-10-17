@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
-    "@playwright/test": "^1.55.0",
+    "@playwright/test": "^1.56.1",
     "@tailwindcss/postcss": "^4.1.13",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/color": "^4.2.0",
