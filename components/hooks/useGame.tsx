@@ -215,7 +215,11 @@ function makeFogLights(
       if (triggerEffects !== undefined) {
         // use trigger effects to determine fog lights
         let o = triggerEffects.get(k)
-        if (o !== undefined && v.digit === expected) {
+        if (
+          o !== undefined &&
+          v.digit === expected &&
+          (!v.given || v.discovered)
+        ) {
           for (let c of o) {
             r.push({
               center: c,
