@@ -223,11 +223,7 @@ export function convertCTCPuzzle(strPuzzle: string): Data {
   let arrows: Arrow[] = puzzle.arrows
 
   let fogLights: FogLight[] | undefined = undefined
-  if (
-    puzzle.foglight !== undefined &&
-    isArray(puzzle.foglight) &&
-    puzzle.foglight.length > 0
-  ) {
+  if (puzzle.foglight !== undefined && isArray(puzzle.foglight)) {
     fogLights = []
     for (let l of puzzle.foglight) {
       if (isString(l)) {
