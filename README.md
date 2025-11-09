@@ -88,7 +88,7 @@ Here are some random screenshots (no spoilers!):
 
 ## Building and running Sudocle locally
 
-Sudocle requires [Node.js](https://nodejs.org/) v15 or higher. Run the
+Sudocle requires [Node.js](https://nodejs.org/) v20 or higher. Run the
 application in development mode with the following commands:
 
     npm install
