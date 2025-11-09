@@ -980,13 +980,15 @@ export function convertFPuzzle(puzzle: FPuzzlesData): Data {
           effect = { type: "foglight", cells: parseCells(te.effect.cells) }
         }
 
-        let trigger: { type: TriggerType; cell: [number, number] } | undefined
+        let trigger:
+          | { type: TriggerType; cells: [number, number][] }
+          | undefined
         if (
           te.trigger !== undefined &&
           te.trigger.type === "cellvalue" &&
           isString(te.trigger.cell)
         ) {
-          trigger = { type: "cellvalue", cell: parseCells(te.trigger.cell)[0] }
+          trigger = { type: "cellvalue", cells: parseCells(te.trigger.cell) }
         }
 
         if (effect !== undefined && trigger !== undefined) {

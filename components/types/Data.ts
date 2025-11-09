@@ -75,7 +75,7 @@ export interface Settings {
 
 export interface TriggerEffect {
   effect: { type: TriggerEffectType; cells: [number, number][] }
-  trigger: { type: TriggerType; cell: [number, number] }
+  trigger: { type: TriggerType; cells: [number, number][] }
 }
 
 export interface Data {

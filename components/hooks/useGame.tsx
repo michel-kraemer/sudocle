@@ -185,66 +185,80 @@ function makeFogLights(
     return undefined
   }
 
-  // convert trigger effects to map if there is one
-  let triggerEffects: Map<number, [number, number][]> | undefined
+  let r: FogLight[] = [...data.fogLights]
+  if (data.solution === undefined) {
+    return r
+  }
+
   if (data.triggerEffects !== undefined && data.triggerEffects.length > 0) {
-    triggerEffects = new Map()
+    // use trigger effects to determine fog lights:
+    // build a map that stores for each cell which digits must be correct
+    let triggerEffects: Map<number, [number, number][][]> = new Map()
     for (let te of data.triggerEffects) {
       if (te.effect.type === "foglight") {
-        let k = xytok(te.trigger.cell[1], te.trigger.cell[0])
-        let o = triggerEffects.get(k)
-        if (o === undefined) {
-          o = [...te.effect.cells]
-          triggerEffects.set(k, o)
-        } else {
-          for (let c of te.effect.cells) {
-            o.push(c)
+        for (let target of te.effect.cells) {
+          let k = xytok(target[1], target[0])
+          let o = triggerEffects.get(k)
+          if (o === undefined) {
+            o = [[...te.trigger.cells]]
+            triggerEffects.set(k, o)
+          } else {
+            o.push([...te.trigger.cells])
           }
         }
       }
     }
-  }
 
-  // determine fog lights
-  let r: FogLight[] = [...data.fogLights]
-  if (data.solution !== undefined) {
-    digits.forEach((v, k) => {
-      let [x, y] = ktoxy(k)
-      let expected = data.solution![y][x]
-
-      if (triggerEffects !== undefined) {
-        // use trigger effects to determine fog lights
-        let o = triggerEffects.get(k)
-        if (
-          o !== undefined &&
-          v.digit === expected &&
-          (!v.given || v.discovered)
-        ) {
-          for (let c of o) {
+    // for each cell in the grid, check if there is at least one trigger effect
+    // where all digits are correct
+    for (let y = 0; y < data.cells.length; ++y) {
+      for (let x = 0; x < data.cells[y].length; ++x) {
+        let k = xytok(x, y)
+        let triggers = triggerEffects.get(k)
+        if (triggers !== undefined) {
+          if (
+            triggers.some(t =>
+              t.every(c => {
+                let ck = xytok(c[1], c[0])
+                let expected = data.solution![c[0]][c[1]]
+                let v = digits.get(ck)
+                return (
+                  v !== undefined &&
+                  v.digit === expected &&
+                  (!v.given || v.discovered)
+                )
+              }),
+            )
+          ) {
             r.push({
-              center: c,
+              center: [y, x],
               size: 1,
             })
           }
         }
-      } else {
-        // No trigger effects available. Just compare with the expected solution
-        if (!v.given && v.digit === expected) {
-          // if digit is not given, uncover a square of 3x3 cells
-          r.push({
-            center: [y, x],
-            size: 3,
-          })
-        } else if (v.given && v.discovered) {
-          // if the digit is given, uncover only this very cell
-          r.push({
-            center: [y, x],
-            size: 1,
-          })
-        }
+      }
+    }
+  } else {
+    // No trigger effects available. Just compare with the expected solution
+    digits.forEach((v, k) => {
+      let [x, y] = ktoxy(k)
+      let expected = data.solution![y][x]
+      if (!v.given && v.digit === expected) {
+        // if digit is not given, uncover a square of 3x3 cells
+        r.push({
+          center: [y, x],
+          size: 3,
+        })
+      } else if (v.given && v.discovered) {
+        // if the digit is given, uncover only this very cell
+        r.push({
+          center: [y, x],
+          size: 1,
+        })
       }
     })
   }
+
   return r
 }
 
