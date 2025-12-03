@@ -31,7 +31,7 @@
     "memoize-one": "^6.0.0",
     "mini-svg-data-uri": "^1.4.4",
     "next": "15.5.7",
-    "pixi-filters": "^6.1.4",
+    "pixi-filters": "^6.1.5",
     "pixi.js": "8.14.0",
     "polygon-clipping": "^0.15.7",
     "react": "19.2.0",
