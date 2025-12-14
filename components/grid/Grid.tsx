@@ -1285,16 +1285,23 @@ const Grid = ({
     let marginLeft = gridBounds!.x - allBounds!.x
     let marginRight =
       allBounds!.x + allBounds!.width - (gridBounds!.x + gridBounds!.width)
-    let additionalMarginX = 0
-    let additionalMarginY = 0
-    if (portrait) {
-      additionalMarginX = Math.abs(marginLeft - marginRight)
-    } else {
-      additionalMarginY = Math.abs(marginTop - marginBottom)
-    }
 
     let w = allBounds!.width
     let h = allBounds!.height
+
+    let additionalMarginX = 0
+    let additionalMarginY = 0
+    if (portrait) {
+      additionalMarginX = Math.min(
+        Math.abs(marginLeft - marginRight),
+        maxWidth - w,
+      )
+    } else {
+      additionalMarginY = Math.min(
+        Math.abs(marginTop - marginBottom),
+        maxHeight - h,
+      )
+    }
 
     app.renderer.resize(w, h)
     allElement.current!.x = -allBounds!.x
