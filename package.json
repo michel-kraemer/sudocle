@@ -36,7 +36,7 @@
     "polygon-clipping": "^0.15.7",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.10"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
